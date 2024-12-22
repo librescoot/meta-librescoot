@@ -1,0 +1,28 @@
+From cb8be3f3bc32a7a7d1caccfa8282074d62862e24 Mon Sep 17 00:00:00 2001
+From: Danylo Storozhev <office@storozhev.net>
+Date: Mon, 14 Oct 2024 08:44:28 +0000
+Subject: [PATCH] defconfig
+
+---
+ Makefile | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/Makefile b/Makefile
+index d233f836dba..8158913215b 100644
+--- a/Makefile
++++ b/Makefile
+@@ -1288,9 +1288,8 @@ prepare3: include/config/uboot.release
+ ifneq ($(KBUILD_SRC),)
+ 	@$(kecho) '  Using $(srctree) as source for U-Boot'
+ 	$(Q)if [ -f $(srctree)/.config -o -d $(srctree)/include/config ]; then \
+-		echo >&2 "  $(srctree) is not clean, please run 'make mrproper'"; \
+-		echo >&2 "  in the '$(srctree)' directory.";\
+-		/bin/false; \
++		echo "  $(srctree) is not clean, please run 'make mrproper'"; \
++		echo "  in the '$(srctree)' directory.";\
+ 	fi;
+ endif
+ 
+-- 
+2.34.1
+

@@ -1,0 +1,27 @@
+From 802edea429b731cc441d37163d40ebb589992173 Mon Sep 17 00:00:00 2001
+From: Danylo Storozhev <office@storozhev.net>
+Date: Mon, 14 Oct 2024 09:06:23 +0000
+Subject: [PATCH] mass storage
+
+---
+ include/configs/mx6ul_14x14_evk.h | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/include/configs/mx6ul_14x14_evk.h b/include/configs/mx6ul_14x14_evk.h
+index e2e75ec4748..498cea0bb88 100644
+--- a/include/configs/mx6ul_14x14_evk.h
++++ b/include/configs/mx6ul_14x14_evk.h
+@@ -356,6 +356,10 @@
+ #define CONFIG_FEC_MXC_MDIO_BASE ENET2_BASE_ADDR
+ #endif
+ 
++#define CONFIG_USBD_HS
++
++#define CONFIG_USB_FUNCTION_MASS_STORAGE
++
+ #define CONFIG_IMX_THERMAL
+ 
+ #ifndef CONFIG_SPL_BUILD
+-- 
+2.34.1
+

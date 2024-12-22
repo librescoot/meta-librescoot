@@ -1,0 +1,25 @@
+From 1c454558b28cc8506e3f37deb00350c176a1810d Mon Sep 17 00:00:00 2001
+From: Danylo Storozhev <office@storozhev.net>
+Date: Mon, 14 Oct 2024 09:01:32 +0000
+Subject: [PATCH] spi remove
+
+---
+ include/configs/mx6ul_14x14_evk.h | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/include/configs/mx6ul_14x14_evk.h b/include/configs/mx6ul_14x14_evk.h
+index bf4653e7b94..e2e75ec4748 100644
+--- a/include/configs/mx6ul_14x14_evk.h
++++ b/include/configs/mx6ul_14x14_evk.h
+@@ -275,8 +275,6 @@
+ 
+ #define CONFIG_CMD_BMODE
+ 
+-#define CONFIG_SOFT_SPI
+-
+ #ifdef CONFIG_FSL_QSPI
+ #define CONFIG_SYS_FSL_QSPI_AHB
+ #define CONFIG_SF_DEFAULT_BUS		0
+-- 
+2.34.1
+

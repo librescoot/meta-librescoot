@@ -1,0 +1,27 @@
+From e7b94e275ad1edc148941ee6180fec3e22d9617e Mon Sep 17 00:00:00 2001
+From: Danylo Storozhev <office@storozhev.net>
+Date: Mon, 14 Oct 2024 10:20:33 +0000
+Subject: [PATCH] mender boot command
+
+---
+ include/env_default.h | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/include/env_default.h b/include/env_default.h
+index 700aedb34d5..ae631c05d24 100644
+--- a/include/env_default.h
++++ b/include/env_default.h
+@@ -34,8 +34,8 @@ const uchar default_environment[] = {
+ #ifdef	CONFIG_BOOTARGS
+ 	"bootargs="	CONFIG_BOOTARGS			"\0"
+ #endif
+-#ifdef	CONFIG_BOOTCOMMAND
+-	"bootcmd="	CONFIG_BOOTCOMMAND		"\0"
++#ifdef	CONFIG_MENDER_BOOTCOMMAND
++	"bootcmd="	CONFIG_MENDER_BOOTCOMMAND	"\0"
+ #endif
+ #ifdef	CONFIG_RAMBOOTCOMMAND
+ 	"ramboot="	CONFIG_RAMBOOTCOMMAND		"\0"
+-- 
+2.34.1
+
