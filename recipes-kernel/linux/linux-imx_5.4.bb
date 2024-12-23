@@ -28,6 +28,7 @@ SRC_URI = " ${KERNEL_SRC};branch=${SRCBRANCH} \
             file://0002-ata-ahci-fix-enum-constants-for-gcc-13.patch \
             file://mdb_defconfig \
             file://librescoot-mdb.dts \
+            file://librescoot-dbc.dts \
           "
 
 # PV is defined in the base in linux-imx.inc file and uses the LINUX_VERSION definition
