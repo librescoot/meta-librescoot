@@ -5,13 +5,17 @@ inherit core-image
 
 PLATFORM_FLAVOR    = "mx6qsabresd"
 
+IMAGE_FEATURES += "\
+    ${@bb.utils.contains('DISTRO_FEATURES', 'wayland', 'weston', \
+       bb.utils.contains('DISTRO_FEATURES',     'x11', 'x11-base', \
+                                                       '', d), d)} \
+"
+
 IMAGE_FEATURES += " \
     debug-tweaks \
     ssh-server-dropbear \
     splash \
     hwcodecs \
-    wayland \
-    weston
 "
 
 CORE_IMAGE_EXTRA_INSTALL += " \
@@ -38,7 +42,12 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     packagegroup-fsl-tools-gpu \
     flutter-engine \
     flutter-wayland-client \
-    firmwared
+    firmwared \ 
+    ${@bb.utils.contains('DISTRO_FEATURES', 'wayland', \
+                         'weston weston-init weston-examples \
+                          gtk+3-demo', '', d)} \
+    ${@bb.utils.contains('DISTRO_FEATURES', 'x11 wayland', \
+                         'weston-xwayland xterm', '', d)} \
 "
 
 IMAGE_INSTALL:append = " libubootenv-bin"
