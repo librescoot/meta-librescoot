@@ -1,0 +1,24 @@
+From 092fd49349f7e4c5b7abaa7fb5a1a2c9b871dd0d Mon Sep 17 00:00:00 2001
+From: Danylo Storozhev <daniel@storozhev.net>
+Date: Tue, 7 Jan 2025 12:58:36 +0000
+Subject: [PATCH] add kernel_addr_r
+
+---
+ include/configs/mx6sabre_common.h | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/include/configs/mx6sabre_common.h b/include/configs/mx6sabre_common.h
+index 2457049834b..098bb074f90 100644
+--- a/include/configs/mx6sabre_common.h
++++ b/include/configs/mx6sabre_common.h
+@@ -149,6 +149,7 @@
+ 	"image=zImage\0" \
+ 	"fdt_file=undefined\0" \
+ 	"fdt_addr=0x18000000\0" \
++	"kernel_addr_r=0x12000000\0" \
+ 	"tee_addr=0x20000000\0" \
+ 	"tee_file=undefined\0" \
+ 	"boot_fdt=try\0" \
+-- 
+2.34.1
+

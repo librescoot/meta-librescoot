@@ -1,0 +1,47 @@
+From fe4dca44bf1f8af4984303a18aac6daf1493c45c Mon Sep 17 00:00:00 2001
+From: Danylo Storozhev <daniel@storozhev.net>
+Date: Tue, 7 Jan 2025 11:28:28 +0000
+Subject: [PATCH] add SPI and FIT compat to configs
+
+---
+ configs/mx6solosabresd_defconfig | 4 +++-
+ include/configs/mx6sabresd.h     | 5 +++++
+ 2 files changed, 8 insertions(+), 1 deletion(-)
+
+diff --git a/configs/mx6solosabresd_defconfig b/configs/mx6solosabresd_defconfig
+index 021654b4baf..5a6de4eb9de 100644
+--- a/configs/mx6solosabresd_defconfig
++++ b/configs/mx6solosabresd_defconfig
+@@ -3,7 +3,7 @@ CONFIG_ARCH_MX6=y
+ CONFIG_TARGET_MX6SABRESD=y
+ CONFIG_VIDEO=y
+ CONFIG_SYS_EXTRA_OPTIONS="IMX_CONFIG=board/freescale/mx6sabresd/mx6solo_4x_mt41j128.cfg,MX6S"
+-CONFIG_BOOTDELAY=3
++CONFIG_BOOTDELAY=0
+ # CONFIG_CONSOLE_MUX is not set
+ CONFIG_SYS_CONSOLE_IS_IN_ENV=y
+ CONFIG_SYS_CONSOLE_OVERWRITE_ROUTINE=y
+@@ -58,3 +58,5 @@ CONFIG_DM_REGULATOR_FIXED=y
+ CONFIG_DM_REGULATOR_GPIO=y
+ CONFIG_DM_ETH=y
+ CONFIG_DM_USB=y
++CONFIG_CMD_SPI=y
++CONFIG_FIT=y
+diff --git a/include/configs/mx6sabresd.h b/include/configs/mx6sabresd.h
+index f78bfeeaa04..f6037406d63 100644
+--- a/include/configs/mx6sabresd.h
++++ b/include/configs/mx6sabresd.h
+@@ -53,6 +53,11 @@
+ #define CONFIG_SF_DEFAULT_CS   0
+ #endif
+
++#define CONFIG_MXC_SPI
++#define CONFIG_SF_DEFAULT_BUS  0
++#define CONFIG_SF_DEFAULT_SPEED 20000000
++#define CONFIG_SF_DEFAULT_MODE (SPI_MODE_0)
++
+ /*
+  * imx6 q/dl/solo pcie would be failed to work properly in kernel, if
+  * the pcie module is iniialized/enumerated both in uboot and linux
+--
+2.34.1
