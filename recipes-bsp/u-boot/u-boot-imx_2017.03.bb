@@ -35,13 +35,15 @@ SRC_URI:append:librescoot-dbc = " file://dbc/0001-add-DBC-memory-configuration.p
 SRC_URI:append:librescoot-dbc = " file://dbc/0001-add-kernel_addr_r.patch"
 SRC_URI:append:librescoot-dbc = " file://dbc/0002-remove-LVDS-EPDC-and-ethernet.-add-SPI-LCD-init-and-.patch"
 SRC_URI:append:librescoot-dbc = " file://dbc/0003-add-SPI-and-FIT-compat-to-configs.patch"
+SRC_URI:append:librescoot-dbc = " file://dbc/0004-add-console-boot-arg.patch"
 
 SRCREV = "b76bb1bf9fd21e21006d79552e28855ac43ad43c"
 
 S = "${WORKDIR}/git"
 
 UBOOT_INITIAL_ENV = ""
-UBOOT_BINARY = "u-boot-dtb.imx"
+UBOOT_BINARY:librescoot-dbc = "u-boot.imx"
+UBOOT_BINARY:librescoot-mdb = "u-boot-dtb.imx"
 
 inherit fsl-u-boot-localversion dtc-145
 

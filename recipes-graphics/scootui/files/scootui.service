@@ -1,0 +1,36 @@
+[Unit]
+Description=Weston, a Wayland compositor, as a system service
+
+Requires=systemd-user-sessions.service
+After=systemd-user-sessions.service
+
+After=plymouth-quit-wait.service
+
+# D-Bus is necessary for contacting logind. Logind is required.
+# Wants=dbus.socket
+# After=dbus.socket
+
+# Ensure the socket is present
+Requires=weston.socket
+
+# Before=graphical.target
+
+ConditionPathExists=/dev/tty0
+
+[Service]
+# Type=notify
+Environment=WAYLAND_DISPLAY="/run/wayland-0"
+Environment=XDG_RUNTIME_DIR="/run/user/0"
+ExecStart=/usr/bin/flutter-client -f -b /usr/share/flutter/scootui/3.27.1/release
+
+# The user to run Weston as.
+User=root
+Group=root
+
+WorkingDirectory=/usr/share/flutter/scootui/3.27.1/release
+
+
+[Install]
+# Note: If you only want weston to start on-demand, remove this line with a
+# service drop file
+WantedBy=graphical.target

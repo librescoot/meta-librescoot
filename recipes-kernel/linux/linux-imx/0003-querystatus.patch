@@ -1,0 +1,13 @@
+diff --git a/drivers/mxc/gpu-viv/hal/os/linux/kernel/gc_hal_kernel_linux.h b/drivers/mxc/gpu-viv/hal/os/linux/kernel/gc_hal_kernel_linux.h
+index a436edb11d9a..43beb7a06f73 100644
+--- a/drivers/mxc/gpu-viv/hal/os/linux/kernel/gc_hal_kernel_linux.h
++++ b/drivers/mxc/gpu-viv/hal/os/linux/kernel/gc_hal_kernel_linux.h
+@@ -318,7 +318,7 @@  _ConvertLogical2Physical(
+     OUT gctPHYS_ADDR_T * Physical
+     );
+
+-gctBOOL
++gceSTATUS
+ _QuerySignal(
+     IN gckOS Os,
+     IN gctSIGNAL Signal
