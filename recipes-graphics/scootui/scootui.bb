@@ -7,7 +7,7 @@ SECTION = "graphics"
 
 LICENSE = "CLOSED"
 
-SRCREV = "2d9022dd270be660a118e39b7fb80c6fe3c5d82e"
+SRCREV = "d93f1aba15c4238f46b3458f42c5a42b49edc18f"
 SRC_URI = "git://github.com/Zanooda/scootui-test;lfs=0;branch=main;protocol=https;destsuffix=git"
 SRC_URI += "file://scootui.service"
 
