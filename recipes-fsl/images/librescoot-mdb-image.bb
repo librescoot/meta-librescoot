@@ -24,6 +24,7 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     python3-dateutil \
     python3-pyyaml \
     python3-redis \
+    python3-cbor2 \
     redis \
     dropbear \
     nxp-nfc \
