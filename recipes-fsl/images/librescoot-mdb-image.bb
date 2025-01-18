@@ -27,6 +27,7 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     python3-redis \
     python3-cbor2 \
     python3-smbus2 \
+    python3-typing-extensions \
     redis \
     dropbear \
     nxp-nfc \
