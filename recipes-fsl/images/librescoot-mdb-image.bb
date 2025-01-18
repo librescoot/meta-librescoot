@@ -23,6 +23,7 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     python3-systemd \
     python3-dateutil \
     python3-pyyaml \
+    python3-aioredis \
     python3-redis \
     python3-cbor2 \
     python3-smbus2 \
