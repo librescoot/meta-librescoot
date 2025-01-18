@@ -33,6 +33,7 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     bash \
     gpsd \
     rsync \
+    lsof \
 "
 
 IMAGE_INSTALL:append = " libubootenv-bin"
