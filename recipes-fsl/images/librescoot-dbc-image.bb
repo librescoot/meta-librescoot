@@ -41,6 +41,7 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     flutter-wayland-client \
     scootui \
     firmwared \ 
+    screen \
     ${@bb.utils.contains('DISTRO_FEATURES', 'x11 wayland', \
                          'weston-xwayland xterm', '', d)} \
 "
