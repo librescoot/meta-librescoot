@@ -59,11 +59,3 @@ do_compile:prepend() {
     cp ${S}/include/libfdt.h ${S}/lib/libfdt/
     cp ${S}/include/libfdt_env.h ${S}/lib/libfdt/
 }
-
-#do_install:append:mender-uboot() {
-#    install -d ${D}${sysconfdir}
-#    install -d ${D}/uboot
-#    
-#    install -m 0644 ${WORKDIR}/fw_env.config ${D}/uboot/fw_env.config
-#    ln -sf /uboot/fw_env.config ${D}${sysconfdir}/fw_env.config
-#}
