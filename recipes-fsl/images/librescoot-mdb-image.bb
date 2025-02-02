@@ -11,7 +11,10 @@ IMAGE_FEATURES += " \
 "
 
 CORE_IMAGE_EXTRA_INSTALL += " \
+    wireguard-tools \
+    u-boot-default-env \
     mdb-netconfig \
+    modemmanager \
     packagegroup-core-base-utils \
     firmwared \
     python3 \
@@ -31,6 +34,7 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     redis \
     dropbear \
     nxp-nfc \
+    libnfc \
     ioctl \
     bash \
     gpsd \
