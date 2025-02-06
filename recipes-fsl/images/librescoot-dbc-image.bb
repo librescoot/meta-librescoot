@@ -43,6 +43,7 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     scootui \
     firmwared \ 
     screen \
+    brouter \
     ${@bb.utils.contains('DISTRO_FEATURES', 'x11 wayland', \
                          'weston-xwayland xterm', '', d)} \
 "
