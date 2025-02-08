@@ -41,6 +41,8 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     rsync \
     lsof \
     screen \
+    libgpiod \
+    libgpiod-tools \
     ecu-service \
     vehicle-service \
 "
