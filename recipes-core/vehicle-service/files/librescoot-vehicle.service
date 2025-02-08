@@ -1,0 +1,14 @@
+[Unit]
+Description=Librescoot Vehicle Service
+Requires=redis.service
+
+[Service]
+Type=idle
+User=root
+Group=root
+ExecStart=/usr/bin/vehicle-service
+Restart=always
+KillMode=mixed
+
+[Install]
+WantedBy=multi-user.target
