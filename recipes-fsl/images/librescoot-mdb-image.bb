@@ -41,6 +41,8 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     rsync \
     lsof \
     screen \
+    ecu-service \
+    vehicle-service \
 "
 
 IMAGE_INSTALL:append = " libubootenv-bin"
