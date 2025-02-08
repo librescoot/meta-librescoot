@@ -15,10 +15,12 @@ inherit autotools pkgconfig lib_package
 
 S = "${WORKDIR}/git"
 
-FILES:${PN}-bin = "${sbindir}/nfcDemoApp"
+FILES:${PN}-bin = "/usr/sbin/nfcDemoApp"
 
 
-#do_install:append() {
-#    install -d ${D}${sbindir}
-#    install -m 0755 ${WORKDIR}/package/usr/sbin/nfcDemoApp ${D}${sbindir}/nfcDemoApp
-#}
+do_install:append() {
+    install -d ${D}${sbindir}
+    install -m 0755 ${WORKDIR}/package/usr/sbin/nfcDemoApp ${D}${sbindir}/nfcDemoApp
+}
+
+INSANE_SKIP:${PN} += "already-stripped"
