@@ -43,6 +43,7 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     screen \
     libgpiod \
     libgpiod-tools \
+    chrony \
     ecu-service \
     vehicle-service \
 "
