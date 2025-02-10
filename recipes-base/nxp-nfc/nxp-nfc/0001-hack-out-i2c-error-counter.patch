@@ -1,0 +1,25 @@
+From d273b5a7d5e13953f933f20a3bb351ebbea67565 Mon Sep 17 00:00:00 2001
+From: Danylo Storozhev <office@storozhev.net>
+Date: Sun, 9 Feb 2025 09:06:28 +0100
+Subject: [PATCH] hack out i2c error counter
+
+---
+ src/halimpl/pn54x/tml/i2c/phTmlNfc.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/halimpl/pn54x/tml/i2c/phTmlNfc.c b/src/halimpl/pn54x/tml/i2c/phTmlNfc.c
+index f102cad..aedf2be 100755
+--- a/src/halimpl/pn54x/tml/i2c/phTmlNfc.c
++++ b/src/halimpl/pn54x/tml/i2c/phTmlNfc.c
+@@ -379,7 +379,7 @@ static void phTmlNfc_TmlThread(void *pParam)
+                 if (-1 == dwNoBytesWrRd)
+                 {
+                     NXPLOG_TML_E("PN54X - Error in I2C Read.....\n");
+-                    s_customReadErrCounter++;
++                    // s_customReadErrCounter++;
+                     if (s_customReadErrCounter <= CUSTOM_MAX_READ_ERROR_BEFORE_ABORT)
+                     {
+                         // self re-execution => retry:
+--
+2.39.5 (Apple Git-154)
+

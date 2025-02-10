@@ -1,0 +1,46 @@
+From 7014d6179055818b136029bdfa9b704304bd47f9 Mon Sep 17 00:00:00 2001
+From: Danylo Storozhev <office@storozhev.net>
+Date: Sun, 9 Feb 2025 09:08:42 +0100
+Subject: [PATCH] custom conf
+
+---
+ conf/libnfc-nxp-init.conf  | 2 +-
+ conf/libnfc-nxp-pn547.conf | 4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/conf/libnfc-nxp-init.conf b/conf/libnfc-nxp-init.conf
+index 9079dda..c8cf7d8 100644
+--- a/conf/libnfc-nxp-init.conf
++++ b/conf/libnfc-nxp-init.conf
+@@ -29,7 +29,7 @@ NXPLOG_TML_LOGLEVEL=0x00
+ 
+ ###############################################################################
+ # NXP HW Device Node information, when pn5xx_i2c kernel driver configuration is used
+-NXP_NFC_DEV_NODE="/dev/pn544"
++NXP_NFC_DEV_NODE="/dev/pn5xx_i2c2"
+ 
+ ###############################################################################
+ # NXP proprietary settings to enable NXP Proprietary features
+diff --git a/conf/libnfc-nxp-pn547.conf b/conf/libnfc-nxp-pn547.conf
+index d660a67..6269ed8 100644
+--- a/conf/libnfc-nxp-pn547.conf
++++ b/conf/libnfc-nxp-pn547.conf
+@@ -13,7 +13,7 @@ MIFARE_READER_ENABLE=0x01
+ # System clock source selection configuration
+ #define CLK_SRC_XTAL       0x01
+ #define CLK_SRC_PLL        0x02
+-NXP_SYS_CLK_SRC_SEL=0x01
++NXP_SYS_CLK_SRC_SEL=0x02
+ 
+ ###############################################################################
+ # System clock frequency selection configuration.
+@@ -79,5 +79,5 @@ NXP_NFC_PROPRIETARY_CFG={05:FF:FF:06:8A:80:77:FF:FF}
+ # The value is set to 3 by default as it assumes we will discover 0xF2,
+ # 0xF3, and 0xF4. If a platform will exclude and SE, this value can be reduced
+ # so that the stack will not wait any longer than necessary.
+-NXP_NFC_MAX_EE_SUPPORTED=0x00
++NXP_NFC_MAX_EE_SUPPORTED=0x03
+ 
+-- 
+2.39.5 (Apple Git-154)
+

@@ -2,25 +2,33 @@
 
 DESCRIPTION = "Linux NFC stack for NCI based NXP NFC Controllers."
 LICENSE = "Apache-2.0"
-LIC_FILES_CHKSUM = "file://src/include/linux_nfc_api.h;md5=66a29263c6e002e28c53ef23a71debee"
+LIC_FILES_CHKSUM = "file://src/include/linux_nfc_api.h;md5=79206fdb1d51ebc2e7b92b621a303cc6"
 
 SRC_URI = " \
-    git://github.com/StarGate01/linux_libnfc-nci.git;branch=master;protocol=https \
+    git://github.com/NXPNFCLinux/linux_libnfc-nci.git;branch=master;protocol=https \
+    file://0001-hack-out-i2c-error-counter.patch \
+    file://0002-custom-conf.patch \
 "
-SRCREV = "7ce9c8aad0e37850a49b6d8dcc22ae5c783268e7"
+SRCREV = "449538e5e106666e5263afeaddacc5836fc23d3f"
 
-RDEPENDS:${PN}-bin += "bash"
+RDEPENDS:${PN} += "bash"
 
-inherit autotools pkgconfig lib_package
+inherit autotools pkgconfig
 
 S = "${WORKDIR}/git"
 
-FILES:${PN}-bin = "/usr/sbin/nfcDemoApp"
+FILES:${PN} = "/usr/lib/libnfc_nci_linux-1.so.0"
+FILES:${PN} += "/usr/lib/libnfc_nci_linux-1.so.0.0.0"
+FILES:${PN} += "/etc/libnfc-nxp-init.conf"
+FILES:${PN} += "/etc/libnfc-nxp-pn547.conf"
+FILES:${PN} += "/etc/libnfc-nxp-pn548.conf"
+FILES:${PN} += "/etc/libnfc-nci.conf"
+FILES:${PN} += "/usr/sbin/nfcDemoApp"
 
 
 do_install:append() {
-    install -d ${D}${sbindir}
-    install -m 0755 ${WORKDIR}/package/usr/sbin/nfcDemoApp ${D}${sbindir}/nfcDemoApp
+    install -d ${D}/usr/sbin
+    install -m 0755 ${WORKDIR}/package/usr/sbin/nfcDemoApp ${D}/usr/sbin/nfcDemoApp
 }
 
 INSANE_SKIP:${PN} += "already-stripped"
