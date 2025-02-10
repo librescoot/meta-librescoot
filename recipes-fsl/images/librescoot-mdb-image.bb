@@ -40,6 +40,8 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     ioctl \
     bash \
     gpsd \
+    gps-utils \
+    gps-utils-python \
     rsync \
     lsof \
     screen \
