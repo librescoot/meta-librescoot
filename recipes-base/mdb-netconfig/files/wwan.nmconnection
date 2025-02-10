@@ -1,0 +1,17 @@
+[connection]
+id=wwan
+uuid=c924956d-7367-43bf-a793-a602d899c337
+type=gsm
+interface-name=cdc-wdm0
+
+[gsm]
+apn=internet.lebara.de
+
+[ipv4]
+method=auto
+
+[ipv6]
+addr-gen-mode=default
+method=auto
+
+[proxy]
