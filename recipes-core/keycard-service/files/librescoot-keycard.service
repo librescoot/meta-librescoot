@@ -1,0 +1,14 @@
+[Unit]
+Description=reunu Keycard Service
+Wants=redis.service
+After=redis.service
+
+[Service]
+Type=simple
+Restart=always
+WorkingDirectory=/opt/librescoot-keycard
+ExecStart=/usr/bin/python3 /opt/librescoot-keycard/keycard.py
+LimitAS=128M
+
+[Install]
+WantedBy=multi-user.target

@@ -46,6 +46,7 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     chrony \
     ecu-service \
     vehicle-service \
+    keycard-service \
 "
 
 IMAGE_INSTALL:append = " libubootenv-bin"
