@@ -1,0 +1,16 @@
+[Unit]
+Description=radio-gaga Uplink Service
+After=network.target redis.service
+Requires=redis.service
+ConditionPathExists=/data/radio-gaga/config.yaml
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/radio-gaga -config /data/radio-gaga/config.yaml
+Restart=always
+RestartSec=5
+
+WorkingDirectory=/data/radio-gaga
+
+[Install]
+WantedBy=multi-user.target
