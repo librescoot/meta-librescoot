@@ -15,6 +15,8 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     u-boot-default-env \
     mdb-netconfig \
     modemmanager \
+    networkmanager \
+    networkmanager-nmcli \
     packagegroup-core-base-utils \
     firmwared \
     python3 \
@@ -55,3 +57,4 @@ IMAGE_INSTALL:append = " libubootenv-bin"
 IMAGE_INSTALL:append = " linux-firmware-imx-sdma-imx6q"
 
 IMAGE_INSTALL:remove = "ofono"
+
