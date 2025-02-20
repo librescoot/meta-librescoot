@@ -1,4 +1,4 @@
-SUMMARY = "LibreScoot ECU Service"
+SUMMARY = "Rescoot Telemetry Client"
 HOMEPAGE = "https://github.com/rescoot/unu-radio-gaga"
 LICENSE = "AGPL-3.0-or-later"
 LIC_FILES_CHKSUM = "file://src/unu-radio-gaga/LICENSE;md5=4ae09d45eac4aa08d013b5f2e01c67f6"

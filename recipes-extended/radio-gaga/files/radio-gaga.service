@@ -1,16 +1,15 @@
 [Unit]
-Description=radio-gaga Uplink Service
+Description=Rescoot Uplink Service (Radio Gaga)
 After=network.target redis.service
 Requires=redis.service
 ConditionPathExists=/data/radio-gaga/config.yaml
 
 [Service]
 Type=simple
+WorkingDirectory=/data/radio-gaga
 ExecStart=/usr/bin/radio-gaga -config /data/radio-gaga/config.yaml
 Restart=always
 RestartSec=5
-
-WorkingDirectory=/data/radio-gaga
 
 [Install]
 WantedBy=multi-user.target
