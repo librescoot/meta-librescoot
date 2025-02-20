@@ -6,7 +6,7 @@ Requires=redis.service
 Type=idle
 User=root
 Group=root
-ExecStart=/usr/bin/modem-service
+ExecStart=/usr/bin/modem-service -interface wwu1i5
 Restart=always
 KillMode=mixed
 
