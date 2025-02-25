@@ -11,7 +11,7 @@ SRCREV = "${AUTOREV}"
 SRC_URI = "git://github.com/librescoot/scootui.git;lfs=0;branch=main;protocol=https;destsuffix=git"
 SRC_URI += "file://scootui.service"
 
-PV = "0.0.1+git${@d.getVar('SRCREV')[:7]}"
+PV = "0.0.2+git"
 
 S = "${WORKDIR}/git"
 
