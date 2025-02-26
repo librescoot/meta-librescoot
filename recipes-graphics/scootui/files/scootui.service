@@ -19,6 +19,7 @@ ConditionPathExists=/dev/tty0
 
 [Service]
 # Type=notify
+Environment=HOME="/data"
 Environment=WAYLAND_DISPLAY="/run/wayland-0"
 Environment=XDG_RUNTIME_DIR="/run/user/0"
 ExecStart=/usr/bin/flutter-client -f -b /usr/share/flutter/scootui/3.27.1/release
