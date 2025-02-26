@@ -47,7 +47,6 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     chrony \
     xdg-user-dirs \
     sqlite3 \
-    libsqlite \
     ${@bb.utils.contains('DISTRO_FEATURES', 'x11 wayland', \
                          'weston-xwayland xterm', '', d)} \
 "
