@@ -52,6 +52,7 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     vehicle-service \
     keycard-service \
     battery-service \
+    modem-service \
     radio-gaga \
 "
 
