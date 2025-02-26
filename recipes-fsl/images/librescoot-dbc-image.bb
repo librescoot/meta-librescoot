@@ -45,6 +45,7 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     screen \
     brouter \
     chrony \
+    xdg-user-dirs \
     ${@bb.utils.contains('DISTRO_FEATURES', 'x11 wayland', \
                          'weston-xwayland xterm', '', d)} \
 "
