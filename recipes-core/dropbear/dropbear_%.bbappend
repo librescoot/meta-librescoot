@@ -7,6 +7,10 @@ SRC_URI:append:librescoot-mdb = " file://hostkey-mdb"
 SRC_URI:append:librescoot-dbc = " file://authorized-dbc"
 SRC_URI:append:librescoot-dbc = " file://hostkey-dbc"
 
+FILES:${PN} += " \
+    /root/.ssh/* \
+"
+
 do_install:append:librescoot-mdb() {
     install -d ${D}${sysconfdir}/dropbear
     install -d ${D}/root/.ssh
