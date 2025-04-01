@@ -1,6 +1,4 @@
-FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
-
-SRC_URI += "file://chrony-mdb.conf"
+FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
 
 SRC_URI:append:librescoot-mdb = " file://chrony-mdb.conf"
 SRC_URI:append:librescoot-dbc = " file://chrony-dbc.conf"
