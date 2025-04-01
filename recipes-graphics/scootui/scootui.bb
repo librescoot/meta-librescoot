@@ -25,7 +25,6 @@ SYSTEMD_SERVICE:${PN} = "scootui.service"
 do_install:append() {
     install -d ${D}${systemd_system_unitdir}
     install -m 0644 ${WORKDIR}/scootui.service ${D}${systemd_system_unitdir}/
-    ln -s libsqlite3.so.0 ${D}${libdir}/libsqlite3.so
 }
 
 inherit flutter-app systemd
