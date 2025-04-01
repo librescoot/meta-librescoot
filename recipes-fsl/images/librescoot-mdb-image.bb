@@ -49,6 +49,7 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     libgpiod \
     libgpiod-tools \
     chrony \
+    chronyc \
     ecu-service \
     vehicle-service \
     keycard-service \

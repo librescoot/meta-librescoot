@@ -45,6 +45,7 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     screen \
     brouter \
     chrony \
+    chronyc \
     xdg-user-dirs \
     sqlite3 \
     ${@bb.utils.contains('DISTRO_FEATURES', 'x11 wayland', \
