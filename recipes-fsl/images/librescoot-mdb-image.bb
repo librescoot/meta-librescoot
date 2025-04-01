@@ -42,6 +42,7 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     gpsd \
     gps-utils \
     gps-utils-python \
+    gpsd-udev \
     rsync \
     lsof \
     screen \
