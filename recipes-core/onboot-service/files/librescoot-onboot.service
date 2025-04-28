@@ -1,11 +1,12 @@
 [Unit]
-Description=LibreScoot network configuration script
+Description=LibreScoot manual bootup script
 Wants=local-fs.target
 After=local-fs.target
+ConditionPathExists=/data/onboot.sh
 
 [Service]
 Type=oneshot
-ExecStart=/usr/sbin/librescoot-netconfig
+ExecStart=/data/onboot.sh
 
 [Install]
 WantedBy=multi-user.target

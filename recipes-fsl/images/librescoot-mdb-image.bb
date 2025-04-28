@@ -55,6 +55,7 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     keycard-service \
     battery-service \
     modem-service \
+    onboot-service \
     radio-gaga \
     iptables \
 "

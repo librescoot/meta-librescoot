@@ -1,6 +1,5 @@
 [Unit]
 Description=LibreScoot network configuration script
-RequiresMountsFor=/boot
 Wants=local-fs.target
 After=local-fs.target
 
