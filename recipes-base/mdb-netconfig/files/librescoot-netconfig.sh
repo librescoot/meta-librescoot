@@ -3,6 +3,7 @@
 ifconfig usb0 192.168.7.1
 iptables --table nat --append POSTROUTING --out-interface eth0 -j MASQUERADE
 iptables --table nat --append POSTROUTING --out-interface wwan0 -j MASQUERADE
+iptables --table nat --append POSTROUTING --out-interface wwu1i5 -j MASQUERADE
 iptables --append FORWARD --in-interface usb0 -j ACCEPT
 echo 1 > /proc/sys/net/ipv4/ip_forward
 
