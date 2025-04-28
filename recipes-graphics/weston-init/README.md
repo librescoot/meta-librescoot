@@ -1,6 +1,6 @@
-# Weston Configuration for LibreScoot
+# Weston-Init Configuration for LibreScoot
 
-This directory contains modifications to the Weston Wayland compositor configuration to hide the desktop environment before ScootUI starts.
+This directory contains modifications to the Weston initialization to hide the desktop environment before ScootUI starts.
 
 ## Changes
 
@@ -20,7 +20,7 @@ The changes address issue #3 in the meta-librescoot repository, which requested 
 ### Files
 
 - `weston.ini`: Custom configuration file for Weston
-- `weston_%.bbappend`: Recipe append file that installs the custom configuration and splash image
+- `weston-init_%.bbappend`: Recipe append file that installs the custom configuration and splash image
 
 ### Related Components
 

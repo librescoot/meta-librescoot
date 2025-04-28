@@ -13,4 +13,3 @@ do_install:append() {
 }
 
 FILES:${PN} += "${datadir}/weston/backgrounds/librescoot-splash.png"
-FILES:${PN} += "${sysconfdir}/xdg/weston/weston.ini"
