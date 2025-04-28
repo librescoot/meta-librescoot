@@ -55,6 +55,5 @@ CORE_IMAGE_EXTRA_INSTALL += " \
                          'weston-xwayland xterm', '', d)} \
 "
 
-
 IMAGE_INSTALL:append = " libubootenv-bin firmware-imx-epdc"
-
+IMAGE_INSTALL:append = " plymouth plymouth-animation"
