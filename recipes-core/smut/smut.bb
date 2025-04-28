@@ -26,7 +26,7 @@ do_install:librescoot-mdb() {
     install -d ${D}${systemd_system_unitdir}
 
     install -m 0755 ${B}/bin/linux_arm/smut ${D}${bindir}/
-    install -m 0644 ${WORKDIR}/smut.service ${D}${systemd_system_unitdir}
+    install -m 0644 ${WORKDIR}/smut@mdb.service ${D}${systemd_system_unitdir}/smut.service
 }
 
 do_install:librescoot-dbc() {
@@ -34,5 +34,5 @@ do_install:librescoot-dbc() {
     install -d ${D}${systemd_system_unitdir}
 
     install -m 0755 ${B}/bin/linux_arm/smut ${D}${bindir}/
-    install -m 0644 ${WORKDIR}/smut.service ${D}${systemd_system_unitdir}
+    install -m 0644 ${WORKDIR}/smut@dbc.service ${D}${systemd_system_unitdir}/smut.service
 }
