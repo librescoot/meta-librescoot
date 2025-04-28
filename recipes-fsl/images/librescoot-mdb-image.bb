@@ -56,6 +56,7 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     battery-service \
     modem-service \
     onboot-service \
+    smut \
     radio-gaga \
     iptables \
 "
