@@ -1,0 +1,12 @@
+[Unit]
+Description=LibreScoot network configuration script
+RequiresMountsFor=/boot
+Wants=local-fs.target
+After=local-fs.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/sbin/librescoot-netconfig
+
+[Install]
+WantedBy=multi-user.target
