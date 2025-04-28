@@ -1,4 +1,4 @@
-FILESEXTRAPATHS_prepend := "${THISDIR}/linux-imx:"
+FILESEXTRAPATHS:prepend := "${THISDIR}/linux-imx:"
 
 # Add custom boot logo patch and PPM file
 SRC_URI += " \
@@ -9,7 +9,7 @@ SRC_URI += " \
 # Enable boot logo in kernel config
 KERNEL_CONFIG_FRAGMENTS += "${WORKDIR}/boot-logo.cfg"
 
-do_configure_prepend() {
+do_configure:prepend() {
     # Install the logo file to the correct location in the Linux source tree
     if [ -e ${WORKDIR}/logo/logo_custom_clut224.ppm ]; then
         install -d ${S}/drivers/video/logo
