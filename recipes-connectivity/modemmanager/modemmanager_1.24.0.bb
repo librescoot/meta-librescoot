@@ -7,18 +7,12 @@ LIC_FILES_CHKSUM = " \
     file://COPYING.LIB;md5=4fbd65380cdd255951079008b364516c \
 "
 
-GNOMEBASEBUILDCLASS = "meson"
 inherit gnomebase gettext systemd gobject-introspection bash-completion
 
 DEPENDS = "glib-2.0 libgudev libxslt-native dbus"
 
-SRCREV ?= "c234bd55c9d9618c1478b5e80aaf4b8f965be181"
-
-# Patch 0001 will be in ModemManager > 1.19
-SRC_URI = " \
-    git://gitlab.freedesktop.org/mobile-broadband/ModemManager.git;protocol=https;branch=mm-1-18 \
-    file://0001-core-switch-bash-shell-scripts-to-use-bin-sh-for-use.patch \
-"
+SRCREV = "dfa41adf391b090720fb1ea56d884f61ea7fba29"
+SRC_URI = "git://gitlab.freedesktop.org/mobile-broadband/ModemManager.git;protocol=https;branch=mm-1-24"
 
 S = "${WORKDIR}/git"
 
@@ -42,7 +36,7 @@ PACKAGECONFIG[qmi] = "-Dqmi=true,-Dqmi=false,libqmi"
 PACKAGECONFIG[qrtr] = "-Dqrtr=true,-Dqrtr=false,libqrtr-glib"
 PACKAGECONFIG[vala] = "-Dvapi=true,-Dvapi=false"
 
-inherit ${@bb.utils.contains('PACKAGECONFIG', 'vala', 'vala', '', d)}
+inherit upstream-version-is-even ${@bb.utils.contains('PACKAGECONFIG', 'vala', 'vala', '', d)}
 
 EXTRA_OEMESON = " \
     -Dudevdir=${nonarch_base_libdir}/udev \
@@ -59,4 +53,3 @@ FILES:${PN} += " \
 "
 
 SYSTEMD_SERVICE:${PN} = "ModemManager.service"
-
