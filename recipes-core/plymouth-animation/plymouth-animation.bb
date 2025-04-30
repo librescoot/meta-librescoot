@@ -8,6 +8,8 @@ do_install() {
     install -m 0644 ${WORKDIR}/frames/* ${D}${datadir}/plymouth/themes/librescoot/frames/
 }
 
-FILES_${PN} = "${datadir}/plymouth/themes/librescoot/frames/*"
+FILES:${PN} = "${datadir}/plymouth/themes/librescoot \
+              ${datadir}/plymouth/themes/librescoot/frames \
+              ${datadir}/plymouth/themes/librescoot/frames/*"
 
-RDEPENDS_${PN} = "plymouth"
+RDEPENDS:${PN} = "plymouth"
