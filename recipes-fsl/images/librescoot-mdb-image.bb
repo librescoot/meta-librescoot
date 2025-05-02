@@ -63,6 +63,5 @@ CORE_IMAGE_EXTRA_INSTALL += " \
 
 IMAGE_INSTALL:append = " libubootenv-bin"
 IMAGE_INSTALL:append = " linux-firmware-imx-sdma-imx6q"
-IMAGE_INSTALL:append = " plymouth plymouth-animation"
 
 IMAGE_INSTALL:remove = "ofono"
