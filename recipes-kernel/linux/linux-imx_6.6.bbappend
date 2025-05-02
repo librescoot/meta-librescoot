@@ -18,11 +18,9 @@ do_configure:prepend() {
     # Create a kernel config fragment to ensure logo is enabled
     cat > ${WORKDIR}/boot-logo.cfg << EOF
 CONFIG_LOGO=y
-CONFIG_LOGO_CUSTOM_CLUT224=y
-# Disable other logos
 CONFIG_LOGO_LINUX_MONO=n
 CONFIG_LOGO_LINUX_VGA16=n
-CONFIG_LOGO_LINUX_CLUT224=n
+CONFIG_LOGO_LINUX_CLUT224=y
 EOF
 }
 
