@@ -6,7 +6,6 @@ SRC_URI += " \
 "
 
 PACKAGECONFIG:remove = "drm"
-PACKAGECONFIG:append = " fbdev"
 PLYMOUTH_THEME = "librescoot"
 
 do_install:append() {
