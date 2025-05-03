@@ -5,7 +5,8 @@ SRC_URI += " \
     file://librescoot.plymouth \
 "
 
-PACKAGECONFIG:append = " drm"
+PACKAGECONFIG:remove = "drm"
+PACKAGECONFIG:append = " fbdev"
 PLYMOUTH_THEME = "librescoot"
 
 do_install:append() {
