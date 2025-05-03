@@ -11,9 +11,7 @@ SRCREV = "${AUTOREV}"
 SRC_URI = "git://github.com/librescoot/scootui.git;lfs=0;branch=main;protocol=https;destsuffix=git"
 SRC_URI += "file://scootui.service"
 
-PV = "0.2.1+git"
-## If a committed change results in changing the package output, then the value of the PR variable needs to be increased (or “bumped”) as part of that commit.
-## For new recipes you should add the PR variable and set its initial value equal to “r0”, which is the default.
+PV = "0.2.1+git${SRCPV}"
 PR = "r1"
 
 S = "${WORKDIR}/git"
