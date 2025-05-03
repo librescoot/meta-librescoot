@@ -13,6 +13,7 @@ IMAGE_FEATURES += "\
 
 IMAGE_FEATURES += " \
     debug-tweaks \
+    package-management \
     ssh-server-dropbear \
     splash \
     hwcodecs \
