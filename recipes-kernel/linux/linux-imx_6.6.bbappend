@@ -15,12 +15,18 @@ do_configure:prepend() {
         install -m 0644 ${WORKDIR}/logo/logo_linux_clut224.ppm ${S}/drivers/video/logo/
     fi
 
-    # Create a kernel config fragment to ensure logo is enabled
+    # TEMPORARY: Disable kernel logo to test Plymouth
+    # REVERT AFTER TESTING: Change CONFIG_LOGO back to y and CONFIG_LOGO_LINUX_CLUT224 back to y
     cat > ${WORKDIR}/boot-logo.cfg << EOF
-CONFIG_LOGO=y
+CONFIG_LOGO=n
 CONFIG_LOGO_LINUX_MONO=n
 CONFIG_LOGO_LINUX_VGA16=n
-CONFIG_LOGO_LINUX_CLUT224=y
+CONFIG_LOGO_LINUX_CLUT224=n
+# Original settings:
+# CONFIG_LOGO=y
+# CONFIG_LOGO_LINUX_MONO=n
+# CONFIG_LOGO_LINUX_VGA16=n
+# CONFIG_LOGO_LINUX_CLUT224=y
 EOF
 }
 
