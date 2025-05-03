@@ -19,6 +19,7 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     networkmanager-nmcli \
     packagegroup-core-base-utils \
     firmwared \
+    rpm \
     python3 \
     python3-can \
     python3-numpy \
