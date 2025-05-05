@@ -41,6 +41,7 @@
 		usbphy1 = "/soc/aips-bus@2000000/usbphy@20ca000";
 		i2c3 = "/soc/aips-bus@2100000/i2c@21f8000";
 		mxcfb0 = "/fb@0";
+		ssi1 = "/soc/aips-bus@2000000/spba-bus@2000000/ssi@2028000";
 	};
 
 	clocks {
@@ -1354,6 +1355,7 @@
 				};
 
 				tas5720@6c {
+					#sound-dai-cells = <0>;
 					status = "okay";
 					compatible = "ti,tas5720";
 					reg = <0x6c>;
@@ -1986,13 +1988,24 @@
 		};
 	};
 
-	sound {
-		compatible = "unu,imx-audio-tas5720";
-		model = "imx-audio-tas5720";
-		ssi-controller = <0x4c>;
-		audio-codec = <0x4d>;
-		audio-routing = "Output\0OUT";
-		mux-int-port = <0x01>;
-		mux-ext-port = <0x03>;
+	sound-tas5720 {
+		compatible = "simple-audio-card";
+		simple-audio-card,name = "imx-audio-tas5720"; // Reused name
+		simple-audio-card,format = "i2s";
+		simple-audio-card,frame-master = <&cpudai>;
+		simple-audio-card,bitclock-master = <&cpudai>;
+
+		cpudai: simple-audio-card,cpu {
+			sound-dai = <0x4c>; /* phandle to ssi@2028000 */
+			/* Use the SSI1 baud clock (CLK_SSI1_SERIAL, index 0x9d) */
+			clocks = <0x04 0x9d>;
+		};
+
+		codec: simple-audio-card,codec {
+			sound-dai = <0x4d>; /* phandle to tas5720@6c */
+			/* Use the same clock as CPU DAI if CPU is master */
+			clocks = <0x04 0x9d>;
+		};
 	};
+
 };
