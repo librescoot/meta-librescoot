@@ -31,7 +31,7 @@ do_install() {
     install -d ${D}${bindir}
     install -d ${D}${systemd_system_unitdir}
 
-    install -m 0755 ${B}/bin/linux_arm/radio-gaga ${D}${bindir}/
+    install -m 0755 ${B}/bin/radio-gaga ${D}${bindir}/
     install -m 0644 ${WORKDIR}/radio-gaga.service ${D}${systemd_system_unitdir}
 }
 
