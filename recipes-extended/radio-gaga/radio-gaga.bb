@@ -22,6 +22,11 @@ FILES:${PN} += "/usr/lib/systemd/system/radio-gaga.service"
 SYSTEMD_SERVICE:${PN} = "radio-gaga.service"
 SYSTEMD_AUTO_ENABLE:${PN} = "enable"
 
+do_compile() {
+    oe_runmake
+    cp ${B}/src/radio-gaga/radio-gaga ${B}/bin/radio-gaga
+}
+
 do_install() {
     install -d ${D}${bindir}
     install -d ${D}${systemd_system_unitdir}
