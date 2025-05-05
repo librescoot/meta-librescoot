@@ -53,6 +53,7 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     xdg-user-dirs \
     sqlite3 \
     libsqlite3-dev \
+    alsa-utils \
     ${@bb.utils.contains('DISTRO_FEATURES', 'x11 wayland', \
                          'weston-xwayland xterm', '', d)} \
 "
