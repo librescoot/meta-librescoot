@@ -1,7 +1,7 @@
 SUMMARY = "LibreScoot Version Service"
 HOMEPAGE = "https://github.com/librescoot/version-service"
 LICENSE = "AGPL-3.0-or-later"
-LIC_FILES_CHKSUM = "file://src/github.com/librescoot/version-service/LICENSE.md;md5=d41d8cd98f00b204e9800998ecf8427e"
+LIC_FILES_CHKSUM = "file://src/github.com/librescoot/version-service/LICENSE;md5=eb1e647870add0502f8f010b19de32af"
 
 SRC_URI = "git://github.com/librescoot/version-service.git;protocol=https;branch=main"
 
