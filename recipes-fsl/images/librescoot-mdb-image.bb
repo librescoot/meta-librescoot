@@ -58,6 +58,7 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     modem-service \
     onboot-service \
     bluetooth-service \
+    version-service \
     smut \
     radio-gaga \
     iptables \

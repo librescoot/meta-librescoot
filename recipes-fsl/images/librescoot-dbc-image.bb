@@ -44,6 +44,7 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     flutter-wayland-client \
     scootui \
     onboot-service \
+    version-service \
     smut \
     firmwared \ 
     screen \
