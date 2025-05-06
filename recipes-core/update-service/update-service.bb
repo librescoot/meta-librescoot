@@ -11,7 +11,7 @@ S = "${WORKDIR}/git"
 
 inherit go-mod systemd
 
-GO_IMPORT = "update-service"
+GO_IMPORT = "https://github.com/librescoot/update-service"
 
 GO_LINKSHARED = ""
 GOBUILDFLAGS:remove = "-buildmode=pie"
