@@ -63,6 +63,10 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     smut \
     radio-gaga \
     iptables \
+    mc \
+    htop \
+    vim-vimrc \
+    nano \
 "
 
 IMAGE_INSTALL:append = " libubootenv-bin"

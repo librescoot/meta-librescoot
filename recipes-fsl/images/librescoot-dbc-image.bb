@@ -55,6 +55,10 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     sqlite3 \
     libsqlite3-dev \
     alsa-utils \
+    mc \
+    htop \
+    vim-vimrc \
+    nano \
     ${@bb.utils.contains('DISTRO_FEATURES', 'x11 wayland', \
                          'weston-xwayland xterm', '', d)} \
 "
