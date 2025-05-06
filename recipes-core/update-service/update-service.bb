@@ -1,7 +1,7 @@
 SUMMARY = "LibreScoot Update Service"
 HOMEPAGE = "https://github.com/librescoot/update-service"
-LICENSE = "CC-BY-NC-SA-4.0"
-LIC_FILES_CHKSUM = "file://src/update-service/LICENSE;md5=eb1e647870add0502f8f010b19de32af"
+LICENSE = "AGPL-3.0"
+LIC_FILES_CHKSUM = "file://src/github.com/librescoot/update-service/LICENSE;md5=eb1e647870add0502f8f010b19de32af"
 
 SRC_URI = "git://github.com/librescoot/update-service.git;protocol=https;branch=main"
 
