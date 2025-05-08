@@ -16,10 +16,10 @@ GO_IMPORT = "github.com/librescoot/version-service"
 GO_LINKSHARED = ""
 GOBUILDFLAGS:remove = "-buildmode=pie"
 
-FILES:${PN} = "/usr/lib/systemd/system/version-service.service"
+FILES:${PN} = "/usr/lib/systemd/system/librescoot-version.service"
 FILES:${PN} += "/usr/bin/version-service"
 
-SYSTEMD_SERVICE:${PN} = "version-service.service"
+SYSTEMD_SERVICE:${PN} = "librescoot-version.service"
 SYSTEMD_AUTO_ENABLE:${PN} = "enable"
 
 do_install:librescoot-mdb() {
@@ -27,7 +27,7 @@ do_install:librescoot-mdb() {
     install -d ${D}${systemd_system_unitdir}
 
     install -m 0755 ${B}/bin/linux_arm/version-service ${D}${bindir}/
-    install -m 0644 ${B}/src/github.com/librescoot/version-service/version-service-mdb.service ${D}${systemd_system_unitdir}/version-service.service
+    install -m 0644 ${B}/src/github.com/librescoot/version-service/version-service-mdb.service ${D}${systemd_system_unitdir}/librescoot-version.service
 }
 
 do_install:librescoot-dbc() {
@@ -35,5 +35,5 @@ do_install:librescoot-dbc() {
     install -d ${D}${systemd_system_unitdir}
 
     install -m 0755 ${B}/bin/linux_arm/version-service ${D}${bindir}/
-    install -m 0644 ${B}/src/github.com/librescoot/version-service/version-service-dbc.service ${D}${systemd_system_unitdir}/version-service.service
+    install -m 0644 ${B}/src/github.com/librescoot/version-service/version-service-dbc.service ${D}${systemd_system_unitdir}/librescoot-version.service
 }
