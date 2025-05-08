@@ -59,6 +59,7 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     htop \
     vim-vimrc \
     nano \
+    tzdata \
     ${@bb.utils.contains('DISTRO_FEATURES', 'x11 wayland', \
                          'weston-xwayland xterm', '', d)} \
 "
