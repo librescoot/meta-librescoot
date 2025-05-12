@@ -1,5 +1,5 @@
 [Unit]
-Description=reunu Keycard Service
+Description=LibreScoot Keycard Service
 Wants=redis.service
 After=redis.service
 

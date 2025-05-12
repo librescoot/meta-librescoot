@@ -1,0 +1,12 @@
+[Unit]
+Description=LibreScoot Brightness Reader Service
+
+[Service]
+Type=simple
+Restart=always
+WorkingDirectory=/opt/brightness-reader
+ExecStart=/usr/bin/python3 /opt/brightness-reader/brightness-reader.py
+LimitAS=128M
+
+[Install]
+WantedBy=multi-user.target

@@ -60,6 +60,7 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     vim-vimrc \
     nano \
     tzdata \
+    brightness-reader \
     ${@bb.utils.contains('DISTRO_FEATURES', 'x11 wayland', \
                          'weston-xwayland xterm', '', d)} \
 "
