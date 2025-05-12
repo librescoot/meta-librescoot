@@ -5,7 +5,7 @@ HOMEPAGE = "None"
 BUGTRACKER = "None"
 SECTION = "graphics"
 
-LICENSE = "CC-BY-NC-4.0"
+LICENSE = "CLOSED"
 
 SRCREV = "${AUTOREV}"
 SRC_URI = "git://github.com/librescoot/scootui.git;lfs=0;branch=main;protocol=https;destsuffix=git"
