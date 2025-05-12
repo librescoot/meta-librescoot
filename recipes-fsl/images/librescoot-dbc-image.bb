@@ -46,6 +46,7 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     onboot-service \
     version-service \
     smut \
+    dbc-backlight-service \
     firmwared \ 
     screen \
     brouter \

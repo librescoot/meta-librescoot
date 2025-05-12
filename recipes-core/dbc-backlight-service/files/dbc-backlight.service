@@ -1,0 +1,17 @@
+[Unit]
+Description=Dashboard Controller Backlight Service
+After=network.target
+After=redis.service
+Requires=redis.service
+
+[Service]
+Type=simple
+User=root
+Group=root
+ExecStart=/usr/bin/backlight-service
+Restart=always
+RestartSec=10
+KillMode=mixed
+
+[Install]
+WantedBy=multi-user.target
