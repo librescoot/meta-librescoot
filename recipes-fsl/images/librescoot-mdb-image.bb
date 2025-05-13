@@ -70,6 +70,7 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     vim-vimrc \
     nano \
     tzdata \
+    xdelta3 \
 "
 
 IMAGE_INSTALL:append = " libubootenv-bin"
