@@ -26,6 +26,6 @@ do_install() {
     install -d ${D}${bindir}
     install -d ${D}${systemd_system_unitdir}
 
-    install -m 0755 ${B}/bin/linux_arm/dbc-backlight-service ${D}${bindir}/backlight-service
+    install -m 0755 ${B}/bin/linux_arm/backlight-service ${D}${bindir}/backlight-service
     install -m 0644 ${WORKDIR}/dbc-backlight.service ${D}${systemd_system_unitdir}
 }
