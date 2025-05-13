@@ -58,6 +58,7 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     alsa-utils \
     mc \
     htop \
+    iotop \
     vim-vimrc \
     nano \
     tzdata \

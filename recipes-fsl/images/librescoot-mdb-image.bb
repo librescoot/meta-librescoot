@@ -66,6 +66,7 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     iptables \
     mc \
     htop \
+    iotop \
     vim-vimrc \
     nano \
     tzdata \
