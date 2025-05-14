@@ -40,6 +40,7 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     ioctl \
     bash \
     rsync \
+    curl \
     flutter-engine \
     flutter-wayland-client \
     scootui \

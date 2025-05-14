@@ -45,6 +45,7 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     gps-utils-python \
     gpsd-udev \
     rsync \
+    curl \
     lsof \
     screen \
     libgpiod \
