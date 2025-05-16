@@ -72,6 +72,9 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     nano \
     tzdata \
     xdelta3 \
+    nrf-ble-driver \
+    python3-pc-ble-driver-py \
+    python3-nrfutil \
 "
 
 IMAGE_INSTALL:append = " libubootenv-bin"

@@ -15,6 +15,8 @@ DEPENDS = "asio \
            systemd \
            "
 
+FILES:${PN} += "/usr/share/LICENSE"
+
 EXTRA_OECMAKE = "-DDISABLE_TESTS=True -DDISABLE_EXAMPLES=True -DNRF_BLE_DRIVER_VERSION=${PV}"
 
 
