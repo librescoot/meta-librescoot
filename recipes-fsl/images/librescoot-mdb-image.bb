@@ -76,6 +76,10 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     nrf-ble-driver \
     python3-pc-ble-driver-py \
     python3-nrfutil \
+    python3-intelhex \
+    python3-ecdsa \
+    python3-libusb1 \
+    python3-protobuf \
 "
 
 IMAGE_INSTALL:append = " libubootenv-bin"

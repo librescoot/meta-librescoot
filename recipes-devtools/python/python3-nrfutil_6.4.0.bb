@@ -20,9 +20,19 @@ RDEPENDS:${PN} += " \
         udev \
         "
 do_install() {
-    install -d ${D}${libdir}/${PYTHON_DIR}/site-packages/pc_nrfutil
+    install -d ${D}${libdir}/${PYTHON_DIR}/site-packages/nordicsemi
+    install -d ${D}${libdir}/${PYTHON_DIR}/site-packages/nordicsemi/dfu
+    install -d ${D}${libdir}/${PYTHON_DIR}/site-packages/nordicsemi/lister
+    install -d ${D}${libdir}/${PYTHON_DIR}/site-packages/nordicsemi/lister/unix
+    install -d ${D}${libdir}/${PYTHON_DIR}/site-packages/nordicsemi/lister/windows
+    install -d ${D}${libdir}/${PYTHON_DIR}/site-packages/nordicsemi/utility
 
-    install -m 644 ${S}/../git/nordicsemi/*.py ${D}${libdir}/${PYTHON_DIR}/site-packages/pc_nrfutil/
+    install -m 644 ${S}/../git/nordicsemi/*.py ${D}${libdir}/${PYTHON_DIR}/site-packages/nordicsemi/
+    install -m 644 ${S}/../git/nordicsemi/dfu/*.py ${D}${libdir}/${PYTHON_DIR}/site-packages/nordicsemi/dfu/
+    install -m 644 ${S}/../git/nordicsemi/lister/*.py ${D}${libdir}/${PYTHON_DIR}/site-packages/nordicsemi/lister/
+    install -m 644 ${S}/../git/nordicsemi/lister/unix/*.py ${D}${libdir}/${PYTHON_DIR}/site-packages/nordicsemi/lister/unix/
+    install -m 644 ${S}/../git/nordicsemi/lister/windows/*.py ${D}${libdir}/${PYTHON_DIR}/site-packages/nordicsemi/lister/windows/
+    install -m 644 ${S}/../git/nordicsemi/utility/*.py ${D}${libdir}/${PYTHON_DIR}/site-packages/nordicsemi/utility/
 }
 
 FILES:${PN} += "\
