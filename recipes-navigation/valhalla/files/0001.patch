@@ -1,0 +1,28 @@
+From b236f10f5bad4c652f1600da5bd64b0e4eda2e46 Mon Sep 17 00:00:00 2001
+From: Danylo Storozhev <office@storozhev.net>
+Date: Fri, 23 May 2025 16:50:46 +0200
+Subject: [PATCH] remove redundant target
+
+---
+ src/CMakeLists.txt | 6 ------
+ 1 file changed, 6 deletions(-)
+
+diff --git a/src/CMakeLists.txt b/src/CMakeLists.txt
+index c8e9a7940..51061a4e9 100644
+--- a/src/CMakeLists.txt
++++ b/src/CMakeLists.txt
+@@ -231,12 +231,6 @@ if(BUILD_SHARED_LIBS)
+   install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${LIBVALHALLA_SO_LINK}
+     DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+     COMPONENT development)
+-
+-  if(UNIX)
+-    add_custom_target(${LIBVALHALLA_SO_LINK} ALL
+-      COMMAND ${CMAKE_COMMAND} -E create_symlink "${LIBVALHALLA_SO_LINK}.${VALHALLA_VERSION_MAJOR}" ${LIBVALHALLA_SO_LINK})
+-    set_target_properties(${LIBVALHALLA_SO_LINK} PROPERTIES FOLDER "Library")
+-  endif()
+ endif()
+
+ install(FILES ${VALHALLA_SOURCE_DIR}/COPYING ${VALHALLA_SOURCE_DIR}/CHANGELOG.md ${VALHALLA_SOURCE_DIR}/README.md
+--
+2.39.5 (Apple Git-154)

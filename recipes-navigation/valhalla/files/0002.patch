@@ -1,0 +1,52 @@
+From 673cfeb3d3e66ba24c801759c55c5381151fb073 Mon Sep 17 00:00:00 2001
+From: Danylo Storozhev <office@storozhev.net>
+Date: Fri, 23 May 2025 17:59:31 +0200
+Subject: [PATCH] set protoc executable
+
+---
+ proto/CMakeLists.txt | 29 ++++++++++++++++++++++++++++-
+ 1 file changed, 28 insertions(+), 1 deletion(-)
+
+diff --git a/proto/CMakeLists.txt b/proto/CMakeLists.txt
+index f7cfb1c89..9716cc791 100644
+--- a/proto/CMakeLists.txt
++++ b/proto/CMakeLists.txt
+@@ -22,8 +22,35 @@ if(ENABLE_DATA_TOOLS)
+     ${VALHALLA_SOURCE_DIR}/third_party/OSM-binary/src/osmformat.proto)
+ endif()
+
++set(protobuf_srcs "")
++set(protobuf_hdrs "")
++set(protobuf_descriptors_absolute "") # Changed variable name for clarity
+
+-protobuf_generate_cpp(protobuf_srcs protobuf_hdrs ${protobuf_descriptors})
++foreach(proto_file ${protobuf_descriptors})
++  get_filename_component(proto_name ${proto_file} NAME_WE)
++  # Get absolute path if VALHALLA_SOURCE_DIR is not already part of proto_file
++  # For files already specified with VALHALLA_SOURCE_DIR, this is fine.
++  # For local files like api.proto, it needs to be relative to CMAKE_CURRENT_SOURCE_DIR
++  if(IS_ABSOLUTE ${proto_file})
++    set(proto_abs_path ${proto_file})
++  else()
++    get_filename_component(proto_abs_path "${CMAKE_CURRENT_SOURCE_DIR}/${proto_file}" ABSOLUTE)
++  endif()
++  list(APPEND protobuf_srcs "${CMAKE_CURRENT_BINARY_DIR}/${proto_name}.pb.cc")
++  list(APPEND protobuf_hdrs "${CMAKE_CURRENT_BINARY_DIR}/${proto_name}.pb.h")
++  list(APPEND protobuf_descriptors_absolute ${proto_abs_path})
++endforeach()
++
++add_custom_command(
++  OUTPUT ${protobuf_srcs} ${protobuf_hdrs}
++  COMMAND ${Protobuf_PROTOC_EXECUTABLE}
++  ARGS --cpp_out=${CMAKE_CURRENT_BINARY_DIR}
++       -I${VALHALLA_SOURCE_DIR}/proto # Main import path for valhalla protos
++       -I${VALHALLA_SOURCE_DIR}/third_party/OSM-binary/src # Import path for OSM protos
++       ${protobuf_descriptors_absolute} # Pass absolute paths of .proto files
++  DEPENDS ${protobuf_descriptors_absolute} # Depend on the .proto source files
++  COMMENT "Generating C++ sources and headers from .proto files using custom command"
++  VERBATIM)
+
+ valhalla_module(NAME proto
+   SOURCES
+--
+2.39.5 (Apple Git-154)

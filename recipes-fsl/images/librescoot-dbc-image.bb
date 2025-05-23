@@ -36,6 +36,7 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     python3-cbor2 \
     python3-smbus2 \
     python3-typing-extensions \
+    python3-shapely \
     dropbear \
     ioctl \
     bash \
@@ -65,6 +66,9 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     tzdata \
     brightness-reader \
     xdelta3 \
+    valhalla \
+    prime-server \
+    libspatialite \
     ${@bb.utils.contains('DISTRO_FEATURES', 'x11 wayland', \
                          'weston-xwayland xterm', '', d)} \
 "
