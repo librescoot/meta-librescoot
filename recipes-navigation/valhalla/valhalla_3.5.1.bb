@@ -7,6 +7,8 @@ LIC_FILES_CHKSUM = "file://COPYING;md5=a6502a7ddd34cba9a24a5a8ef3264e51"
 SRC_URI = "gitsm://github.com/valhalla/valhalla.git;protocol=https;branch=master"
 SRC_URI += "file://0001.patch"
 SRC_URI += "file://0002.patch"
+SRC_URI += "file://valhalla.service"
+SRC_URI += "file://valhalla_config.json"
 
 SRCREV = "3.5.1"
 
