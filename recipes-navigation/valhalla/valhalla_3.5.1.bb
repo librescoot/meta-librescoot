@@ -71,8 +71,8 @@ do_install:append() {
 FILES:${PN} = " \
     ${bindir}/valhalla_* \
     ${libdir}/lib*.so.* \
-    ${D}${sysconfdir}/valhalla/valhalla_config.json \
-    ${D}${systemd_system_unitdir}/valhalla.service \
+    ${sysconfdir}/valhalla/valhalla_config.json \
+    ${systemd_system_unitdir}/valhalla.service \
 "
 
 FILES:${PN}-dev = " \
