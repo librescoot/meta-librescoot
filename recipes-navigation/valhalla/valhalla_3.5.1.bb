@@ -40,7 +40,10 @@ PACKAGECONFIG[tests] = "-DENABLE_TESTS=ON,-DENABLE_TESTS=OFF"
 PACKAGECONFIG[ccache] = "-DENABLE_CCACHE=ON,-DENABLE_CCACHE=OFF,ccache"
 PACKAGECONFIG[gdal] = "-DENABLE_GDAL=ON,-DENABLE_GDAL=OFF,gdal"
 
-inherit cmake pkgconfig
+inherit cmake pkgconfig systemd
+
+SYSTEMD_SERVICE:${PN} = "valhalla.service"
+SYSTEMD_AUTO_ENABLE:${PN} = "enable"
 
 EXTRA_OECMAKE = " \
     -DCMAKE_BUILD_TYPE=Release \
@@ -53,10 +56,21 @@ EXTRA_OECMAKE = " \
     -DProtobuf_PROTOC_EXECUTABLE=${STAGING_BINDIR_NATIVE}/protoc \
 "
 
+do_install:append() {
+    install -d ${D}${sysconfdir}
+    install -d ${D}${sysconfdir}/valhalla
+    install -d ${D}${systemd_system_unitdir}
+
+    install -m 0644 ${WORKDIR}/valhalla_config.json ${D}${sysconfdir}/valhalla/
+    install -m 0644 ${WORKDIR}/valhalla.service ${D}${systemd_system_unitdir}
+}
+
 # Package files
 FILES:${PN} = " \
     ${bindir}/valhalla_* \
     ${libdir}/lib*.so.* \
+    ${D}${sysconfdir}/valhalla/valhalla_config.json \
+    ${D}${systemd_system_unitdir}/valhalla.service \
 "
 
 FILES:${PN}-dev = " \

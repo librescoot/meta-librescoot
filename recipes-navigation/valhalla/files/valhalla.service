@@ -1,0 +1,14 @@
+[Unit]
+Description=Valhalla routing daemon
+After=network.target
+ConditionPathExists=/data/valhalla/tiles.tar
+
+[Service]
+Type=simple
+WorkingDirectory=/data/valhalla
+ExecStart=/usr/bin/valhalla_service /etc/valhalla/valhalla_config.json
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
