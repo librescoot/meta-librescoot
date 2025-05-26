@@ -47,7 +47,8 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     scootui \
     onboot-service \
     version-service \
-    update-service \
+    smut \
+    brightness-reader \
     dbc-backlight-service \
     firmwared \ 
     screen \
@@ -64,7 +65,6 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     vim-vimrc \
     nano \
     tzdata \
-    brightness-reader \
     xdelta3 \
     valhalla \
     prime-server \
