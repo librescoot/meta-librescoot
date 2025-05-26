@@ -10,12 +10,18 @@ SRC_URI:append:librescoot-dbc = " \
     file://config-logo.cfg \
     file://config-opt3001.cfg \
     file://config-tas5720.cfg \
+    file://config-fsl_otp.cfg \
 "
 
 # Override the default KBUILD_DEFCONFIG for librescoot-dbc machine
 #KBUILD_DEFCONFIG:librescoot-dbc = ""
 
-KERNEL_CONFIG_FRAGMENTS:append:librescoot-dbc = " ${WORKDIR}/config-opt3001.cfg ${WORKDIR}/config-logo.cfg ${WORKDIR}/config-tas5720.cfg"
+KERNEL_CONFIG_FRAGMENTS:append:librescoot-dbc = " \
+    ${WORKDIR}/config-opt3001.cfg \
+    ${WORKDIR}/config-logo.cfg \
+    ${WORKDIR}/config-tas5720.cfg \
+    ${WORKDIR}/config-fsl_otp.cfg \
+"
 
 do_configure:prepend:librescoot-dbc() {
         # Install the logo file to the correct location in the Linux source tree
