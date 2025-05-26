@@ -47,7 +47,7 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     scootui \
     onboot-service \
     version-service \
-    smut \
+    update-service \
     brightness-reader \
     dbc-backlight-service \
     firmwared \ 
