@@ -1,8 +1,6 @@
 [Unit]
 Description=Dashboard Controller Backlight Service
 After=network.target
-After=redis.service
-Requires=redis.service
 
 [Service]
 Type=simple
