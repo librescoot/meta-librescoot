@@ -25,7 +25,6 @@ SYSTEMD_AUTO_ENABLE:${PN} = "enable"
 do_install() {
     install -d ${D}${bindir}
     install -d ${D}${systemd_system_unitdir}
-    install -d ${D}/data/ota
 
     # Install binary
     install -m 0755 ${B}/bin/linux_arm/update-service ${D}${bindir}/
