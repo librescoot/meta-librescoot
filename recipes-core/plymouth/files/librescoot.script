@@ -14,7 +14,7 @@ anim_sprite.SetY(screen_height / 2);
 
 # Define the number of frames and the frame rate
 num_frames = 14;  # We have 14 animation frames for now
-frame_rate = 30;  # Frames per second
+frame_rate = 3;   # Frames per second
 
 # Load all animation frames
 for (i = 1; i <= num_frames; i++) {
