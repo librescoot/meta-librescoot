@@ -16,11 +16,10 @@ GO_IMPORT = "github.com/librescoot/update-service"
 GO_LINKSHARED = ""
 GOBUILDFLAGS:remove = "-buildmode=pie"
 
-FILES:${PN} += "/usr/lib/systemd/system/librescoot-update@.service"
+FILES:${PN} += "/usr/lib/systemd/system/librescoot-update.service"
 
-# MDB gets librescoot-update@mdb.service, DBC gets librescoot-update@dbc.service
-SYSTEMD_SERVICE:${PN}:librescoot-mdb = "librescoot-update@mdb.service"
-SYSTEMD_SERVICE:${PN}:librescoot-dbc = "librescoot-update@dbc.service"
+# MDB gets mdb service, DBC gets dbc service
+SYSTEMD_SERVICE:${PN} = "librescoot-update.service"
 SYSTEMD_AUTO_ENABLE:${PN} = "enable"
 
 do_install() {
@@ -31,6 +30,10 @@ do_install() {
     # Install binary
     install -m 0755 ${B}/bin/linux_arm/update-service ${D}${bindir}/
     
-    # Install systemd template
-    install -m 0644 ${B}/src/github.com/librescoot/update-service/librescoot-update@.service ${D}${systemd_system_unitdir}/
+    # Install appropriate systemd service based on device type
+    if [ "${MACHINE}" = "librescoot-mdb" ]; then
+        install -m 0644 ${B}/src/github.com/librescoot/update-service/librescoot-update-mdb.service ${D}${systemd_system_unitdir}/librescoot-update.service
+    elif [ "${MACHINE}" = "librescoot-dbc" ]; then
+        install -m 0644 ${B}/src/github.com/librescoot/update-service/librescoot-update-dbc.service ${D}${systemd_system_unitdir}/librescoot-update.service
+    fi
 }
