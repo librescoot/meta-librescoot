@@ -63,6 +63,8 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     version-service \
     pm-service \
     update-service \
+    ums-service \
+    settings-service \
     radio-gaga \
     iptables \
     mc \
