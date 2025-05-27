@@ -33,6 +33,7 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     python3-pyyaml \
     python3-aioredis \
     python3-redis \
+    redis-client \
     python3-cbor2 \
     python3-smbus2 \
     python3-typing-extensions \
