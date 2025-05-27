@@ -1,7 +1,7 @@
 SUMMARY = "LibreScoot UMS Service"
 HOMEPAGE = "https://github.com/librescoot/ums-service"
 LICENSE = "CC-BY-NC-SA-4.0"
-LIC_FILES_CHKSUM = "file://src/github.com/librescoot/ums-service/LICENSE;md5=136c671dba2d2f644b882e31c3e289e8"
+LIC_FILES_CHKSUM = "file://src/github.com/librescoot/ums-service/LICENSE;md5=fb5d051e53001fdff7fec0f368f47190"
 
 SRC_URI = "git://github.com/librescoot/ums-service.git;protocol=https;branch=main"
 SRC_URI += " file://librescoot-ums.service"
