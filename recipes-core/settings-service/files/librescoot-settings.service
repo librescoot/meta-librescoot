@@ -1,6 +1,6 @@
 [Unit]
 Description=LibreScoot Settings Service
-After=network.target
+After=redis.service
 
 [Service]
 Type=simple
