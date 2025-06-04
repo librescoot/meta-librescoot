@@ -19,13 +19,18 @@ S = "${WORKDIR}/git"
 
 PUBSPEC_APPNAME = "scooter_cluster"
 FLUTTER_APPLICATION_INSTALL_SUFFIX = "scootui"
-PUBSPEC_IGNORE_LOCKFILE = "0"
-PUBSPEC_ENFORCE_LOCKFILE = "1"
+PUBSPEC_IGNORE_LOCKFILE = "1"
 FLUTTER_APPLICATION_PATH = ""
 
 SYSTEMD_SERVICE:${PN} = "scootui.service"
 
 inherit flutter-app systemd
+
+do_compile() {
+    cd ${S}
+    flutter pub get --offline
+    flutter build linux --release
+}
 
 do_install:append() {
     install -d ${D}${systemd_system_unitdir}
