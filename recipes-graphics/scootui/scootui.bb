@@ -12,7 +12,7 @@ SRCREV = "${AUTOREV}"
 SRC_URI = "git://github.com/librescoot/scootui.git;lfs=0;branch=main;protocol=https;destsuffix=git"
 SRC_URI += "file://scootui.service"
 
-PV = "0.4.10+git${SRCPV}"
+PV = "0.4.11+git"
 # PR = "r0"
 
 S = "${WORKDIR}/git"
@@ -24,11 +24,9 @@ FLUTTER_APPLICATION_PATH = ""
 
 SYSTEMD_SERVICE:${PN} = "scootui.service"
 
+inherit flutter-app systemd
+
 do_install:append() {
     install -d ${D}${systemd_system_unitdir}
     install -m 0644 ${WORKDIR}/scootui.service ${D}${systemd_system_unitdir}/
 }
-
-do_compile[nostamp] = "1"
-
-inherit flutter-app systemd
