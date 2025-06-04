@@ -15,6 +15,8 @@ SRC_URI += "file://scootui.service"
 PV = "0.4.11+git"
 # PR = "r0"
 
+inherit flutter-app systemd
+
 S = "${WORKDIR}/git"
 
 PUBSPEC_APPNAME = "scooter_cluster"
@@ -23,8 +25,6 @@ PUBSPEC_IGNORE_LOCKFILE = "1"
 FLUTTER_APPLICATION_PATH = ""
 
 SYSTEMD_SERVICE:${PN} = "scootui.service"
-
-inherit flutter-app systemd
 
 do_compile() {
     cd ${S}
