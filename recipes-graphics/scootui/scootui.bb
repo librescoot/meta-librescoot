@@ -19,12 +19,8 @@ S = "${WORKDIR}/git"
 
 PUBSPEC_APPNAME = "scooter_cluster"
 FLUTTER_APPLICATION_INSTALL_SUFFIX = "scootui"
-PUBSPEC_IGNORE_LOCKFILE = "1"
-FLUTTER_PUB_GET_ARGS = "--offline"
-
-# Disable pub cache to force rebuilds when source changes
-do_archive_pub_cache[noexec] = "1"
-do_restore_pub_cache[noexec] = "1"
+PUBSPEC_IGNORE_LOCKFILE = "0"
+PUBSPEC_ENFORCE_LOCKFILE = "1"
 FLUTTER_APPLICATION_PATH = ""
 
 SYSTEMD_SERVICE:${PN} = "scootui.service"
