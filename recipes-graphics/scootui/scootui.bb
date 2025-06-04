@@ -27,6 +27,13 @@ FLUTTER_APPLICATION_PATH = ""
 SYSTEMD_SERVICE:${PN} = "scootui.service"
 
 do_compile() {
+    # Set up Flutter environment variables
+    export FLUTTER_SDK="${STAGING_DIR_NATIVE}/usr/share/flutter/sdk"
+    export PATH="${FLUTTER_SDK}/bin:${PATH}"
+    export PUB_CACHE="${WORKDIR}/pub_cache"
+    export PKG_CONFIG_PATH="${STAGING_DIR_TARGET}/usr/lib/pkgconfig:${STAGING_DIR_TARGET}/usr/share/pkgconfig:${PKG_CONFIG_PATH}"
+    export XDG_CONFIG_HOME="${WORKDIR}"
+    
     cd ${S}
     flutter pub get --offline
     flutter build linux --release
