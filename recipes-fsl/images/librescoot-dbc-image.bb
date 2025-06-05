@@ -5,6 +5,8 @@ inherit core-image
 
 PLATFORM_FLAVOR    = "mx6qsabresd"
 
+SPLASH = "plymouth"
+
 IMAGE_FEATURES += "\
     ${@bb.utils.contains('DISTRO_FEATURES', 'wayland', 'weston', \
        bb.utils.contains('DISTRO_FEATURES',     'x11', 'x11-base x11-sato', \
