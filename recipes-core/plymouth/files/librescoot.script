@@ -1,57 +1,74 @@
-Window.SetBackgroundTopColor(0, 0, 0);
-Window.SetBackgroundBottomColor(0, 0, 255);
+# LibreScoot Plymouth Boot Animation Script
 
-# Get the screen dimensions
+# Set black background
+Window.SetBackgroundTopColor(0, 0, 0);
+Window.SetBackgroundBottomColor(0, 0, 0);
+
+# Get screen dimensions
 screen_width = Window.GetWidth();
 screen_height = Window.GetHeight();
 
-# Create a sprite that will contain our animation
-anim_sprite = Sprite();
-
-# Set the center position for our animation
-anim_sprite.SetX(screen_width / 2);
-anim_sprite.SetY(screen_height / 2);
-
-# Define the number of frames and the frame rate
-num_frames = 14;  # We have 14 animation frames for now
-frame_rate = 3;   # Frames per second
-
-# Load all animation frames
-for (i = 1; i <= num_frames; i++) {
-    filename = "frames/frame-" + i + ".png";
-    anim_sprite.AddImage(Image(filename));
-}
+# Animation configuration
+num_frames = 14;
+frame_duration = 10; # Number of refresh cycles per frame (controls speed)
 
 # Animation state
-animation_done = 0;
 current_frame = 0;
+frame_counter = 0;
+animation_complete = 0;
 
-# Function to update the animation frame
-fun UpdateAnimation() {
-    if (animation_done == 0) {
-        if (current_frame < num_frames - 1) {
-            current_frame++;
-            anim_sprite.SetImage(current_frame);
-        } else {
-            # Animation has completed, stay on last frame
-            animation_done = 1;
-        }
+# Load all animation frames into an array
+frames = [];
+for (i = 1; i <= num_frames; i++) {
+    filename = "frames/frame-" + i + ".png";
+    image = Image(filename);
+    if (image) {
+        frames[i-1] = image;
     }
 }
 
-# Handle plymouth events
+# Create animation sprite
+anim_sprite = Sprite();
+if (frames[0]) {
+    anim_sprite.SetImage(frames[0]);
+    
+    # Center the animation on screen
+    image_width = frames[0].GetWidth();
+    image_height = frames[0].GetHeight();
+    anim_sprite.SetX((screen_width - image_width) / 2);
+    anim_sprite.SetY((screen_height - image_height) / 2);
+}
+
+# Refresh function called every screen update
 Plymouth.SetRefreshFunction(function() {
-    # This runs every refresh cycle
-    if (animation_done == 0) {
-        # Only advance the frame every 1/frame_rate seconds
-        UpdateAnimation();
+    if (!animation_complete && frames[current_frame]) {
+        frame_counter++;
+        
+        # Advance frame when counter reaches duration
+        if (frame_counter >= frame_duration) {
+            frame_counter = 0;
+            current_frame++;
+            
+            # Loop animation or stop at end
+            if (current_frame >= num_frames) {
+                current_frame = 0; # Loop the animation
+                # animation_complete = 1; # Uncomment to stop after one cycle
+            }
+            
+            # Update sprite with new frame
+            if (frames[current_frame]) {
+                anim_sprite.SetImage(frames[current_frame]);
+            }
+        }
     }
 });
 
-Plymouth.SetQuitFunction(function() {
-    # This function is called when plymouth is about to quit
-    # Nothing special needed since we're not looping
+# Boot progress callback
+Plymouth.SetBootProgressFunction(function(duration, progress) {
+    # Animation continues regardless of boot progress
 });
 
-# Display the first frame immediately
-anim_sprite.SetImage(0);
+# Quit function
+Plymouth.SetQuitFunction(function() {
+    # Clean exit
+});
