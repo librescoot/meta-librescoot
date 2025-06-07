@@ -7,7 +7,7 @@ SRC_URI:append = " \
 "
 
 SRC_URI:append:librescoot-dbc = " \
-    file://config-drm.cfg \
+    file://config-plymouth.cfg \
     file://config-opt3001.cfg \
     file://config-tas5720.cfg \
 "
@@ -17,7 +17,7 @@ SRC_URI:append:librescoot-dbc = " \
 
 KERNEL_CONFIG_FRAGMENTS:append:librescoot-dbc = " \
     ${WORKDIR}/config-opt3001.cfg \
-    ${WORKDIR}/config-drm.cfg \
+    ${WORKDIR}/config-plymouth.cfg \
     ${WORKDIR}/config-tas5720.cfg \
 "
 
