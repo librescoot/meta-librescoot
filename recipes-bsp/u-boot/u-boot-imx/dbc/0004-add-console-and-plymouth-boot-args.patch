@@ -15,7 +15,7 @@ index fe1fbb142ac..df752bca617 100644
  	"fdt_file=undefined\0" \
  	"fdt_addr=0x18000000\0" \
  	"kernel_addr_r=0x12000000\0" \
-+	"bootargs=console=ttymxc0,115200 plymouth.enable=1 splash quiet loglevel=3 vt.global_cursor_default=0\0" \
++	"bootargs=console=ttymxc0,115200 plymouth.ignore-serial-consoles splash quiet loglevel=3 vt.global_cursor_default=0\0" \
  	"tee_addr=0x20000000\0" \
  	"tee_file=undefined\0" \
  	"boot_fdt=try\0" \
