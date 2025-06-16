@@ -1,0 +1,53 @@
+#!/bin/bash
+# ScootUI Runtime Mode Launcher
+# Usage: scootui-launch [debug|release] [flutter-client-args...]
+
+set -e
+
+FLUTTER_SDK_VERSION="3.32.2"
+FLUTTER_SCOOTUI_BASE="/usr/share/flutter/scootui/${FLUTTER_SDK_VERSION}"
+FLUTTER_ENGINE_BASE="/usr/share/flutter/${FLUTTER_SDK_VERSION}"
+
+# Default to release mode if no argument provided
+RUNTIME_MODE="${1:-release}"
+shift || true  # Remove first argument if it exists
+
+# Validate runtime mode
+case "$RUNTIME_MODE" in
+    debug|release)
+        ;;
+    *)
+        echo "Error: Invalid runtime mode '$RUNTIME_MODE'"
+        echo "Usage: $0 [debug|release] [flutter-client-args...]"
+        exit 1
+        ;;
+esac
+
+# Check if the runtime mode directory exists
+if [ ! -d "${FLUTTER_SCOOTUI_BASE}/${RUNTIME_MODE}" ]; then
+    echo "Error: ScootUI ${RUNTIME_MODE} mode not found at ${FLUTTER_SCOOTUI_BASE}/${RUNTIME_MODE}"
+    exit 1
+fi
+
+# Set up environment for the chosen runtime mode
+export LD_LIBRARY_PATH="${FLUTTER_ENGINE_BASE}/${RUNTIME_MODE}/lib:${LD_LIBRARY_PATH:-}"
+export FLUTTER_RUNTIME_MODE="$RUNTIME_MODE"
+
+# Set working directory
+cd "${FLUTTER_SCOOTUI_BASE}/${RUNTIME_MODE}"
+
+# Debug mode specific environment setup
+if [ "$RUNTIME_MODE" = "debug" ]; then
+    # Enable VM service for debugging (default port 8181)
+    VM_SERVICE_PORT="${VM_SERVICE_PORT:-8181}"
+    export FLUTTER_ENGINE_ARGS="--enable-dart-profiling --enable-vm-service=${VM_SERVICE_PORT}"
+    echo "Debug mode: VM service enabled on port ${VM_SERVICE_PORT}"
+    echo "Connect with: flutter attach --debug-port=${VM_SERVICE_PORT}"
+fi
+
+# Launch flutter-client with the specified runtime mode
+echo "Starting ScootUI in ${RUNTIME_MODE} mode..."
+echo "Working directory: $(pwd)"
+echo "Library path: $LD_LIBRARY_PATH"
+
+exec flutter-client -f -b "${FLUTTER_SCOOTUI_BASE}/${RUNTIME_MODE}" "$@"

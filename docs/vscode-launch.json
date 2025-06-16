@@ -1,0 +1,33 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Flutter Attach (LibreScoot Debug)",
+            "type": "dart",
+            "request": "attach",
+            "deviceId": "flutter-client",
+            "vmServiceUri": "http://192.168.7.2:8181/",
+            "program": "lib/main.dart",
+            "cwd": "${workspaceFolder}",
+            "debugConsole": "debugConsole",
+            "flutterMode": "debug"
+        },
+        {
+            "name": "Flutter Connect (LibreScoot Debug)",
+            "type": "dart", 
+            "request": "launch",
+            "program": "lib/main.dart",
+            "args": [
+                "--debug",
+                "--device-id=flutter-client",
+                "--host-vmservice-port=8181"
+            ],
+            "cwd": "${workspaceFolder}",
+            "debugConsole": "debugConsole",
+            "flutterMode": "debug",
+            "toolArgs": [
+                "--device-id=flutter-client"
+            ]
+        }
+    ]
+}

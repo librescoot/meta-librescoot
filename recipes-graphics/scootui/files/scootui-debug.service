@@ -1,5 +1,5 @@
 [Unit]
-Description=ScootUI Application
+Description=ScootUI Application (Debug Mode)
 Documentation=https://github.com/librescoot/meta-librescoot
 
 Requires=systemd-user-sessions.service
@@ -11,16 +11,14 @@ After=plymouth-quit-wait.service
 Requires=weston.socket
 After=weston.socket
 
-# Since we are the main UI application, do we need this?
-# Before=graphical.target
-
 ConditionPathExists=/dev/tty0
 
 [Service]
 Environment=HOME="/data"
 Environment=WAYLAND_DISPLAY="/run/wayland-0"
 Environment=XDG_RUNTIME_DIR="/run/user/0"
-ExecStart=/usr/bin/scootui-launch release
+Environment=VM_SERVICE_PORT="8181"
+ExecStart=/usr/bin/scootui-launch debug
 
 User=root
 Group=root
@@ -30,9 +28,9 @@ Group=root
 StandardOutput=journal
 StandardError=journal
 
-# Auto-restart on crash/quit
-Restart=always
-RestartSec=1
+# Debug mode should restart on failure for development
+Restart=on-failure
+RestartSec=5
 
 [Install]
 WantedBy=graphical.target
