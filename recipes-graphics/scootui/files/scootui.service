@@ -30,5 +30,9 @@ WorkingDirectory=/usr/share/flutter/scootui/3.32.2/release
 StandardOutput=journal
 StandardError=journal
 
+# Auto-restart on crash/quit
+Restart=always
+RestartSec=1
+
 [Install]
 WantedBy=graphical.target
