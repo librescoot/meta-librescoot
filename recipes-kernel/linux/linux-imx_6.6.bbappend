@@ -2,6 +2,7 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 
 SRC_URI:append = " \
     file://Add-lcdmode.patch \
+    file://0001-add-imx-tas5720-machine-driver.patch \
     file://librescoot-dbc.dts \
     file://logo/logo_linux_clut224.ppm \
 "

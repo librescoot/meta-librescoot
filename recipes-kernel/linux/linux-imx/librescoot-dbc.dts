@@ -1988,24 +1988,15 @@
 		};
 	};
 
-	sound-tas5720 {
-		compatible = "simple-audio-card";
-		simple-audio-card,name = "imx-audio-tas5720"; // Reused name
-		simple-audio-card,format = "i2s";
-		simple-audio-card,frame-master = <&cpudai>;
-		simple-audio-card,bitclock-master = <&cpudai>;
-
-		cpudai: simple-audio-card,cpu {
-			sound-dai = <0x4c>; /* phandle to ssi@2028000 */
-			/* Use the SSI1 baud clock (CLK_SSI1_SERIAL, index 0x9d) */
-			clocks = <0x04 0x9d>;
-		};
-
-		codec: simple-audio-card,codec {
-			sound-dai = <0x4d>; /* phandle to tas5720@6c */
-			/* Use the same clock as CPU DAI if CPU is master */
-			clocks = <0x04 0x9d>;
-		};
+	sound {
+		compatible = "unu,imx-audio-tas5720";
+		model = "imx-audio-tas5720";
+		ssi-controller = <0x4c>; /* phandle to ssi@2028000 */
+		audio-codec = <0x4d>; /* phandle to tas5720@6c */
+		audio-routing =
+			"Output", "OUT";
+		mux-int-port = <1>;
+		mux-ext-port = <3>;
 	};
 
 };
