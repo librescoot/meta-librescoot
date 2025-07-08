@@ -56,6 +56,7 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     ecu-service \
     vehicle-service \
     keycard-service \
+    boot-led-service \
     battery-service \
     modem-service \
     onboot-service \
