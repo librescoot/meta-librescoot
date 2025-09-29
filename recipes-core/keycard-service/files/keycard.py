@@ -105,8 +105,8 @@ class PN7150Extended(PN7150):
                         self.master_uids = [uid]
                         self._master_learning_mode = False
                         self._stop_green_led_blink()
-                        subprocess.run([LED_SCRIPT, '3', '0'], shell=False) # blink
-                        subprocess.run([LED_SCRIPT, '7', '0'], shell=False) # blink 
+                        subprocess.run([LED_SCRIPT, '3', '10'], shell=False) # blink
+                        subprocess.run([LED_SCRIPT, '7', '10'], shell=False) # blink 
                         print("Master UID learned and saved. Switching to normal mode.")
                         continue
 
@@ -114,8 +114,8 @@ class PN7150Extended(PN7150):
                         if uid in self.master_uids:
                             print(f"Master UID detected: {uid} - Switching to learn mode")
                             self._learn_mode = True
-                            subprocess.run([LED_SCRIPT, '3', '1'], shell=False) # blink
-                            subprocess.run([LED_SCRIPT, '7', '1'], shell=False) # blink
+                            subprocess.run([LED_SCRIPT, '3', '2'], shell=False) # linear-on
+                            subprocess.run([LED_SCRIPT, '7', '2'], shell=False) # linear-on
                         elif uid in self.authorized_uids:
                             print(f"Authorized UID detected: {uid} - Executing script")
                             subprocess.run([GREEN_LED_SCRIPT, '1'], shell=False)
@@ -128,8 +128,8 @@ class PN7150Extended(PN7150):
                         if uid in self.master_uids:
                             print(f"Master UID detected: {uid} - Switching off learn mode")
                             self._learn_mode = False
-                            subprocess.run([LED_SCRIPT, '3', '2'], shell=False) # off
-                            subprocess.run([LED_SCRIPT, '7', '2'], shell=False) # off
+                            subprocess.run([LED_SCRIPT, '3', '3'], shell=False) # linear-off
+                            subprocess.run([LED_SCRIPT, '7', '3'], shell=False) # linear-off
                             if len(self._newUIDs) == 0:
                                 print('nothing learned')
                             else:
@@ -142,9 +142,9 @@ class PN7150Extended(PN7150):
                             print(f"UID detected: {uid} - Learning")
                             subprocess.run([GREEN_LED_SCRIPT, '1'], shell=False)
                             self._newUIDs.append(uid)
-                            subprocess.run([LED_SCRIPT, '1', '0'], shell=False) # blink
-                            subprocess.run([LED_SCRIPT, '1', '0'], shell=False) # blink
-                            subprocess.run([LED_SCRIPT, '1', '0'], shell=False) # blink
+                            subprocess.run([LED_SCRIPT, '1', '10'], shell=False) # blink
+                            subprocess.run([LED_SCRIPT, '1', '10'], shell=False) # blink
+                            subprocess.run([LED_SCRIPT, '1', '10'], shell=False) # blink
                             time.sleep(1)
                             subprocess.run([GREEN_LED_SCRIPT, '0'], shell=False)
 
