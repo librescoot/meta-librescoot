@@ -42,7 +42,7 @@ SRCREV = "b76bb1bf9fd21e21006d79552e28855ac43ad43c"
 S = "${WORKDIR}/git"
 
 UBOOT_INITIAL_ENV = ""
-UBOOT_BINARY:librescoot-dbc = "u-boot.imx"
+UBOOT_BINARY:librescoot-dbc = "u-boot-dtb.imx"
 UBOOT_BINARY:librescoot-mdb = "u-boot-dtb.imx"
 
 inherit fsl-u-boot-localversion dtc-145
