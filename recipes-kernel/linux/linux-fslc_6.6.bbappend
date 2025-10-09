@@ -1,7 +1,6 @@
 FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 
 SRC_URI:append = " \
-    file://Add-lcdmode.patch \
     file://librescoot-dbc.dts \
     file://logo/logo_linux_clut224.ppm \
 "
@@ -10,6 +9,8 @@ SRC_URI:append:librescoot-dbc = " \
     file://config-logo.cfg \
     file://config-opt3001.cfg \
     file://config-tas5720.cfg \
+    file://config-video.cfg \
+    file://config-cmdline.cfg \
 "
 
 # Override the default KBUILD_DEFCONFIG for librescoot-dbc machine
@@ -19,6 +20,8 @@ KERNEL_CONFIG_FRAGMENTS:append:librescoot-dbc = " \
     ${WORKDIR}/config-opt3001.cfg \
     ${WORKDIR}/config-logo.cfg \
     ${WORKDIR}/config-tas5720.cfg \
+    ${WORKDIR}/config-video.cfg \
+    ${WORKDIR}/config-cmdline.cfg \
 "
 
 do_configure:prepend:librescoot-dbc() {

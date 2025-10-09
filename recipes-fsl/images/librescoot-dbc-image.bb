@@ -72,9 +72,12 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     valhalla \
     prime-server \
     libspatialite \
+    flutter-drm-gbm-backend \
     ${@bb.utils.contains('DISTRO_FEATURES', 'x11 wayland', \
                          'weston-xwayland xterm', '', d)} \
 "
 
 IMAGE_INSTALL:append = " libubootenv-bin firmware-imx-epdc"
 IMAGE_INSTALL:append = " plymouth plymouth-animation"
+
+PACKAGE_EXCLUDE = "ofono neard"

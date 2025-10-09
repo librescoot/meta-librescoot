@@ -7,20 +7,13 @@ After=systemd-user-sessions.service
 
 After=plymouth-quit-wait.service
 
-# Ensure Weston is available
-Requires=weston.socket
-After=weston.socket
-
-# Since we are the main UI application, do we need this?
-# Before=graphical.target
-
 ConditionPathExists=/dev/tty0
 
 [Service]
 Environment=HOME="/data"
-Environment=WAYLAND_DISPLAY="/run/wayland-0"
 Environment=XDG_RUNTIME_DIR="/run/user/0"
-ExecStart=/usr/bin/flutter-client -f -b /usr/share/flutter/scootui/3.32.5/release
+Environment=FLUTTER_DRM_DEVICE="/dev/dri/card1"
+ExecStart=/usr/bin/flutter-drm-gbm-backend -b /usr/share/flutter/scootui/3.32.5/release
 
 User=root
 Group=root
