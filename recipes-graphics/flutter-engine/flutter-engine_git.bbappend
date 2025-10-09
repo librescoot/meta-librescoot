@@ -1,5 +1,7 @@
 FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 
+FLUTTER_SDK_TAG = "3.32.5"
+
 do_install:append() {
     install -d ${D}${libdir}
     ln -sf ${FLUTTER_ENGINE_INSTALL_PREFIX}/release/lib/libflutter_engine.so ${D}${libdir}/libflutter_engine.so
