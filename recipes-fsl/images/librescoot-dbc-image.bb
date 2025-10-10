@@ -73,6 +73,7 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     prime-server \
     libspatialite \
     flutter-drm-gbm-backend \
+    flutter-video-player-plugin \
     ${@bb.utils.contains('DISTRO_FEATURES', 'x11 wayland', \
                          'weston-xwayland xterm', '', d)} \
 "
