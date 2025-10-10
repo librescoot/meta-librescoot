@@ -27,3 +27,11 @@ do_install:append:librescoot-dbc() {
     install -m 0600 ${WORKDIR}/authorized-dbc ${D}/root/.ssh/authorized_keys
     install -m 0600 ${WORKDIR}/hostkey-dbc ${D}${sysconfdir}/dropbear/dropbear_rsa_host_key
 }
+
+do_install:append:librescoot-rpi5() {
+    install -d ${D}${sysconfdir}/dropbear
+    install -d ${D}/root/.ssh
+
+    install -m 0600 ${WORKDIR}/authorized-dbc ${D}/root/.ssh/authorized_keys
+    install -m 0600 ${WORKDIR}/hostkey-dbc ${D}${sysconfdir}/dropbear/dropbear_rsa_host_key
+}
