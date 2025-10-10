@@ -7,6 +7,9 @@ SRC_URI:append:librescoot-mdb = " file://hostkey-mdb"
 SRC_URI:append:librescoot-dbc = " file://authorized-dbc"
 SRC_URI:append:librescoot-dbc = " file://hostkey-dbc"
 
+SRC_URI:append:librescoot-rpi5 = " file://authorized-dbc"
+SRC_URI:append:librescoot-rpi5 = " file://hostkey-dbc"
+
 FILES:${PN} += " \
     /root/.ssh/* \
 "
