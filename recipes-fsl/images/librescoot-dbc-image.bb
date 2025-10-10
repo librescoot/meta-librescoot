@@ -46,7 +46,6 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     rsync \
     curl \
     flutter-engine \
-    flutter-wayland-client \
     scootui \
     onboot-service \
     version-service \
