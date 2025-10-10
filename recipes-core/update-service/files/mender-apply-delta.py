@@ -18,6 +18,9 @@ import hashlib
 import gzip
 from pathlib import Path
 
+# Custom temporary directory location to avoid filling up root partition
+TEMP_DIR = '/data/_tmp'
+
 
 def calculate_sha256(filepath):
     """Calculate SHA256 hash of a file."""
@@ -196,7 +199,10 @@ def apply_delta_patch(old_mender, delta_patch, output_mender):
     if not os.path.exists(delta_patch):
         raise Exception(f"Delta patch file not found: {delta_patch}")
 
-    with tempfile.TemporaryDirectory() as temp_dir:
+    # Ensure custom temp directory exists
+    os.makedirs(TEMP_DIR, exist_ok=True)
+
+    with tempfile.TemporaryDirectory(dir=TEMP_DIR) as temp_dir:
         old_dir = os.path.join(temp_dir, 'old')
         delta_dir = os.path.join(temp_dir, 'delta')
         output_dir = os.path.join(temp_dir, 'output')
@@ -413,7 +419,7 @@ def apply_delta_patch(old_mender, delta_patch, output_mender):
 
         # Verify content files
         print("\nVerifying reconstructed content...")
-        with tempfile.TemporaryDirectory() as verify_dir:
+        with tempfile.TemporaryDirectory(dir=TEMP_DIR) as verify_dir:
             extract_tar(output_mender, verify_dir)
 
             all_verified = True
