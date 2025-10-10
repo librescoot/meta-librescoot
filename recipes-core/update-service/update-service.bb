@@ -24,6 +24,10 @@ FILES:${PN} += "/usr/bin/mender-apply-delta.py"
 SYSTEMD_SERVICE:${PN} = "librescoot-update.service"
 SYSTEMD_AUTO_ENABLE:${PN} = "enable"
 
+do_install:prepend:librescoot-rpi5() {
+    mv ${B}/bin/linux_arm64 ${B}/bin/linux_arm || true
+}
+
 do_install() {
     install -d ${D}${bindir}
     install -d ${D}${systemd_system_unitdir}
@@ -36,6 +40,8 @@ do_install() {
     if [ "${MACHINE}" = "librescoot-mdb" ]; then
         install -m 0644 ${B}/src/github.com/librescoot/update-service/librescoot-update-mdb.service ${D}${systemd_system_unitdir}/librescoot-update.service
     elif [ "${MACHINE}" = "librescoot-dbc" ]; then
+        install -m 0644 ${B}/src/github.com/librescoot/update-service/librescoot-update-dbc.service ${D}${systemd_system_unitdir}/librescoot-update.service
+    elif [ "${MACHINE}" = "librescoot-rpi5" ]; then
         install -m 0644 ${B}/src/github.com/librescoot/update-service/librescoot-update-dbc.service ${D}${systemd_system_unitdir}/librescoot-update.service
     fi
 }

@@ -15,4 +15,5 @@ do_install:append() {
 }
 
 SYSTEMD_AUTO_ENABLE:${PN}:librescoot-dbc = "disable"
+SYSTEMD_AUTO_ENABLE:${PN}:librescoot-rpi5 = "disable"
 

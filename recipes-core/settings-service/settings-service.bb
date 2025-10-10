@@ -22,6 +22,7 @@ FILES:${PN} += "/usr/lib/systemd/system/librescoot-settings.service"
 SYSTEMD_SERVICE:${PN} = "librescoot-settings.service"
 SYSTEMD_AUTO_ENABLE:${PN} = "enable"
 
+
 do_install() {
     install -d ${D}${bindir}
     install -d ${D}${systemd_system_unitdir}

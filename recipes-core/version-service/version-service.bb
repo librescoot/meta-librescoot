@@ -37,3 +37,13 @@ do_install:librescoot-dbc() {
     install -m 0755 ${B}/bin/linux_arm/version-service ${D}${bindir}/
     install -m 0644 ${B}/src/github.com/librescoot/version-service/version-service-dbc.service ${D}${systemd_system_unitdir}/librescoot-version.service
 }
+
+do_install:librescoot-rpi5() {
+    install -d ${D}${bindir}
+    install -d ${D}${systemd_system_unitdir}
+
+    mv ${B}/bin/linux_arm64 ${B}/bin/linux_arm || true
+
+    install -m 0755 ${B}/bin/linux_arm/version-service ${D}${bindir}/
+    install -m 0644 ${B}/src/github.com/librescoot/version-service/version-service-dbc.service ${D}${systemd_system_unitdir}/librescoot-version.service
+}

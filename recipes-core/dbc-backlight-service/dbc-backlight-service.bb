@@ -22,6 +22,10 @@ FILES:${PN} += "/usr/lib/systemd/system/dbc-backlight.service"
 SYSTEMD_SERVICE:${PN} = "dbc-backlight.service"
 SYSTEMD_AUTO_ENABLE:${PN} = "enable"
 
+do_install:prepend:librescoot-rpi5() {
+    mv ${B}/bin/linux_arm64 ${B}/bin/linux_arm
+}
+
 do_install() {
     install -d ${D}${bindir}
     install -d ${D}${systemd_system_unitdir}
