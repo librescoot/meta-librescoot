@@ -54,18 +54,15 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     dbc-backlight-service \
     firmwared \ 
     screen \
-    brouter \
     chrony \
     chronyc \
     xdg-user-dirs \
     sqlite3 \
     libsqlite3-dev \
     alsa-utils \
-    mc \
     htop \
     iotop \
     vim-vimrc \
-    nano \
     tzdata \
     xdelta3 \
     valhalla \
