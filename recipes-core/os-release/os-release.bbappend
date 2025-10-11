@@ -1,10 +1,9 @@
-# Extract machine variant from MACHINE variable (e.g., librescoot-mdb -> mdb)
+# Use full MACHINE name as VARIANT_ID (e.g., unu-mdb, unu-dbc, librescoot-dbc-rpi5)
 python() {
     machine = d.getVar('MACHINE')
-    if machine and machine.startswith('librescoot-'):
-        variant = machine.replace('librescoot-', '')
-        d.setVar('VARIANT_ID', variant)
-        d.setVar('VARIANT', variant.upper())
+    if machine:
+        d.setVar('VARIANT_ID', machine)
+        d.setVar('VARIANT', machine.upper())
 }
 
 # Add VARIANT and VARIANT_ID to os-release output
