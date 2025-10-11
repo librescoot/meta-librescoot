@@ -2,6 +2,7 @@
 Description=Librescoot Battery Service
 Requires=redis.service
 After=redis.service
+After=librescoot-vehicle.service
 
 [Service]
 Type=idle

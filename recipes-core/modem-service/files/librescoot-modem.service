@@ -1,6 +1,8 @@
 [Unit]
 Description=LibreScoot Modem Service
 Requires=redis.service
+After=redis.service
+After=librescoot-vehicle.service
 
 [Service]
 Type=idle

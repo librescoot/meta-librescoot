@@ -1,7 +1,8 @@
 [Unit]
 Description=LibreScoot Keycard Service
-Wants=redis.service
+Requires=redis.service
 After=redis.service
+After=librescoot-vehicle.service
 
 [Service]
 Type=simple
