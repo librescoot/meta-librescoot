@@ -1,6 +1,7 @@
 [Unit]
 Description=Librescoot Battery Service
 Requires=redis.service
+After=redis.service
 
 [Service]
 Type=idle
