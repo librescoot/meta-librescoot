@@ -25,25 +25,25 @@ SRC_URI:append:mender-uboot = " file://common/0004-mender-malloc.patch"
 SRC_URI:append = " file://common/0001-helloworld.patch"
 SRC_URI:append = " file://common/0003-sanity-check.patch"
 
-SRC_URI:append:librescoot-mdb = " file://mdb/0004-enable-usb-mass-storage.patch"
-SRC_URI:append:librescoot-mdb = " file://mdb/0006-spi-remove.patch"
-SRC_URI:append:librescoot-mdb = " file://mdb/0007-mass-storage.patch"
-SRC_URI:append:librescoot-mdb = " file://mdb/0008-mmc-and-usb.patch"
-SRC_URI:append:librescoot-mdb = " file://mdb/0009-add-kernel_addr_r-var.patch"
+SRC_URI:append:unu-mdb = " file://mdb/0004-enable-usb-mass-storage.patch"
+SRC_URI:append:unu-mdb = " file://mdb/0006-spi-remove.patch"
+SRC_URI:append:unu-mdb = " file://mdb/0007-mass-storage.patch"
+SRC_URI:append:unu-mdb = " file://mdb/0008-mmc-and-usb.patch"
+SRC_URI:append:unu-mdb = " file://mdb/0009-add-kernel_addr_r-var.patch"
 
-SRC_URI:append:librescoot-dbc = " file://dbc/0001-add-DBC-memory-configuration.patch"
-SRC_URI:append:librescoot-dbc = " file://dbc/0001-add-kernel_addr_r.patch"
-SRC_URI:append:librescoot-dbc = " file://dbc/0002-remove-LVDS-EPDC-and-ethernet.-add-SPI-LCD-init-and-.patch"
-SRC_URI:append:librescoot-dbc = " file://dbc/0003-add-SPI-and-FIT-compat-to-configs.patch"
-SRC_URI:append:librescoot-dbc = " file://dbc/0004-add-console-and-plymouth-boot-args.patch"
+SRC_URI:append:unu-dbc = " file://dbc/0001-add-DBC-memory-configuration.patch"
+SRC_URI:append:unu-dbc = " file://dbc/0001-add-kernel_addr_r.patch"
+SRC_URI:append:unu-dbc = " file://dbc/0002-remove-LVDS-EPDC-and-ethernet.-add-SPI-LCD-init-and-.patch"
+SRC_URI:append:unu-dbc = " file://dbc/0003-add-SPI-and-FIT-compat-to-configs.patch"
+SRC_URI:append:unu-dbc = " file://dbc/0004-add-console-and-plymouth-boot-args.patch"
 
 SRCREV = "b76bb1bf9fd21e21006d79552e28855ac43ad43c"
 
 S = "${WORKDIR}/git"
 
 UBOOT_INITIAL_ENV = ""
-UBOOT_BINARY:librescoot-dbc = "u-boot-dtb.imx"
-UBOOT_BINARY:librescoot-mdb = "u-boot-dtb.imx"
+UBOOT_BINARY:unu-dbc = "u-boot-dtb.imx"
+UBOOT_BINARY:unu-mdb = "u-boot-dtb.imx"
 
 inherit fsl-u-boot-localversion dtc-145
 
