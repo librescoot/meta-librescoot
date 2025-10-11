@@ -24,7 +24,7 @@ FILES:${PN} += "/usr/bin/mender-apply-delta.py"
 SYSTEMD_SERVICE:${PN} = "librescoot-update.service"
 SYSTEMD_AUTO_ENABLE:${PN} = "enable"
 
-do_install:prepend:librescoot-rpi5() {
+do_install:prepend:librescoot-dbc-rpi5() {
     mv ${B}/bin/linux_arm64 ${B}/bin/linux_arm || true
 }
 

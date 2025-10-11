@@ -11,7 +11,7 @@ inherit systemd
 SYSTEMD_SERVICE:${PN} = "librescoot-netconfig.service"
 SYSTEMD_AUTO_ENABLE:${PN} = "enable"
 
-do_install:librescoot-dbc() {
+do_install:unu-dbc() {
     install -d ${D}/etc/systemd/network
     install -d ${D}${sbindir}
     install -d ${D}${systemd_system_unitdir}
@@ -21,7 +21,7 @@ do_install:librescoot-dbc() {
     install -m 0644 ${WORKDIR}/librescoot-netconfig.service ${D}${systemd_system_unitdir}
 }
 
-do_install:librescoot-rpi5() {
+do_install:librescoot-dbc-rpi5() {
     install -d ${D}/etc/systemd/network
     install -d ${D}${sbindir}
     install -d ${D}${systemd_system_unitdir}

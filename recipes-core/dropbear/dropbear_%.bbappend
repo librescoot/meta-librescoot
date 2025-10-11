@@ -1,20 +1,20 @@
 FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
 
-SRC_URI:append:librescoot-mdb = " file://id-mdb"
-SRC_URI:append:librescoot-mdb = " file://knownhosts-mdb"
-SRC_URI:append:librescoot-mdb = " file://hostkey-mdb"
+SRC_URI:append:unu-mdb = " file://id-mdb"
+SRC_URI:append:unu-mdb = " file://knownhosts-mdb"
+SRC_URI:append:unu-mdb = " file://hostkey-mdb"
 
-SRC_URI:append:librescoot-dbc = " file://authorized-dbc"
-SRC_URI:append:librescoot-dbc = " file://hostkey-dbc"
+SRC_URI:append:unu-dbc = " file://authorized-dbc"
+SRC_URI:append:unu-dbc = " file://hostkey-dbc"
 
-SRC_URI:append:librescoot-rpi5 = " file://authorized-dbc"
-SRC_URI:append:librescoot-rpi5 = " file://hostkey-dbc"
+SRC_URI:append:librescoot-dbc-rpi5 = " file://authorized-dbc"
+SRC_URI:append:librescoot-dbc-rpi5 = " file://hostkey-dbc"
 
 FILES:${PN} += " \
     /root/.ssh/* \
 "
 
-do_install:append:librescoot-mdb() {
+do_install:append:unu-mdb() {
     install -d ${D}${sysconfdir}/dropbear
     install -d ${D}/root/.ssh
 
@@ -23,7 +23,7 @@ do_install:append:librescoot-mdb() {
     install -m 0600 ${WORKDIR}/hostkey-mdb ${D}${sysconfdir}/dropbear/dropbear_rsa_host_key
 }
 
-do_install:append:librescoot-dbc() {
+do_install:append:unu-dbc() {
     install -d ${D}${sysconfdir}/dropbear
     install -d ${D}/root/.ssh
 
@@ -31,7 +31,7 @@ do_install:append:librescoot-dbc() {
     install -m 0600 ${WORKDIR}/hostkey-dbc ${D}${sysconfdir}/dropbear/dropbear_rsa_host_key
 }
 
-do_install:append:librescoot-rpi5() {
+do_install:append:librescoot-dbc-rpi5() {
     install -d ${D}${sysconfdir}/dropbear
     install -d ${D}/root/.ssh
 
