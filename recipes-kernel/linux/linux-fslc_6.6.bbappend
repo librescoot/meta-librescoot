@@ -5,7 +5,7 @@ SRC_URI:append = " \
     file://logo/logo_linux_clut224.ppm \
 "
 
-SRC_URI:append:librescoot-dbc = " \
+SRC_URI:append:unu-dbc = " \
     file://config-logo.cfg \
     file://config-opt3001.cfg \
     file://config-tas5720.cfg \
@@ -14,9 +14,9 @@ SRC_URI:append:librescoot-dbc = " \
 "
 
 # Override the default KBUILD_DEFCONFIG for librescoot-dbc machine
-#KBUILD_DEFCONFIG:librescoot-dbc = ""
+#KBUILD_DEFCONFIG:unu-dbc = ""
 
-KERNEL_CONFIG_FRAGMENTS:append:librescoot-dbc = " \
+KERNEL_CONFIG_FRAGMENTS:append:unu-dbc = " \
     ${WORKDIR}/config-opt3001.cfg \
     ${WORKDIR}/config-logo.cfg \
     ${WORKDIR}/config-tas5720.cfg \
@@ -24,7 +24,7 @@ KERNEL_CONFIG_FRAGMENTS:append:librescoot-dbc = " \
     ${WORKDIR}/config-cmdline.cfg \
 "
 
-do_configure:prepend:librescoot-dbc() {
+do_configure:prepend:unu-dbc() {
         # Install the logo file to the correct location in the Linux source tree
         if [ -e ${WORKDIR}/logo/logo_linux_clut224.ppm ]; then
             install -d ${S}/drivers/video/logo

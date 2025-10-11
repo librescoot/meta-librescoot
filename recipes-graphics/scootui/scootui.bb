@@ -28,12 +28,12 @@ FLUTTER_APPLICATION_PATH = ""
 
 SYSTEMD_SERVICE:${PN} = "scootui.service"
 
-do_install:append:librescoot-dbc() {
+do_install:append:unu-dbc() {
     install -d ${D}${systemd_system_unitdir}
     install -m 0644 ${WORKDIR}/scootui.service ${D}${systemd_system_unitdir}/
 }
 
-do_install:append:librescoot-rpi5() {
+do_install:append:librescoot-dbc-rpi5() {
     install -d ${D}${systemd_system_unitdir}
     install -m 0644 ${WORKDIR}/scootui-rpi5.service ${D}${systemd_system_unitdir}/scootui.service
 }

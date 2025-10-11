@@ -14,6 +14,6 @@ do_install:append() {
     install -m 0644 ${WORKDIR}/redis.service ${D}${systemd_system_unitdir}
 }
 
-SYSTEMD_AUTO_ENABLE:${PN}:librescoot-dbc = "disable"
-SYSTEMD_AUTO_ENABLE:${PN}:librescoot-rpi5 = "disable"
+SYSTEMD_AUTO_ENABLE:${PN}:unu-dbc = "disable"
+SYSTEMD_AUTO_ENABLE:${PN}:librescoot-dbc-rpi5 = "disable"
 

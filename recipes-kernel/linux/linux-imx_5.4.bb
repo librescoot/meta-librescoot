@@ -29,11 +29,11 @@ SRC_URI = " ${KERNEL_SRC};branch=${SRCBRANCH} \
             file://0003-querystatus.patch \
           "
 
-SRC_URI:append:librescoot-mdb = " file://mdb_defconfig"
-SRC_URI:append:librescoot-mdb = " file://librescoot-mdb.dts"
+SRC_URI:append:unu-mdb = " file://mdb_defconfig"
+SRC_URI:append:unu-mdb = " file://librescoot-mdb.dts"
 
-SRC_URI:append:librescoot-dbc = " file://dbc_defconfig"
-SRC_URI:append:librescoot-dbc = " file://librescoot-dbc.dts"
+SRC_URI:append:unu-dbc = " file://dbc_defconfig"
+SRC_URI:append:unu-dbc = " file://librescoot-dbc.dts"
 
 # PV is defined in the base in linux-imx.inc file and uses the LINUX_VERSION definition
 # required by kernel-yocto.bbclass.
