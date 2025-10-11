@@ -22,7 +22,7 @@ FILES:${PN} += "/usr/bin/version-service"
 SYSTEMD_SERVICE:${PN} = "librescoot-version.service"
 SYSTEMD_AUTO_ENABLE:${PN} = "enable"
 
-do_install:librescoot-mdb() {
+do_install:unu-mdb() {
     install -d ${D}${bindir}
     install -d ${D}${systemd_system_unitdir}
 
@@ -30,7 +30,7 @@ do_install:librescoot-mdb() {
     install -m 0644 ${B}/src/github.com/librescoot/version-service/version-service-mdb.service ${D}${systemd_system_unitdir}/librescoot-version.service
 }
 
-do_install:librescoot-dbc() {
+do_install:unu-dbc() {
     install -d ${D}${bindir}
     install -d ${D}${systemd_system_unitdir}
 
@@ -38,7 +38,7 @@ do_install:librescoot-dbc() {
     install -m 0644 ${B}/src/github.com/librescoot/version-service/version-service-dbc.service ${D}${systemd_system_unitdir}/librescoot-version.service
 }
 
-do_install:librescoot-rpi5() {
+do_install:librescoot-dbc-rpi5() {
     install -d ${D}${bindir}
     install -d ${D}${systemd_system_unitdir}
 
