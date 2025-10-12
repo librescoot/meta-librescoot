@@ -3,6 +3,7 @@ Description=Librescoot ECU Service
 Requires=redis.service
 After=redis.service
 After=librescoot-vehicle.service
+After=librescoot-battery.service
 
 [Service]
 Type=idle
