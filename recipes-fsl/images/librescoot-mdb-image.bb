@@ -84,6 +84,7 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     python3-ecdsa \
     python3-libusb1 \
     python3-protobuf \
+    udev-rules-mdb \
 "
 
 IMAGE_INSTALL:append = " libubootenv-bin"
