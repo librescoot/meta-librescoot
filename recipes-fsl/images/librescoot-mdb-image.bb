@@ -5,6 +5,8 @@ inherit core-image
 
 PLATFORM_FLAVOR    = "mx6ulevk"
 
+BAD_RECOMMENDATIONS += "busybox-syslog"
+
 IMAGE_FEATURES += " \
     debug-tweaks \
     ssh-server-dropbear \
