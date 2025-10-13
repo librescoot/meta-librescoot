@@ -62,7 +62,7 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     alsa-utils \
     htop \
     iotop \
-    vim-vimrc \
+    vim-common \
     tzdata \
     xdelta3 \
     valhalla \

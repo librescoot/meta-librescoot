@@ -71,7 +71,7 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     mc \
     htop \
     iotop \
-    vim-vimrc \
+    vim-common \
     nano \
     tzdata \
     xdelta3 \
