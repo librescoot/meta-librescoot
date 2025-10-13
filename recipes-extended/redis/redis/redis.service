@@ -6,6 +6,7 @@ Wants=network.target
 [Service]
 User=redis
 Group=redis
+Nice=-10
 ExecStart=/usr/bin/redis-server /etc/redis/redis.conf
 ExecStartPost=sleep 1
 ExecStop=/usr/bin/redis-cli shutdown

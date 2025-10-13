@@ -8,6 +8,7 @@ After=librescoot-vehicle.service
 Type=idle
 User=root
 Group=root
+Nice=-10
 ExecStart=/usr/bin/battery-service
 Restart=always
 KillMode=mixed
