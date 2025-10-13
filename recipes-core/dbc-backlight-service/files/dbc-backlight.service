@@ -1,6 +1,7 @@
 [Unit]
 Description=Dashboard Controller Backlight Service
 After=network.target
+After=librescoot-brightness.service
 
 [Service]
 Type=simple

@@ -1,5 +1,6 @@
 [Unit]
 Description=LibreScoot Brightness Reader Service
+After=network.target
 
 [Service]
 Type=simple
