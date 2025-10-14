@@ -1,6 +1,6 @@
 DESCRIPTION = "udev rules for unu-mdb modem"
 LICENSE = "MIT"
-LIC_FILES_CHKSUM = "file://${COREBASE}/LICENSE;md5=4d92cd373abda3937c2bc47fbc49d690"
+LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=b97a012949927931feb7793eee5ed924"
 
 SRC_URI = " file://99-mdb-modem.rules"
 
