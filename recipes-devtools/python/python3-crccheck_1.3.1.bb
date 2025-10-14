@@ -3,6 +3,6 @@ HOMEPAGE = "https://github.com/MartinScharrer/crccheck"
 LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://LICENSE.txt;md5=66ffc5e30f76cbb5358fe54b645e5a1d"
 
-SRC_URI[sha256sum] = "478cba7b62555866fcb3bb3fe985e06decbdb68ef55713c4e5ab98c57d508e61"
+SRC_URI[sha256sum] = "1544c0110bf0a697d875d4f29dc40d7079f9d4d402a9317383f55f90ca72563a"
 
 inherit pypi setuptools3
