@@ -19,7 +19,7 @@ S = "${WORKDIR}/git"
 # strict, permissive
 MODEMMANAGER_POLKIT_TYPE ??= "permissive"
 
-PACKAGECONFIG ??= "vala mbim qmi \
+PACKAGECONFIG ??= "at vala mbim qmi \
     ${@bb.utils.filter('DISTRO_FEATURES', 'systemd polkit', d)} \
 "
 
@@ -53,3 +53,4 @@ FILES:${PN} += " \
 "
 
 SYSTEMD_SERVICE:${PN} = "ModemManager.service"
+
