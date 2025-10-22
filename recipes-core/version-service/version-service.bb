@@ -38,7 +38,7 @@ do_install:unu-dbc() {
     install -m 0644 ${B}/src/github.com/librescoot/version-service/version-service-dbc.service ${D}${systemd_system_unitdir}/librescoot-version.service
 }
 
-do_install:librescoot-dbc-rpi5() {
+do_install:librescoot-dbc-rpi4() {
     install -d ${D}${bindir}
     install -d ${D}${systemd_system_unitdir}
 

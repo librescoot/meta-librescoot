@@ -7,8 +7,8 @@ SRC_URI:append:unu-mdb = " file://hostkey-mdb"
 SRC_URI:append:unu-dbc = " file://authorized-dbc"
 SRC_URI:append:unu-dbc = " file://hostkey-dbc"
 
-SRC_URI:append:librescoot-dbc-rpi5 = " file://authorized-dbc"
-SRC_URI:append:librescoot-dbc-rpi5 = " file://hostkey-dbc"
+SRC_URI:append:librescoot-dbc-rpi4 = " file://authorized-dbc"
+SRC_URI:append:librescoot-dbc-rpi4 = " file://hostkey-dbc"
 
 FILES:${PN} += " \
     /root/.ssh/* \
@@ -31,7 +31,7 @@ do_install:append:unu-dbc() {
     install -m 0600 ${WORKDIR}/hostkey-dbc ${D}${sysconfdir}/dropbear/dropbear_rsa_host_key
 }
 
-do_install:append:librescoot-dbc-rpi5() {
+do_install:append:librescoot-dbc-rpi4() {
     install -d ${D}${sysconfdir}/dropbear
     install -d ${D}/root/.ssh
 

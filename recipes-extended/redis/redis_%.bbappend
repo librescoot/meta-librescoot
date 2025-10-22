@@ -15,5 +15,5 @@ do_install:append() {
 }
 
 SYSTEMD_AUTO_ENABLE:${PN}:unu-dbc = "disable"
-SYSTEMD_AUTO_ENABLE:${PN}:librescoot-dbc-rpi5 = "disable"
+SYSTEMD_AUTO_ENABLE:${PN}:librescoot-dbc-rpi4 = "disable"
 

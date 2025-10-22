@@ -1,4 +1,4 @@
-# Use full MACHINE name as VARIANT_ID (e.g., unu-mdb, unu-dbc, librescoot-dbc-rpi5)
+# Use full MACHINE name as VARIANT_ID (e.g., unu-mdb, unu-dbc, librescoot-dbc-rpi4)
 python() {
     machine = d.getVar('MACHINE')
     if machine:
