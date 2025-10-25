@@ -11,6 +11,7 @@ SRC_URI:append:unu-dbc = " \
     file://config-tas5720.cfg \
     file://config-video.cfg \
     file://config-cmdline.cfg \
+    file://config-iotop.cfg \
 "
 
 # Override the default KBUILD_DEFCONFIG for librescoot-dbc machine
@@ -22,6 +23,7 @@ KERNEL_CONFIG_FRAGMENTS:append:unu-dbc = " \
     ${WORKDIR}/config-tas5720.cfg \
     ${WORKDIR}/config-video.cfg \
     ${WORKDIR}/config-cmdline.cfg \
+    ${WORKDIR}/config-iotop.cfg \
 "
 
 do_configure:prepend:unu-dbc() {
