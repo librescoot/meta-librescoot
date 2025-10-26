@@ -70,6 +70,7 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     update-service \
     ums-service \
     settings-service \
+    alarm-service \
     radio-gaga \
     iptables \
     mc \
