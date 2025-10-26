@@ -54,7 +54,8 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     update-service \
     brightness-reader \
     dbc-backlight-service \
-    firmwared \ 
+    lsc \
+    firmwared \
     screen \
     chrony \
     chronyc \
