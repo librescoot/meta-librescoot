@@ -17,7 +17,7 @@ GO_LINKSHARED = ""
 GOBUILDFLAGS:remove = "-buildmode=pie"
 
 do_install:prepend:librescoot-dbc-rpi4() {
-    mv ${B}/bin/linux_arm64 ${B}/bin/linux_arm
+    mv ${B}/bin/linux_arm64 ${B}/bin/linux_arm || true
 }
 
 do_install() {

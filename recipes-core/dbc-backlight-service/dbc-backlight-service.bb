@@ -23,7 +23,7 @@ SYSTEMD_SERVICE:${PN} = "dbc-backlight.service"
 SYSTEMD_AUTO_ENABLE:${PN} = "enable"
 
 do_install:prepend:librescoot-dbc-rpi4() {
-    mv ${B}/bin/linux_arm64 ${B}/bin/linux_arm
+    mv ${B}/bin/linux_arm64 ${B}/bin/linux_arm || true
 }
 
 do_install() {
