@@ -63,32 +63,32 @@ do_install() {
     install -m 0755 ${B}/bin/linux_arm/vehicle-service ${D}${bindir}/
 
     # Install cue files
-    install -m 0644 ${WORKDIR}/cue0-all_off ${D}${CURVE_DIR}/cues/
-    install -m 0644 ${WORKDIR}/cue1-standby_to_parked_brake_off ${D}${CURVE_DIR}/cues/
-    install -m 0644 ${WORKDIR}/cue2-standby_to_parked_brake_on ${D}${CURVE_DIR}/cues/
-    install -m 0644 ${WORKDIR}/cue3-parked_to_drive ${D}${CURVE_DIR}/cues/
-    install -m 0644 ${WORKDIR}/cue4-brake_off_to_brake_on ${D}${CURVE_DIR}/cues/
-    install -m 0644 ${WORKDIR}/cue5-brake_on_to_brake_off ${D}${CURVE_DIR}/cues/
-    install -m 0644 ${WORKDIR}/cue6-drive_to_parked ${D}${CURVE_DIR}/cues/
-    install -m 0644 ${WORKDIR}/cue7-parked_brake_off_to_standby ${D}${CURVE_DIR}/cues/
-    install -m 0644 ${WORKDIR}/cue8-parked_brake_on_to_standby ${D}${CURVE_DIR}/cues/
-    install -m 0644 ${WORKDIR}/cue9-blink_none ${D}${CURVE_DIR}/cues/
-    install -m 0644 ${WORKDIR}/cue10-blink_left ${D}${CURVE_DIR}/cues/
-    install -m 0644 ${WORKDIR}/cue11-blink_right ${D}${CURVE_DIR}/cues/
-    install -m 0644 ${WORKDIR}/cue12-blink_both ${D}${CURVE_DIR}/cues/
+    install -m 0644 ${WORKDIR}/cues/cue0-all_off ${D}${CURVE_DIR}/cues/
+    install -m 0644 ${WORKDIR}/cues/cue1-standby_to_parked_brake_off ${D}${CURVE_DIR}/cues/
+    install -m 0644 ${WORKDIR}/cues/cue2-standby_to_parked_brake_on ${D}${CURVE_DIR}/cues/
+    install -m 0644 ${WORKDIR}/cues/cue3-parked_to_drive ${D}${CURVE_DIR}/cues/
+    install -m 0644 ${WORKDIR}/cues/cue4-brake_off_to_brake_on ${D}${CURVE_DIR}/cues/
+    install -m 0644 ${WORKDIR}/cues/cue5-brake_on_to_brake_off ${D}${CURVE_DIR}/cues/
+    install -m 0644 ${WORKDIR}/cues/cue6-drive_to_parked ${D}${CURVE_DIR}/cues/
+    install -m 0644 ${WORKDIR}/cues/cue7-parked_brake_off_to_standby ${D}${CURVE_DIR}/cues/
+    install -m 0644 ${WORKDIR}/cues/cue8-parked_brake_on_to_standby ${D}${CURVE_DIR}/cues/
+    install -m 0644 ${WORKDIR}/cues/cue9-blink_none ${D}${CURVE_DIR}/cues/
+    install -m 0644 ${WORKDIR}/cues/cue10-blink_left ${D}${CURVE_DIR}/cues/
+    install -m 0644 ${WORKDIR}/cues/cue11-blink_right ${D}${CURVE_DIR}/cues/
+    install -m 0644 ${WORKDIR}/cues/cue12-blink_both ${D}${CURVE_DIR}/cues/
 
     # Install fade files
-    install -m 0644 ${WORKDIR}/fade0-parking-smooth-on ${D}${CURVE_DIR}/fades/
-    install -m 0644 ${WORKDIR}/fade1-smooth-off ${D}${CURVE_DIR}/fades/
-    install -m 0644 ${WORKDIR}/fade2-brake-linear-on ${D}${CURVE_DIR}/fades/
-    install -m 0644 ${WORKDIR}/fade3-brake-linear-off ${D}${CURVE_DIR}/fades/
-    install -m 0644 ${WORKDIR}/fade4-brake-dim-on ${D}${CURVE_DIR}/fades/
-    install -m 0644 ${WORKDIR}/fade5-brake-half-to-full ${D}${CURVE_DIR}/fades/
-    install -m 0644 ${WORKDIR}/fade6-drive-light-on ${D}${CURVE_DIR}/fades/
-    install -m 0644 ${WORKDIR}/fade7-brake-full-to-half ${D}${CURVE_DIR}/fades/
-    install -m 0644 ${WORKDIR}/fade8-drive-light-off ${D}${CURVE_DIR}/fades/
-    install -m 0644 ${WORKDIR}/fade9-brake-dim-off ${D}${CURVE_DIR}/fades/
-    install -m 0644 ${WORKDIR}/fade10-blink ${D}${CURVE_DIR}/fades/
+    install -m 0644 ${WORKDIR}/fades/fade0-parking-smooth-on ${D}${CURVE_DIR}/fades/
+    install -m 0644 ${WORKDIR}/fades/fade1-smooth-off ${D}${CURVE_DIR}/fades/
+    install -m 0644 ${WORKDIR}/fades/fade2-brake-linear-on ${D}${CURVE_DIR}/fades/
+    install -m 0644 ${WORKDIR}/fades/fade3-brake-linear-off ${D}${CURVE_DIR}/fades/
+    install -m 0644 ${WORKDIR}/fades/fade4-brake-dim-on ${D}${CURVE_DIR}/fades/
+    install -m 0644 ${WORKDIR}/fades/fade5-brake-half-to-full ${D}${CURVE_DIR}/fades/
+    install -m 0644 ${WORKDIR}/fades/fade6-drive-light-on ${D}${CURVE_DIR}/fades/
+    install -m 0644 ${WORKDIR}/fades/fade7-brake-full-to-half ${D}${CURVE_DIR}/fades/
+    install -m 0644 ${WORKDIR}/fades/fade8-drive-light-off ${D}${CURVE_DIR}/fades/
+    install -m 0644 ${WORKDIR}/fades/fade9-brake-dim-off ${D}${CURVE_DIR}/fades/
+    install -m 0644 ${WORKDIR}/fades/fade10-blink ${D}${CURVE_DIR}/fades/
 
     install -m 0644 ${WORKDIR}/librescoot-vehicle.service ${D}${systemd_system_unitdir}
 }
