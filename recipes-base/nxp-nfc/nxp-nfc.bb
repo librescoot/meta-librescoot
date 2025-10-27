@@ -28,7 +28,7 @@ FILES:${PN} += "/usr/sbin/nfcDemoApp"
 
 do_install:append() {
     install -d ${D}/usr/sbin
-    install -m 0755 ${WORKDIR}/package/usr/sbin/nfcDemoApp ${D}/usr/sbin/nfcDemoApp
+    install -m 0755 ${WORKDIR}/image/usr/sbin/nfcDemoApp ${D}/usr/sbin/nfcDemoApp
 }
 
 INSANE_SKIP:${PN} += "already-stripped"
