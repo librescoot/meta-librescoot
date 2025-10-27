@@ -11,7 +11,7 @@ DEPENDS += "libusb"
 
 S = "${WORKDIR}/git"
 
-inherit go-mod systemd
+inherit go-mod systemd pkgconfig
 
 GO_IMPORT = "github.com/mzyy94/gocarplay"
 
