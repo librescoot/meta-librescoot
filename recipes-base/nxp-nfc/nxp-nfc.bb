@@ -25,10 +25,4 @@ FILES:${PN} += "/etc/libnfc-nxp-pn548.conf"
 FILES:${PN} += "/etc/libnfc-nci.conf"
 FILES:${PN} += "/usr/sbin/nfcDemoApp"
 
-
-do_install:append() {
-    install -d ${D}/usr/sbin
-    install -m 0755 ${WORKDIR}/image/usr/sbin/nfcDemoApp ${D}/usr/sbin/nfcDemoApp
-}
-
 INSANE_SKIP:${PN} += "already-stripped"
