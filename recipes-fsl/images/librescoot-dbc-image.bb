@@ -73,6 +73,7 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     libspatialite \
     flutter-drm-gbm-backend \
     flutter-video-player-plugin \
+    carplay-service \
     ${@bb.utils.contains('DISTRO_FEATURES', 'x11 wayland', \
                          'weston-xwayland xterm', '', d)} \
 "
