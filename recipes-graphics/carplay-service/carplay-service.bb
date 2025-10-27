@@ -25,5 +25,5 @@ do_install:prepend:librescoot-dbc-rpi4() {
 do_install() {
     install -d ${D}${bindir}
 
-    install -m 0755 ${B}/bin/linux_arm/settings-service ${D}${bindir}/settings-service
+    install -m 0755 ${B}/bin/linux_arm/server ${D}${bindir}/carplay-service
 }
