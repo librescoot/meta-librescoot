@@ -16,6 +16,10 @@ GO_IMPORT = "lsc"
 GO_LINKSHARED = ""
 GOBUILDFLAGS:remove = "-buildmode=pie"
 
+do_install:prepend:librescoot-dbc-rpi4() {
+    mv ${B}/bin/linux_arm64 ${B}/bin/linux_arm
+}
+
 do_install() {
     install -d ${D}${bindir}
     install -m 0755 ${B}/bin/linux_arm/lsc ${D}${bindir}/
