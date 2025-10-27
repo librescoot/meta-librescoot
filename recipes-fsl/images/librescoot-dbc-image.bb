@@ -55,7 +55,6 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     brightness-reader \
     dbc-backlight-service \
     lsc \
-    firmwared \
     screen \
     chrony \
     chronyc \
@@ -72,7 +71,7 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     prime-server \
     libspatialite \
     flutter-drm-gbm-backend \
-    flutter-video-player-plugin \
+    ffmpeg \
     carplay-service \
     ${@bb.utils.contains('DISTRO_FEATURES', 'x11 wayland', \
                          'weston-xwayland xterm', '', d)} \
