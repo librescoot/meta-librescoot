@@ -1,7 +1,7 @@
 SUMMARY = "LibreScoot Carplay Service"
 HOMEPAGE = "https://github.com/librescoot/carplay-service"
 LICENSE = "MIT"
-LIC_FILES_CHKSUM = "file://src/github.com/librescoot/carplay-service/LICENSE;md5=6560d1f6d5f413db4997dffd12eed3ce"
+LIC_FILES_CHKSUM = "file://src/github.com/mzyy94/gocarplay/LICENSE;md5=6560d1f6d5f413db4997dffd12eed3ce"
 
 SRC_URI = "git://github.com/librescoot/carplay-service.git;protocol=https;branch=master"
 
