@@ -7,7 +7,7 @@ ConditionPathExists=/data/radio-gaga/config.yaml
 [Service]
 Type=simple
 WorkingDirectory=/data/radio-gaga
-ExecStart=/usr/bin/radio-gaga -config /data/radio-gaga/config.yaml
+ExecStart=/usr/bin/radio-gaga -config /data/radio-gaga/config.yaml -buffer-persist-path /data/radio-gaga/telemetry-buffer.json
 Restart=always
 RestartSec=5
 
