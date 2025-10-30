@@ -4,6 +4,8 @@ SRC_URI += "file://weston.ini \
             file://librescoot-splash.png \
            "
 
+SYSTEMD_AUTO_ENABLE = "disable"
+
 do_install:append() {
     # install -d ${D}${sysconfdir}/xdg/weston
     # install -m 0644 ${WORKDIR}/weston.ini ${D}${sysconfdir}/xdg/weston/weston.ini
