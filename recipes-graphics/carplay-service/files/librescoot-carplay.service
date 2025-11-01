@@ -1,0 +1,14 @@
+[Unit]
+Description=Librescoot CarPlay / Android Auto Service
+After=scootui.service
+
+[Service]
+Type=idle
+User=root
+Group=root
+ExecStart=/usr/bin/carplay-service
+Restart=always
+KillMode=mixed
+
+[Install]
+WantedBy=multi-user.target
