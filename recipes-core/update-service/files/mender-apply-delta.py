@@ -100,12 +100,18 @@ def update_header_with_payload_checksum(output_dir, work_dir, new_payload_tar_pa
 
             print("  Updated header.tar.gz with new checksum.")
 
+def report_progress(percent, message):
+    """Report progress in a parseable format to stdout."""
+    print(f"PROGRESS:{percent}:{message}", flush=True)
+
 def apply_delta_patch(old_mender, delta_patch, output_mender):
     with tempfile.TemporaryDirectory(dir=TEMP_DIR) as temp_dir:
         old_dir, delta_dir, output_dir, work_dir = [os.path.join(temp_dir, d) for d in ['old', 'delta', 'output', 'work']]
         for d in [old_dir, delta_dir, output_dir, work_dir]: os.makedirs(d)
 
+        report_progress(5, "Extracting old mender file")
         extract_tar(old_mender, old_dir)
+        report_progress(10, "Extracting delta patch")
         extract_tar(delta_patch, delta_dir)
 
         with open(os.path.join(delta_dir, 'metadata.json'), 'r') as f:
@@ -113,17 +119,28 @@ def apply_delta_patch(old_mender, delta_patch, output_mender):
 
         print("\nApplying changes...")
         newly_created_payload_tar = None
-        
+
         all_new_files = set(metadata['changes'].keys())
         all_old_files = {p.relative_to(old_dir).as_posix() for p in Path(old_dir).rglob('*') if p.is_file()}
         unchanged_files = all_old_files - all_new_files
 
+        # Calculate total work for progress tracking
+        total_files = len(unchanged_files) + len(metadata['changes'])
+        processed_files = 0
+
+        report_progress(15, f"Copying {len(unchanged_files)} unchanged files")
         for rel_path in unchanged_files:
             dest_path = os.path.join(output_dir, rel_path)
             os.makedirs(os.path.dirname(dest_path), exist_ok=True)
             shutil.copy2(os.path.join(old_dir, rel_path), dest_path)
+            processed_files += 1
+            # Report progress for unchanged files (15% to 30%)
+            progress = 15 + int((processed_files / total_files) * 15)
+            if processed_files % max(1, len(unchanged_files) // 5) == 0:  # Report every ~20%
+                report_progress(progress, f"Copied {processed_files}/{total_files} files")
 
-        for rel_path, change in metadata['changes'].items():
+        report_progress(30, f"Processing {len(metadata['changes'])} changes")
+        for idx, (rel_path, change) in enumerate(metadata['changes'].items(), 1):
             output_file_path = os.path.join(output_dir, rel_path)
             os.makedirs(os.path.dirname(output_file_path), exist_ok=True)
 
@@ -136,12 +153,12 @@ def apply_delta_patch(old_mender, delta_patch, output_mender):
                 old_file_path = os.path.join(old_dir, rel_path)
                 patch_file_path = os.path.join(delta_dir, 'patches', change['patch'])
                 old_meta, new_meta = change.get('old_meta',{}), change.get('new_meta',{})
-                
+
                 source_for_patching = old_file_path
                 if old_meta.get('compressed'):
                     source_for_patching = os.path.join(work_dir, f"old_decomp_{rel_path.replace('/', '_')}")
                     decompress_gz(old_file_path, source_for_patching)
-                
+
                 new_temp_path = os.path.join(work_dir, f"new_patched_{rel_path.replace('/', '_')}")
                 apply_xdelta_patch(source_for_patching, patch_file_path, new_temp_path)
 
@@ -154,12 +171,19 @@ def apply_delta_patch(old_mender, delta_patch, output_mender):
                 else:
                      shutil.move(new_temp_path, output_file_path)
 
+            processed_files += 1
+            # Report progress for changes (30% to 80%)
+            progress = 30 + int(((processed_files - len(unchanged_files)) / len(metadata['changes'])) * 50)
+            report_progress(progress, f"Processed {idx}/{len(metadata['changes'])} changes")
+
         print("\nFinalizing artifact...")
+        report_progress(80, "Updating headers and manifest")
         if newly_created_payload_tar:
             update_header_with_payload_checksum(output_dir, work_dir, newly_created_payload_tar, metadata.get('new_payload_checksum'))
-        
+
         update_manifest_file(output_dir)
 
+        report_progress(90, "Creating output mender file")
         print(f"\nCreating output Mender file: {output_mender}")
         with tarfile.open(output_mender, 'w') as tar:
             for item in ['version', 'manifest', 'header.tar.gz']:
@@ -168,7 +192,8 @@ def apply_delta_patch(old_mender, delta_patch, output_mender):
             if os.path.isdir(data_dir):
                 for f in sorted(os.listdir(data_dir)):
                     tar.add(os.path.join(data_dir, f), arcname=os.path.join('data', f))
-        
+
+        report_progress(100, "Complete")
         print("\n✓ Delta patch applied and Mender artifact created successfully!")
 
 def main():
