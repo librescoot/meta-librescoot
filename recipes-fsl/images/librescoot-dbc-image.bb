@@ -55,6 +55,7 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     brightness-reader \
     dbc-backlight-service \
     lsc \
+    shell-config \
     screen \
     chrony \
     chronyc \
