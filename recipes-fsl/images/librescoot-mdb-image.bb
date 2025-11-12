@@ -72,6 +72,7 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     settings-service \
     alarm-service \
     lsc \
+    shell-config \
     radio-gaga \
     iptables \
     mc \
