@@ -5,7 +5,6 @@ LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda
 SRC_URI = " \
     file://librescoot-aliases.sh \
     file://librescoot-aliases-dbc.sh \
-    file://redis-cli-env-dbc.sh \
     file://hosts-mdb \
     file://hosts-dbc \
 "
@@ -14,7 +13,6 @@ S = "${WORKDIR}"
 
 FILES:${PN} = " \
     /etc/profile.d/librescoot-aliases.sh \
-    /etc/profile.d/redis-cli-env.sh \
     /etc/hosts-extra \
 "
 
@@ -34,9 +32,6 @@ do_install:append:unu-mdb () {
 do_install:append:unu-dbc () {
     # Install DBC-specific aliases (with -h mdb)
     install -m 0755 ${WORKDIR}/librescoot-aliases-dbc.sh ${D}${sysconfdir}/profile.d/librescoot-aliases.sh
-
-    # Set default redis-cli host
-    install -m 0755 ${WORKDIR}/redis-cli-env-dbc.sh ${D}${sysconfdir}/profile.d/redis-cli-env.sh
 
     # Install hosts entry for MDB
     install -m 0644 ${WORKDIR}/hosts-dbc ${D}${sysconfdir}/hosts-extra
