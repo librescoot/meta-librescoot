@@ -37,6 +37,14 @@ do_install:append:unu-dbc () {
     install -m 0644 ${WORKDIR}/hosts-dbc ${D}${sysconfdir}/hosts-extra
 }
 
+do_install:append:librescoot-dbc-rpi4 () {
+    # Install DBC-specific aliases for RPi4
+    install -m 0755 ${WORKDIR}/librescoot-aliases-dbc.sh ${D}${sysconfdir}/profile.d/librescoot-aliases.sh
+
+    # Install hosts entry for MDB
+    install -m 0644 ${WORKDIR}/hosts-dbc ${D}${sysconfdir}/hosts-extra
+}
+
 pkg_postinst:${PN} () {
     #!/bin/sh
     if [ -z "$D" ] && [ -f /etc/hosts-extra ]; then
