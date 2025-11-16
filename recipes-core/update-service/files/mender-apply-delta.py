@@ -16,7 +16,10 @@ import hashlib
 import gzip
 from pathlib import Path
 
-TEMP_DIR = '/data/_tmp'
+TEMP_DIR = '/data/ota/tmp'
+
+# Ensure temp directory exists
+os.makedirs(TEMP_DIR, exist_ok=True)
 
 # --- Utility Functions ---
 def calculate_sha256(filepath):
