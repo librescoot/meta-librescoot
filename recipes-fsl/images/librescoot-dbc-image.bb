@@ -9,12 +9,6 @@ SPLASH = "plymouth"
 
 BAD_RECOMMENDATIONS += "busybox-syslog"
 
-IMAGE_FEATURES += "\
-    ${@bb.utils.contains('DISTRO_FEATURES', 'wayland', 'weston', \
-       bb.utils.contains('DISTRO_FEATURES',     'x11', 'x11-base x11-sato', \
-                                                       '', d), d)} \
-"
-
 IMAGE_FEATURES += " \
     debug-tweaks \
     package-management \
@@ -74,8 +68,6 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     flutter-drm-gbm-backend \
     ffmpeg \
     carplay-service \
-    ${@bb.utils.contains('DISTRO_FEATURES', 'x11 wayland', \
-                         'weston-xwayland xterm', '', d)} \
 "
 
 IMAGE_INSTALL:append = " libubootenv-bin"
