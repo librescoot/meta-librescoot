@@ -1,6 +1,6 @@
 FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 
-FLUTTER_SDK_TAG = "3.35.7"
+FLUTTER_SDK_TAG = "3.32.5"
 
 do_install:append() {
     install -d ${D}${libdir}
