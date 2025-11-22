@@ -92,7 +92,7 @@ def main():
             if brightness is not None:
                 # Store in Redis
                 r.hset(REDIS_KEY, REDIS_FIELD, str(brightness))
-                logger.info(f"Stored brightness: {brightness}")
+                logger.debug(f"Stored brightness: {brightness}")
             else:
                 logger.warning("Failed to read brightness")
             
