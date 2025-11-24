@@ -3,7 +3,7 @@ HOMEPAGE = "https://github.com/librescoot/pc-ble-driver"
 LICENSE = "CLOSED"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=772c3f93b8a2f4f2dec94ef7b9f434fb"
 
-SRC_URI = "git://github.com/librescoot/pc-ble-driver;protocol=https"
+SRC_URI = "git://github.com/librescoot/pc-ble-driver;protocol=https;branch=master"
 SRCREV = "fdbf92831badbca016d2bf95da6fab056ef2d931"
 S = "${WORKDIR}/git"
 
