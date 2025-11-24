@@ -7,6 +7,7 @@ SRC_URI:append = " \
 
 SRC_URI:append:unu-dbc = " \
     file://config-logo.cfg \
+    file://config-fbcon-early.cfg \
     file://config-opt3001.cfg \
     file://config-tas5720.cfg \
     file://config-video.cfg \
@@ -20,6 +21,7 @@ SRC_URI:append:unu-dbc = " \
 KERNEL_CONFIG_FRAGMENTS:append:unu-dbc = " \
     ${WORKDIR}/config-opt3001.cfg \
     ${WORKDIR}/config-logo.cfg \
+    ${WORKDIR}/config-fbcon-early.cfg \
     ${WORKDIR}/config-tas5720.cfg \
     ${WORKDIR}/config-video.cfg \
     ${WORKDIR}/config-cmdline.cfg \

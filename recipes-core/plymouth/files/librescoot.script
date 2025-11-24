@@ -1,19 +1,16 @@
 # LibreScoot Plymouth Boot Animation
+# Optimized for DRM backend with proper frame synchronization
 
-# Set background to black->black
 Window.SetBackgroundTopColor(0, 0, 0);
 Window.SetBackgroundBottomColor(0, 0, 0);
 
-# Get screen dimensions
 screen_width = Window.GetWidth();
 screen_height = Window.GetHeight();
 
-# Animation configuration
 num_frames = 14;
-frame_duration = 8; # Refresh cycles per frame (controls speed)
-
-# Load animation frames
+frame_duration = 8;
 frames = [];
+
 for (i = 1; i <= num_frames; i++) {
     filename = "frames/frame-" + i + ".png";
     image = Image(filename);
@@ -22,44 +19,29 @@ for (i = 1; i <= num_frames; i++) {
     }
 }
 
-# Create and position sprite
 anim_sprite = Sprite();
 if (frames[0]) {
     anim_sprite.SetImage(frames[0]);
-    # Center the animation
     image_width = frames[0].GetWidth();
     image_height = frames[0].GetHeight();
     anim_sprite.SetX((screen_width - image_width) / 2);
     anim_sprite.SetY((screen_height - image_height) / 2);
+    anim_sprite.SetZ(1000);
 }
 
-# Animation state
 current_frame = 0;
 frame_counter = 0;
 
-# Refresh function
 Plymouth.SetRefreshFunction(function() {
-    if (frames[current_frame]) {
-        frame_counter++;
-        
-        # Advance frame based on duration
-        if (frame_counter >= frame_duration) {
-            frame_counter = 0;
-            current_frame++;
-            
-            # Loop animation
-            if (current_frame >= num_frames) {
-                current_frame = 0;
-            }
-            
-            # Update sprite
-            if (frames[current_frame]) {
-                anim_sprite.SetImage(frames[current_frame]);
-            }
+    frame_counter++;
+    if (frame_counter >= frame_duration) {
+        frame_counter = 0;
+        current_frame = (current_frame + 1) % num_frames;
+        if (frames[current_frame]) {
+            anim_sprite.SetImage(frames[current_frame]);
         }
     }
 });
 
 Plymouth.SetQuitFunction(function() {
-    # Clean exit
 });

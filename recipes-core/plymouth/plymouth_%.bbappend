@@ -12,13 +12,16 @@ do_install:append() {
     install -d ${D}${datadir}/plymouth/themes/librescoot
     install -m 0644 ${WORKDIR}/librescoot.script ${D}${datadir}/plymouth/themes/librescoot/
     install -m 0644 ${WORKDIR}/librescoot.plymouth ${D}${datadir}/plymouth/themes/librescoot/
-    # Animation frames will be installed separately via plymouth-animation recipe
-    
-    # Configure Plymouth for optimal startup
+
+    # Configure Plymouth for optimal startup with DRM backend
     install -d ${D}${sysconfdir}/plymouth
-    echo "[Daemon]" > ${D}${sysconfdir}/plymouth/plymouthd.conf
-    echo "Theme=librescoot" >> ${D}${sysconfdir}/plymouth/plymouthd.conf
-    echo "ShowDelay=0" >> ${D}${sysconfdir}/plymouth/plymouthd.conf
+    cat > ${D}${sysconfdir}/plymouth/plymouthd.conf <<EOF
+[Daemon]
+Theme=librescoot
+ShowDelay=0
+DeviceTimeout=5
+IgnoreSerialConsoles=yes
+EOF
 }
 
 FILES:${PN} += "${sysconfdir}/plymouth/plymouthd.conf"
