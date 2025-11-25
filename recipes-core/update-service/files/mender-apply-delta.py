@@ -3,7 +3,7 @@
 Applies filesystem-aware delta patches to reconstruct Mender update files.
 
 Usage:
-    mender-apply-delta.py <old.mender> <delta.patch> <output.mender>
+    mender-apply-delta.py <old.mender> <delta.patch> <output.mender> [temp_dir]
 """
 import sys
 import os
@@ -16,10 +16,8 @@ import hashlib
 import gzip
 from pathlib import Path
 
-TEMP_DIR = '/data/ota/tmp'
-
-# Ensure temp directory exists
-os.makedirs(TEMP_DIR, exist_ok=True)
+# Default temp directory (can be overridden via command line)
+DEFAULT_TEMP_DIR = '/data/ota/tmp'
 
 # --- Utility Functions ---
 def calculate_sha256(filepath):
@@ -35,7 +33,9 @@ def decompress_gz(gz_file, output_file):
     with gzip.open(gz_file, 'rb') as f_in, open(output_file, 'wb') as f_out: shutil.copyfileobj(f_in, f_out)
 
 def compress_gz(input_file, gz_file):
-    with open(input_file, 'rb') as f_in, gzip.open(gz_file, 'wb', compresslevel=9) as f_out: shutil.copyfileobj(f_in, f_out)
+    # Use compression level 6 (default) for better performance on ARM CPUs
+    # Trade-off: 30-50% faster compression vs. 5-10% larger files
+    with open(input_file, 'rb') as f_in, gzip.open(gz_file, 'wb', compresslevel=6) as f_out: shutil.copyfileobj(f_in, f_out)
 
 def apply_xdelta_patch(old_file, patch_file, output_file):
     cmd = ['xdelta3', '-d', '-s', old_file, patch_file, output_file]
@@ -107,8 +107,8 @@ def report_progress(percent, message):
     """Report progress in a parseable format to stdout."""
     print(f"PROGRESS:{percent}:{message}", flush=True)
 
-def apply_delta_patch(old_mender, delta_patch, output_mender):
-    with tempfile.TemporaryDirectory(dir=TEMP_DIR) as temp_dir:
+def apply_delta_patch(old_mender, delta_patch, output_mender, temp_base_dir):
+    with tempfile.TemporaryDirectory(dir=temp_base_dir) as temp_dir:
         old_dir, delta_dir, output_dir, work_dir = [os.path.join(temp_dir, d) for d in ['old', 'delta', 'output', 'work']]
         for d in [old_dir, delta_dir, output_dir, work_dir]: os.makedirs(d)
 
@@ -200,14 +200,21 @@ def apply_delta_patch(old_mender, delta_patch, output_mender):
         print("\n✓ Delta patch applied and Mender artifact created successfully!")
 
 def main():
-    if len(sys.argv) != 4:
-        print(f"Usage: python3 {sys.argv[0]} <old.mender> <delta.patch> <output.mender>")
+    if len(sys.argv) < 4 or len(sys.argv) > 5:
+        print(f"Usage: python3 {sys.argv[0]} <old.mender> <delta.patch> <output.mender> [temp_dir]")
         sys.exit(1)
     if shutil.which('xdelta3') is None:
         print("Error: xdelta3 is not installed or not in PATH.")
         sys.exit(1)
+
+    # Get temp directory from command line or use default
+    temp_dir = sys.argv[4] if len(sys.argv) == 5 else DEFAULT_TEMP_DIR
+
+    # Ensure temp directory exists
+    os.makedirs(temp_dir, exist_ok=True)
+
     try:
-        apply_delta_patch(sys.argv[1], sys.argv[2], sys.argv[3])
+        apply_delta_patch(sys.argv[1], sys.argv[2], sys.argv[3], temp_dir)
     except Exception as e:
         print(f"\nError: {e}")
         import traceback
