@@ -30,12 +30,25 @@ def extract_tar(tar_file, extract_dir):
     with tarfile.open(tar_file, 'r:*') as tar: tar.extractall(extract_dir)
 
 def decompress_gz(gz_file, output_file):
-    with gzip.open(gz_file, 'rb') as f_in, open(output_file, 'wb') as f_out: shutil.copyfileobj(f_in, f_out)
+    """Decompress a gzip file and return (input_size, output_size)."""
+    input_size = os.path.getsize(gz_file)
+    with gzip.open(gz_file, 'rb') as f_in, open(output_file, 'wb') as f_out:
+        shutil.copyfileobj(f_in, f_out)
+    output_size = os.path.getsize(output_file)
+    return input_size, output_size
 
 def compress_gz(input_file, gz_file):
-    # Use compression level 6 (default) for better performance on ARM CPUs
-    # Trade-off: 30-50% faster compression vs. 5-10% larger files
-    with open(input_file, 'rb') as f_in, gzip.open(gz_file, 'wb', compresslevel=6) as f_out: shutil.copyfileobj(f_in, f_out)
+    """Compress a file with gzip and return (input_size, output_size)."""
+    # Use compression level 3 for much faster compression on ARM CPUs
+    # Benchmarks on i.MX6UL (512MB rootfs):
+    #   Level 3: 2m59s, 137MB (6% larger than level 9, 4.6x faster)
+    #   Level 6: 5m18s, 130MB (0.6% larger, 2.6x faster)
+    #   Level 9: 13m45s, 129MB (baseline)
+    input_size = os.path.getsize(input_file)
+    with open(input_file, 'rb') as f_in, gzip.open(gz_file, 'wb', compresslevel=3) as f_out:
+        shutil.copyfileobj(f_in, f_out)
+    output_size = os.path.getsize(gz_file)
+    return input_size, output_size
 
 def apply_xdelta_patch(old_file, patch_file, output_file):
     cmd = ['xdelta3', '-d', '-s', old_file, patch_file, output_file]
@@ -134,7 +147,7 @@ def apply_delta_patch(old_mender, delta_patch, output_mender, temp_base_dir):
         with open(os.path.join(delta_dir, 'metadata.json'), 'r') as f:
             metadata = json.load(f)
 
-        print("\nApplying changes...")
+        report_progress(12, f"Applying {len(metadata['changes'])} changes")
         newly_created_payload_tar = None
 
         all_new_files = set(metadata['changes'].keys())
@@ -211,17 +224,25 @@ def apply_delta_patch(old_mender, delta_patch, output_mender, temp_base_dir):
                 if old_meta.get('compressed'):
                     file_phase_progress(0, "decompressing")
                     source_for_patching = os.path.join(work_dir, f"old_decomp_{rel_path.replace('/', '_')}")
-                    decompress_gz(old_file_path, source_for_patching)
+                    in_sz, out_sz = decompress_gz(old_file_path, source_for_patching)
+                    report_progress(base_progress + int(file_progress_range * PHASE_WEIGHT_DECOMPRESS * 0.5),
+                        f"[{idx}/{len(metadata['changes'])}] patch: {rel_path} - decompressed {format_size(in_sz)} -> {format_size(out_sz)}")
 
                 file_phase_progress(PHASE_WEIGHT_DECOMPRESS, "applying delta")
                 new_temp_path = os.path.join(work_dir, f"new_patched_{rel_path.replace('/', '_')}")
                 apply_xdelta_patch(source_for_patching, patch_file_path, new_temp_path)
+                delta_out_size = os.path.getsize(new_temp_path)
+                report_progress(base_progress + int(file_progress_range * (PHASE_WEIGHT_DECOMPRESS + PHASE_WEIGHT_XDELTA * 0.5)),
+                    f"[{idx}/{len(metadata['changes'])}] patch: {rel_path} - delta produced {format_size(delta_out_size)}")
 
                 if new_meta.get('compressed'):
                     file_phase_progress(PHASE_WEIGHT_DECOMPRESS + PHASE_WEIGHT_XDELTA, "compressing")
                     if calculate_sha256(new_temp_path) != new_meta['decompressed_sha256']:
                         raise Exception(f"Checksum mismatch on patched content for {rel_path}")
-                    compress_gz(new_temp_path, output_file_path)
+                    in_sz, out_sz = compress_gz(new_temp_path, output_file_path)
+                    ratio = (out_sz / in_sz * 100) if in_sz > 0 else 0
+                    report_progress(base_progress + int(file_progress_range * 0.95),
+                        f"[{idx}/{len(metadata['changes'])}] patch: {rel_path} - compressed {format_size(in_sz)} -> {format_size(out_sz)} ({ratio:.1f}%)")
                     if rel_path.startswith('data/'):
                         newly_created_payload_tar = new_temp_path
                 else:
@@ -229,7 +250,7 @@ def apply_delta_patch(old_mender, delta_patch, output_mender, temp_base_dir):
 
             processed_weight += weight
 
-        print("\nFinalizing artifact...")
+        report_progress(80, "Finalizing artifact")
         # Progress breakdown for finalization (80-100%):
         # 80-81: Extract payload for verification
         # 81-87: Verify rootfs checksum (SHA256 of ~1GB)
