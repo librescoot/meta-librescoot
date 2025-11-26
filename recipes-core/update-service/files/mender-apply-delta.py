@@ -115,6 +115,11 @@ def report_progress(percent, message):
     """Report progress in a parseable format to stdout."""
     print(f"PROGRESS:{percent}:{message}", flush=True)
 
+# Phase weights for modified files (must sum to 1.0)
+PHASE_WEIGHT_DECOMPRESS = 0.15
+PHASE_WEIGHT_XDELTA = 0.35
+PHASE_WEIGHT_COMPRESS = 0.50
+
 def apply_delta_patch(old_mender, delta_patch, output_mender, temp_base_dir):
     with tempfile.TemporaryDirectory(dir=temp_base_dir) as temp_dir:
         old_dir, delta_dir, output_dir, work_dir = [os.path.join(temp_dir, d) for d in ['old', 'delta', 'output', 'work']]
@@ -186,18 +191,33 @@ def apply_delta_patch(old_mender, delta_patch, output_mender, temp_base_dir):
 
                 old_size = os.path.getsize(old_file_path)
                 patch_size = os.path.getsize(patch_file_path)
-                report_progress(30 + int((processed_weight / total_weight) * 50),
+
+                # Calculate base progress for this file
+                base_progress = 30 + int((processed_weight / total_weight) * 50)
+                file_progress_range = int((weight / total_weight) * 50)
+
+                def file_phase_progress(phase_start, phase_name):
+                    """Report progress for a phase within this file's processing."""
+                    progress = base_progress + int(file_progress_range * phase_start)
+                    report_progress(progress,
+                        f"[{idx}/{len(metadata['changes'])}] patch: {rel_path} - {phase_name}")
+
+                # Initial message with file sizes
+                report_progress(base_progress,
                     f"[{idx}/{len(metadata['changes'])}] patch: {rel_path} (old: {format_size(old_size)}, patch: {format_size(patch_size)})")
 
                 source_for_patching = old_file_path
                 if old_meta.get('compressed'):
+                    file_phase_progress(0, "decompressing")
                     source_for_patching = os.path.join(work_dir, f"old_decomp_{rel_path.replace('/', '_')}")
                     decompress_gz(old_file_path, source_for_patching)
 
+                file_phase_progress(PHASE_WEIGHT_DECOMPRESS, "applying delta")
                 new_temp_path = os.path.join(work_dir, f"new_patched_{rel_path.replace('/', '_')}")
                 apply_xdelta_patch(source_for_patching, patch_file_path, new_temp_path)
 
                 if new_meta.get('compressed'):
+                    file_phase_progress(PHASE_WEIGHT_DECOMPRESS + PHASE_WEIGHT_XDELTA, "compressing")
                     if calculate_sha256(new_temp_path) != new_meta['decompressed_sha256']:
                         raise Exception(f"Checksum mismatch on patched content for {rel_path}")
                     compress_gz(new_temp_path, output_file_path)
