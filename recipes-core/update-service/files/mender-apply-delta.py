@@ -103,6 +103,14 @@ def update_header_with_payload_checksum(output_dir, work_dir, new_payload_tar_pa
 
             print("  Updated header.tar.gz with new checksum.")
 
+def format_size(size_bytes):
+    """Format bytes as human-readable size."""
+    for unit in ['B', 'KB', 'MB', 'GB']:
+        if size_bytes < 1024:
+            return f"{size_bytes:.1f}{unit}" if unit != 'B' else f"{size_bytes}B"
+        size_bytes /= 1024
+    return f"{size_bytes:.1f}TB"
+
 def report_progress(percent, message):
     """Report progress in a parseable format to stdout."""
     print(f"PROGRESS:{percent}:{message}", flush=True)
@@ -148,14 +156,21 @@ def apply_delta_patch(old_mender, delta_patch, output_mender, temp_base_dir):
             os.makedirs(os.path.dirname(output_file_path), exist_ok=True)
 
             if change['type'] == 'new':
-                print(f"  Copying new: {rel_path}")
-                shutil.copy2(os.path.join(delta_dir, 'new_files', rel_path), output_file_path)
+                new_file_path = os.path.join(delta_dir, 'new_files', rel_path)
+                new_size = os.path.getsize(new_file_path)
+                report_progress(30 + int((idx / len(metadata['changes'])) * 50),
+                    f"[{idx}/{len(metadata['changes'])}] new: {rel_path} ({format_size(new_size)})")
+                shutil.copy2(new_file_path, output_file_path)
 
             elif change['type'] == 'modified':
-                print(f"  Patching: {rel_path}")
                 old_file_path = os.path.join(old_dir, rel_path)
                 patch_file_path = os.path.join(delta_dir, 'patches', change['patch'])
                 old_meta, new_meta = change.get('old_meta',{}), change.get('new_meta',{})
+
+                old_size = os.path.getsize(old_file_path)
+                patch_size = os.path.getsize(patch_file_path)
+                report_progress(30 + int((idx / len(metadata['changes'])) * 50),
+                    f"[{idx}/{len(metadata['changes'])}] patch: {rel_path} (old: {format_size(old_size)}, patch: {format_size(patch_size)})")
 
                 source_for_patching = old_file_path
                 if old_meta.get('compressed'):
@@ -175,9 +190,6 @@ def apply_delta_patch(old_mender, delta_patch, output_mender, temp_base_dir):
                      shutil.move(new_temp_path, output_file_path)
 
             processed_files += 1
-            # Report progress for changes (30% to 80%)
-            progress = 30 + int(((processed_files - len(unchanged_files)) / len(metadata['changes'])) * 50)
-            report_progress(progress, f"Processed {idx}/{len(metadata['changes'])} changes")
 
         print("\nFinalizing artifact...")
         report_progress(80, "Updating headers and manifest")
