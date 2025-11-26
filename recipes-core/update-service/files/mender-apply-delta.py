@@ -150,16 +150,33 @@ def apply_delta_patch(old_mender, delta_patch, output_mender, temp_base_dir):
             if processed_files % max(1, len(unchanged_files) // 5) == 0:  # Report every ~20%
                 report_progress(progress, f"Copied {processed_files}/{total_files} files")
 
+        # Pre-calculate work weights based on file sizes
+        change_weights = {}
+        total_weight = 0
+        for rel_path, change in metadata['changes'].items():
+            if change['type'] == 'new':
+                new_file_path = os.path.join(delta_dir, 'new_files', rel_path)
+                weight = os.path.getsize(new_file_path)
+            elif change['type'] == 'modified':
+                old_file_path = os.path.join(old_dir, rel_path)
+                patch_file_path = os.path.join(delta_dir, 'patches', change['patch'])
+                weight = os.path.getsize(old_file_path) + os.path.getsize(patch_file_path)
+            else:
+                weight = 1
+            change_weights[rel_path] = weight
+            total_weight += weight
+
         report_progress(30, f"Processing {len(metadata['changes'])} changes")
+        processed_weight = 0
         for idx, (rel_path, change) in enumerate(metadata['changes'].items(), 1):
             output_file_path = os.path.join(output_dir, rel_path)
             os.makedirs(os.path.dirname(output_file_path), exist_ok=True)
+            weight = change_weights[rel_path]
 
             if change['type'] == 'new':
                 new_file_path = os.path.join(delta_dir, 'new_files', rel_path)
-                new_size = os.path.getsize(new_file_path)
-                report_progress(30 + int((idx / len(metadata['changes'])) * 50),
-                    f"[{idx}/{len(metadata['changes'])}] new: {rel_path} ({format_size(new_size)})")
+                report_progress(30 + int((processed_weight / total_weight) * 50),
+                    f"[{idx}/{len(metadata['changes'])}] new: {rel_path} ({format_size(weight)})")
                 shutil.copy2(new_file_path, output_file_path)
 
             elif change['type'] == 'modified':
@@ -169,7 +186,7 @@ def apply_delta_patch(old_mender, delta_patch, output_mender, temp_base_dir):
 
                 old_size = os.path.getsize(old_file_path)
                 patch_size = os.path.getsize(patch_file_path)
-                report_progress(30 + int((idx / len(metadata['changes'])) * 50),
+                report_progress(30 + int((processed_weight / total_weight) * 50),
                     f"[{idx}/{len(metadata['changes'])}] patch: {rel_path} (old: {format_size(old_size)}, patch: {format_size(patch_size)})")
 
                 source_for_patching = old_file_path
@@ -189,7 +206,7 @@ def apply_delta_patch(old_mender, delta_patch, output_mender, temp_base_dir):
                 else:
                      shutil.move(new_temp_path, output_file_path)
 
-            processed_files += 1
+            processed_weight += weight
 
         print("\nFinalizing artifact...")
         report_progress(80, "Updating headers and manifest")
