@@ -43,31 +43,34 @@ def apply_xdelta_patch(old_file, patch_file, output_file):
     if result.returncode != 0: raise Exception(f"xdelta3 failed: {result.stderr}")
 
 # --- Mender Artifact Manipulation ---
-def update_manifest_file(output_dir):
+def update_manifest_file(output_dir, progress_callback=None):
     manifest_path = os.path.join(output_dir, 'manifest')
     manifest_lines = []
-    files_to_manifest = [p for p in Path(output_dir).rglob('*') if p.is_file() and p.name != 'manifest']
-    for filepath in sorted(files_to_manifest):
+    files_to_manifest = sorted([p for p in Path(output_dir).rglob('*') if p.is_file() and p.name != 'manifest'])
+    total_files = len(files_to_manifest)
+    for i, filepath in enumerate(files_to_manifest):
         rel_path = filepath.relative_to(output_dir).as_posix()
+        if progress_callback:
+            progress_callback(f"Hashing {rel_path} ({i+1}/{total_files})")
         manifest_lines.append(f"{calculate_sha256(filepath)}  {rel_path}\n")
     with open(manifest_path, 'w') as f: f.writelines(manifest_lines)
-    print("  Generated new manifest file.")
 
-def update_header_with_payload_checksum(output_dir, work_dir, new_payload_tar_path, expected_new_payload_checksum):
+def update_header_with_payload_checksum(output_dir, work_dir, new_payload_tar_path, expected_new_payload_checksum, progress_callback=None):
     header_tar_path = os.path.join(output_dir, 'header.tar.gz')
     if not os.path.exists(header_tar_path): return
 
-    print("  Verifying final filesystem and updating header...")
+    if progress_callback: progress_callback("Extracting payload for verification")
     with tempfile.TemporaryDirectory(dir=work_dir) as fs_extract_dir:
         with tarfile.open(new_payload_tar_path, 'r') as tar: tar.extractall(fs_extract_dir)
         fs_image_path = next(Path(fs_extract_dir).rglob('*'), None)
         if not fs_image_path: raise Exception("No filesystem image in reconstructed payload.")
-        
+
+        if progress_callback: progress_callback(f"Verifying rootfs checksum ({format_size(os.path.getsize(fs_image_path))})")
         actual_payload_checksum = calculate_sha256(fs_image_path)
         if expected_new_payload_checksum and actual_payload_checksum != expected_new_payload_checksum:
             raise Exception("CRITICAL: Final filesystem checksum mismatch!")
-        print("  ✓ Final filesystem checksum verified.")
 
+    if progress_callback: progress_callback("Updating header metadata")
     with tempfile.TemporaryDirectory(dir=work_dir) as header_extract_dir:
         extract_tar(header_tar_path, header_extract_dir)
         type_info_path = next(Path(header_extract_dir).rglob('type-info'), None)
@@ -76,8 +79,8 @@ def update_header_with_payload_checksum(output_dir, work_dir, new_payload_tar_pa
                 type_info = json.load(f)
                 type_info['artifact_provides']['rootfs-image.checksum'] = actual_payload_checksum
                 f.seek(0); json.dump(type_info, f, separators=(',', ':')); f.truncate()
-            
-            print("  Recreating header.tar.gz with correct internal order...")
+
+            if progress_callback: progress_callback("Recreating header.tar.gz")
             with tarfile.open(header_tar_path, 'w:gz') as tar:
                 all_files = []
                 for root, _, files in os.walk(header_extract_dir):
@@ -90,7 +93,7 @@ def update_header_with_payload_checksum(output_dir, work_dir, new_payload_tar_pa
                     """A multi-level sort key to enforce Mender's strict header order."""
                     arcname = item[1].replace('\\', '/') # Normalize path separator
                     basename = os.path.basename(arcname)
-                    
+
                     if basename == 'header-info': return (0, arcname)
                     if basename == 'type-info': return (1, arcname)
                     if basename == 'meta-data': return (2, arcname)
@@ -100,8 +103,6 @@ def update_header_with_payload_checksum(output_dir, work_dir, new_payload_tar_pa
 
                 for full_path, arcname in all_files:
                     tar.add(full_path, arcname=arcname)
-
-            print("  Updated header.tar.gz with new checksum.")
 
 def format_size(size_bytes):
     """Format bytes as human-readable size."""
@@ -229,24 +230,61 @@ def apply_delta_patch(old_mender, delta_patch, output_mender, temp_base_dir):
             processed_weight += weight
 
         print("\nFinalizing artifact...")
-        report_progress(80, "Updating headers and manifest")
+        # Progress breakdown for finalization (80-100%):
+        # 80-81: Extract payload for verification
+        # 81-87: Verify rootfs checksum (SHA256 of ~1GB)
+        # 87-88: Update header metadata
+        # 88-89: Recreate header.tar.gz
+        # 89-95: Generate manifest (SHA256 of each output file)
+        # 95-100: Create output mender file
+
+        header_progress_map = {
+            "Extracting payload for verification": 80,
+            "Verifying rootfs checksum": 81,
+            "Updating header metadata": 87,
+            "Recreating header.tar.gz": 88,
+        }
+
+        def header_progress_callback(msg):
+            # Find matching progress by prefix
+            for prefix, pct in header_progress_map.items():
+                if msg.startswith(prefix):
+                    report_progress(pct, msg)
+                    return
+            report_progress(80, msg)
+
         if newly_created_payload_tar:
-            update_header_with_payload_checksum(output_dir, work_dir, newly_created_payload_tar, metadata.get('new_payload_checksum'))
+            update_header_with_payload_checksum(output_dir, work_dir, newly_created_payload_tar,
+                metadata.get('new_payload_checksum'), progress_callback=header_progress_callback)
 
-        update_manifest_file(output_dir)
+        report_progress(89, "Generating manifest")
+        def manifest_progress_callback(msg):
+            # Manifest generation is 89-95% range
+            report_progress(89, msg)
 
-        report_progress(90, "Creating output mender file")
-        print(f"\nCreating output Mender file: {output_mender}")
+        update_manifest_file(output_dir, progress_callback=manifest_progress_callback)
+
+        report_progress(95, "Creating output mender file")
         with tarfile.open(output_mender, 'w') as tar:
-            for item in ['version', 'manifest', 'header.tar.gz']:
-                tar.add(os.path.join(output_dir, item), arcname=item)
+            items_to_add = ['version', 'manifest', 'header.tar.gz']
             data_dir = os.path.join(output_dir, 'data')
             if os.path.isdir(data_dir):
-                for f in sorted(os.listdir(data_dir)):
-                    tar.add(os.path.join(data_dir, f), arcname=os.path.join('data', f))
+                items_to_add.extend([os.path.join('data', f) for f in sorted(os.listdir(data_dir))])
+
+            total_items = len(items_to_add)
+            for i, item in enumerate(items_to_add):
+                # Progress from 95-100% based on items
+                progress = 95 + int((i / total_items) * 5)
+                if item.startswith('data/'):
+                    item_path = os.path.join(output_dir, item)
+                    item_size = os.path.getsize(item_path)
+                    report_progress(progress, f"Adding {item} ({format_size(item_size)})")
+                    tar.add(item_path, arcname=item)
+                else:
+                    report_progress(progress, f"Adding {item}")
+                    tar.add(os.path.join(output_dir, item), arcname=item)
 
         report_progress(100, "Complete")
-        print("\n✓ Delta patch applied and Mender artifact created successfully!")
 
 def main():
     if len(sys.argv) < 4 or len(sys.argv) > 5:
