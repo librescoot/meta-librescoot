@@ -3,6 +3,7 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
 SRC_URI += " \
     file://librescoot.script \
     file://librescoot.plymouth \
+    file://0001-skip-drm-devices-without-connected-outputs.patch \
 "
 
 PACKAGECONFIG:append = " drm"

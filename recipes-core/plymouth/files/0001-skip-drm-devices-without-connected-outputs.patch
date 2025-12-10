@@ -1,0 +1,88 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: LibreScoot <noreply@librescoot.org>
+Date: Wed, 27 Nov 2024 17:00:00 +0000
+Subject: [PATCH] ply-device-manager: skip DRM devices without connectors
+
+On systems with multiple DRM devices where some are render-only
+(like etnaviv on i.MX6), Plymouth should skip devices that have
+no display connectors and only use devices with actual display
+outputs.
+
+This prevents Plymouth from trying to use /dev/dri/card0 (etnaviv)
+when the actual display is on /dev/dri/card1 (imx-drm).
+
+The implementation checks for connector entries in sysfs without
+requiring libdrm, looking for entries like "card0-LVDS-1" in the
+device's drm directory.
+
+Upstream-Status: Pending
+Signed-off-by: LibreScoot <noreply@librescoot.org>
+---
+ src/libply-splash-core/ply-device-manager.c | 36 +++++++++++++++++++++
+ 1 file changed, 36 insertions(+)
+
+diff --git a/src/libply-splash-core/ply-device-manager.c b/src/libply-splash-core/ply-device-manager.c
+index 59e579dd..51d7008c 100644
+--- a/src/libply-splash-core/ply-device-manager.c
++++ b/src/libply-splash-core/ply-device-manager.c
+@@ -21,7 +21,9 @@
+ #include "ply-renderer.h"
+
+ #include <assert.h>
++#include <dirent.h>
+ #include <fcntl.h>
++#include <limits.h>
+ #include <stdbool.h>
+ #include <stdlib.h>
+ #include <stdio.h>
+@@ -340,6 +342,36 @@ remove_input_device_from_renderers (ply_device_manager_t *manager,
+         ply_hashtable_foreach (manager->renderers, (ply_hashtable_foreach_func_t *) on_each_input_device_remove_from_renderer, input_device);
+ }
+
++static bool
++drm_device_has_connectors (struct udev_device *device)
++{
++        const char *syspath;
++        char connector_path[PATH_MAX];
++        DIR *dir;
++        struct dirent *entry;
++        bool has_connectors = false;
++
++        syspath = udev_device_get_syspath (device);
++        if (syspath == NULL)
++                return false;
++
++        snprintf (connector_path, sizeof (connector_path), "%s/device/drm", syspath);
++
++        dir = opendir (connector_path);
++        if (dir == NULL)
++                return false;
++
++        while ((entry = readdir (dir)) != NULL) {
++                /* Check for connector entries like "card0-LVDS-1" */
++                if (strstr (entry->d_name, "card") && strchr (entry->d_name, '-')) {
++                        has_connectors = true;
++                        break;
++                }
++        }
++        closedir (dir);
++        return has_connectors;
++}
++
+ static bool
+ verify_drm_device (struct udev_device *device)
+ {
+@@ -371,6 +403,10 @@ verify_drm_device (struct udev_device *device)
+         if (ply_kernel_command_line_has_argument ("plymouth.use-simpledrm"))
+                 return true;
+
++        /* Skip devices without any connectors (e.g. render-only GPUs) */
++        if (!drm_device_has_connectors (device))
++                return false;
++
+         return false;
+ }
+
+--
+2.34.1
+
