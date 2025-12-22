@@ -21,15 +21,17 @@ LIBRESCOOT_GO_VERSION ?= "${PV}"
 # Go needs network access to download modules during compile
 do_compile[network] = "1"
 
-# We prepend to do_compile to rebuild GOBUILDFLAGS with version info,
-# then let the standard go_do_compile run
-do_compile:prepend() {
-    # Find the git directory
+# Override do_compile to inject version ldflags directly
+# We can't use prepend because GOBUILDFLAGS is already expanded in go_do_compile
+do_compile() {
+    export TMPDIR="${GOTMPDIR}"
+
+    # Find git directory and extract version
     GITDIR=""
-    if [ -n "${GO_IMPORT}" ] && [ -d "${S}/src/${GO_IMPORT}/.git" ]; then
-        GITDIR="${S}/src/${GO_IMPORT}"
-    elif [ -d "${S}/.git" ]; then
+    if [ -d "${S}/.git" ]; then
         GITDIR="${S}"
+    elif [ -n "${GO_IMPORT}" ] && [ -d "${S}/src/${GO_IMPORT}/.git" ]; then
+        GITDIR="${S}/src/${GO_IMPORT}"
     fi
 
     VERSION="unknown"
@@ -43,41 +45,32 @@ do_compile:prepend() {
         cd "$ORIGDIR"
         bbnote "librescoot-go: Found git version=$VERSION revision=$REVISION in $GITDIR"
     else
-        bbnote "librescoot-go: No .git directory found, trying B directory"
-        # Check in B (build directory where go-mod puts sources)
-        if [ -d "${B}/src/${GO_IMPORT}/.git" ]; then
-            ORIGDIR="$(pwd)"
-            cd "${B}/src/${GO_IMPORT}"
-            VERSION=$(git describe --tags --always --dirty 2>/dev/null || echo "unknown")
-            REVISION=$(git rev-parse --short HEAD 2>/dev/null || echo "unknown")
-            cd "$ORIGDIR"
-            bbnote "librescoot-go: Found git version=$VERSION revision=$REVISION in ${B}/src/${GO_IMPORT}"
-        else
-            # Fallback: use SRCREV if available
-            if [ -n "${SRCREV}" ] && [ "${SRCREV}" != "INVALID" ] && [ "${SRCREV}" != "AUTOINC" ]; then
-                REVISION=$(echo "${SRCREV}" | cut -c1-8)
-                VERSION="0.0.0-g$REVISION"
-                bbnote "librescoot-go: Using SRCREV fallback version=$VERSION"
-            fi
+        # Fallback: use SRCREV if available
+        if [ -n "${SRCREV}" ] && [ "${SRCREV}" != "INVALID" ] && [ "${SRCREV}" != "AUTOINC" ]; then
+            REVISION=$(echo "${SRCREV}" | cut -c1-8)
+            VERSION="0.0.0-g$REVISION"
+            bbnote "librescoot-go: Using SRCREV fallback version=$VERSION"
         fi
     fi
 
     # Save version for packaging
     echo "$VERSION" > ${WORKDIR}/librescoot-go-version
 
-    # Build version ldflags - these match what the Makefile uses
-    # Note: Using $VERSION not ${VERSION} to get shell variable expansion
+    # Build version ldflags
     VERSION_LDFLAGS="-X main.version=$VERSION -X main.gitRevision=$REVISION"
 
-    # Rebuild GOBUILDFLAGS with our version info injected
-    # We need to insert VERSION_LDFLAGS into the ldflags string
-    # Original GO_LDFLAGS format: -ldflags="${GO_RPATH} ${GO_LINKMODE} ${GO_LINUXLOADER} ${GO_EXTRA_LDFLAGS} -extldflags '${GO_EXTLDFLAGS}'"
-    NEW_GO_LDFLAGS="-ldflags=${GO_RPATH} ${GO_LINKMODE} ${GO_LINUXLOADER} $VERSION_LDFLAGS -extldflags '${GO_EXTLDFLAGS}'"
-
-    # Export the new GOBUILDFLAGS (this overrides the environment variable)
-    export GOBUILDFLAGS="${GO_PARALLEL_BUILD} -v $NEW_GO_LDFLAGS -trimpath -modcacherw -buildmode=pie"
+    # Build complete ldflags string matching go.bbclass format
+    GO_LDFLAGS_FULL="${GO_RPATH} ${GO_LINKMODE} ${GO_LINUXLOADER} $VERSION_LDFLAGS -extldflags '${GO_EXTLDFLAGS}'"
 
     bbnote "librescoot-go: VERSION_LDFLAGS=$VERSION_LDFLAGS"
+
+    if [ -n "${GO_INSTALL}" ]; then
+        if [ -n "${GO_LINKSHARED}" ]; then
+            ${GO} install ${GO_PARALLEL_BUILD} -v -ldflags="$GO_LDFLAGS_FULL" -trimpath -modcacherw `go_list_packages`
+            rm -rf ${B}/bin
+        fi
+        ${GO} install ${GO_LINKSHARED} ${GO_PARALLEL_BUILD} -v -ldflags="$GO_LDFLAGS_FULL" -trimpath -modcacherw `go_list_packages`
+    fi
 }
 
 # Read the computed version for packaging
