@@ -9,7 +9,7 @@ SRCREV = "${AUTOREV}"
 
 S = "${WORKDIR}/git"
 
-inherit go-mod
+inherit librescoot-go
 
 GO_IMPORT = "lsc"
 
