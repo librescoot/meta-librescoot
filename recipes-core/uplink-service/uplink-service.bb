@@ -3,7 +3,7 @@ HOMEPAGE = "https://github.com/librescoot/uplink-service"
 LICENSE = "AGPL-3.0-only"
 LIC_FILES_CHKSUM = "file://src/${GO_IMPORT}/LICENSE;md5=eb1e647870add0502f8f010b19de32af"
 
-inherit go-mod systemd
+inherit librescoot-go systemd
 
 SRC_URI = "git://github.com/librescoot/uplink-service.git;protocol=https;branch=main"
 SRC_URI += " file://librescoot-uplink.service"

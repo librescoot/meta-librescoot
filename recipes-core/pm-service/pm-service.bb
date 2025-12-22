@@ -9,7 +9,7 @@ SRCREV = "${AUTOREV}"
 
 S = "${WORKDIR}/git"
 
-inherit go-mod systemd
+inherit librescoot-go systemd
 
 GO_IMPORT = "github.com/librescoot/pm-service"
 
