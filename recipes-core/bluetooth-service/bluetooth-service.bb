@@ -31,6 +31,6 @@ do_install() {
 
     install -m 0755 ${B}/bin/linux_arm/bluetooth-service ${D}${bindir}/
     install -m 0644 ${WORKDIR}/librescoot-bluetooth.service ${D}${systemd_system_unitdir}
-    install -m 0644 ${WORKDIR}/nrfupdate.py ${D}${datadir}/nrfupdate.py
+    install -m 0644 ${WORKDIR}/nrfupdate.py ${D}${datadir}/nrf-fw/nrfupdate.py
 }
 
