@@ -25,8 +25,10 @@ SYSTEMD_AUTO_ENABLE:${PN} = "enable"
 do_install() {
     install -d ${D}${bindir}
     install -d ${D}${systemd_system_unitdir}
+    install -d ${D}${datadir}/nrf-fw/
 
     install -m 0755 ${B}/bin/linux_arm/bluetooth-service ${D}${bindir}/
     install -m 0644 ${WORKDIR}/librescoot-bluetooth.service ${D}${systemd_system_unitdir}
+    install -m 0644 ${WORKDIR}/nrfupdate.py ${D}${datadir}/nrfupdate.py
 }
 
