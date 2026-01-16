@@ -19,6 +19,7 @@ GO_LINKSHARED = ""
 GOBUILDFLAGS:remove = "-buildmode=pie"
 
 FILES:${PN} += "/usr/lib/systemd/system/librescoot-bluetooth.service"
+FILES:${PN} += "/usr/share/nrf-fw/nrfupdate.py"
 
 SYSTEMD_SERVICE:${PN} = "librescoot-bluetooth.service"
 SYSTEMD_AUTO_ENABLE:${PN} = "enable"
