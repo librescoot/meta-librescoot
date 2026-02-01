@@ -18,7 +18,15 @@ PV = "0.0+git${SRCPV}"
 PKGV = "${LIBRESCOOT_GO_VERSION}"
 LIBRESCOOT_GO_VERSION ?= "${PV}"
 
-# Go needs network access to download modules during compile
+# FIXME: Network access during do_compile is a Yocto anti-pattern.
+# It breaks build reproducibility, offline builds, and hash equivalence.
+# The correct fix is to vendor Go modules in each service repository:
+#   cd <service-repo> && go mod vendor && git add vendor/
+# Then go-mod.bbclass will use the vendored deps automatically and
+# no network access is needed during compile.
+#
+# Until all service repos have vendored their modules, this line is
+# required for the build to succeed. Remove it after vendoring.
 do_compile[network] = "1"
 
 # Override do_compile to inject version ldflags directly
