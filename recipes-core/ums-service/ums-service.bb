@@ -6,8 +6,7 @@ LIC_FILES_CHKSUM = "file://src/github.com/librescoot/ums-service/LICENSE;md5=fb5
 SRC_URI = "git://github.com/librescoot/ums-service.git;protocol=https;branch=main"
 SRC_URI += " file://librescoot-ums.service"
 
-# Pinned 2025-05-27: initial commit
-SRCREV = "cfd646c46ea7d1f8fd6a13d34ff0cfcbd4eb3cb8"
+SRCREV = "${AUTOREV}"
 PE = "1"
 
 S = "${WORKDIR}/git"

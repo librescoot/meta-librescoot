@@ -7,8 +7,7 @@ SRC_URI = "git://github.com/librescoot/lsc.git;protocol=https;branch=main \
            file://lsc-completion.sh \
 "
 
-# Pinned 2026-01-28: fix(ota): replace os.Exit with error returns
-SRCREV = "1defbb90b966ddc83d0ba5b31486891a1ad65587"
+SRCREV = "${AUTOREV}"
 
 S = "${WORKDIR}/git"
 

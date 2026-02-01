@@ -5,6 +5,27 @@
 #   -X main.version=$(git describe --tags --always --dirty)
 #
 # It also sets PV and PKGV to reflect the git-derived version.
+#
+# == Version Pinning Philosophy ==
+#
+# Recipes use SRCREV = "${AUTOREV}" for development flexibility.
+# This means bitbake fetches the latest commit from each service's
+# branch on every build — ideal for development and nightly builds.
+#
+# For reproducible release builds, version pinning is handled externally
+# via kas lockfiles, NOT in individual recipes. The workflow:
+#
+#   1. `kas dump --lock kas/<target>.yml` resolves all AUTOREV entries
+#      to specific commit hashes and writes a lockfile
+#   2. CI generates lockfiles per channel:
+#      - nightly: build with AUTOREV, then dump lockfile for reference
+#      - testing: build from nightly lockfile (proven revisions)
+#      - stable:  build from testing lockfile (promoted revisions)
+#   3. `kas build kas/lock/<channel>-<target>.lock.yml` builds from
+#      the pinned revisions in the lockfile
+#
+# This keeps recipes clean and maintainable while achieving full
+# reproducibility through the build system's configuration layer.
 
 inherit go-mod
 

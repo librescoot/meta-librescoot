@@ -38,8 +38,7 @@ SRC_URI:append = " ${@' '.join(['file://fades/fade%d-%s' % (i, n) for i, n in en
     'blink', \
 ])])}"
 
-# Pinned 2026-01-28: deps: bump librefsm v0.3.3, redis-ipc v0.10.3
-SRCREV = "9e51cea1e2cfc0ad7a631cf7044129d77fc1ccc2"
+SRCREV = "${AUTOREV}"
 
 S = "${WORKDIR}/git"
 
