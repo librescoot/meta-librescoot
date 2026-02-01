@@ -12,7 +12,6 @@ LIBRESCOOT_DEBUG_PACKAGES ?= " \
     htop \
     iotop \
     mc \
-    vim-common \
     nano \
     screen \
     lsof \
@@ -23,3 +22,8 @@ LIBRESCOOT_DEBUG_PACKAGES ?= " \
 "
 
 RDEPENDS:${PN} = "${LIBRESCOOT_DEBUG_PACKAGES}"
+
+# MDB keeps full vim-common; DBC uses vim-tiny to save space
+RDEPENDS:${PN}:append:unu-mdb = " vim-common"
+RDEPENDS:${PN}:append:unu-dbc = " vim-tiny"
+RDEPENDS:${PN}:append:librescoot-dbc-rpi4 = " vim-tiny"
