@@ -6,7 +6,8 @@ LIC_FILES_CHKSUM = "file://src/ecu-service/LICENSE;md5=fb5d051e53001fdff7fec0f36
 SRC_URI = "git://github.com/librescoot/ecu-service.git;protocol=https;branch=main"
 SRC_URI += " file://librescoot-ecu.service"
 
-SRCREV = "${AUTOREV}"
+# Pinned 2026-01-28: fix(deps): update golang.org/x/sys to v0.30.0
+SRCREV = "95e0c4a3a0442907319c8996e20999202f07ff91"
 
 S = "${WORKDIR}/git"
 

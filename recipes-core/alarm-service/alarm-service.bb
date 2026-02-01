@@ -6,7 +6,8 @@ LIC_FILES_CHKSUM = "file://src/alarm-service/LICENSE;md5=f5a53c7ab38ba3772e879f1
 SRC_URI = "git://github.com/librescoot/alarm-service.git;protocol=https;branch=main"
 SRC_URI += " file://librescoot-alarm.service"
 
-SRCREV = "${AUTOREV}"
+# Pinned 2026-01-28: chore(deps): bump redis-ipc to v0.10.1
+SRCREV = "aeed8ca0a3c8ad0b2ae0c978bb39a6950685a254"
 
 S = "${WORKDIR}/git"
 

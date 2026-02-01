@@ -6,7 +6,8 @@ LIC_FILES_CHKSUM = "file://src/modem-service/LICENSE;md5=eb1e647870add0502f8f010
 SRC_URI = "git://github.com/librescoot/modem-service.git;protocol=https;branch=main"
 SRC_URI += " file://librescoot-modem.service"
 
-SRCREV = "${AUTOREV}"
+# Pinned 2026-01-28: chore(deps): bump redis-ipc to v0.10.1
+SRCREV = "0c88cc8ee2733536f65ff8a23f21526c7a31fee3"
 
 S = "${WORKDIR}/git"
 

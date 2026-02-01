@@ -9,7 +9,8 @@ SRC_URI:append = " file://nrfupdate.py"
 SRC_URI:append = " file://mdb-nrf52-bl-v2.3.0-ls.zip;unpack=0"
 SRC_URI:append = " file://mdb-nrf52-app-v2.3.0-ls.zip;unpack=0"
 
-SRCREV = "${AUTOREV}"
+# Pinned 2026-01-28: chore(deps): bump redis-ipc to v0.10.1
+SRCREV = "2880c01aa49d1baf0600a56720928e9faad064ed"
 
 S = "${WORKDIR}/git"
 

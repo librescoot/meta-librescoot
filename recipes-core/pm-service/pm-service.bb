@@ -5,7 +5,8 @@ LIC_FILES_CHKSUM = "file://src/github.com/librescoot/pm-service/LICENSE;md5=eb1e
 
 SRC_URI = "git://github.com/librescoot/pm-service.git;protocol=https;branch=main"
 
-SRCREV = "${AUTOREV}"
+# Pinned 2026-01-28: deps: upgrade redis-ipc to v0.10.3
+SRCREV = "37fdd2dbab3125c824ed38958611c325cc5f5936"
 
 S = "${WORKDIR}/git"
 

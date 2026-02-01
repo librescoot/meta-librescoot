@@ -5,7 +5,8 @@ LIC_FILES_CHKSUM = "file://src/github.com/librescoot/version-service/LICENSE;md5
 
 SRC_URI = "git://github.com/librescoot/version-service.git;protocol=https;branch=main"
 
-SRCREV = "${AUTOREV}"
+# Pinned 2025-12-25: docs: update README title
+SRCREV = "e00538d446c8a0303c6b00ac73d1948fca981b36"
 
 S = "${WORKDIR}/git"
 

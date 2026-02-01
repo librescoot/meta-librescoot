@@ -8,7 +8,8 @@ inherit librescoot-go systemd
 SRC_URI = "git://github.com/librescoot/uplink-service.git;protocol=https;branch=main"
 SRC_URI += " file://librescoot-uplink.service"
 
-SRCREV = "${AUTOREV}"
+# Pinned 2026-01-28: fix: use safe type assertions in stats logger
+SRCREV = "868c717b0d0202c0392597e4372207c2231dcb1d"
 S = "${WORKDIR}/git"
 
 GO_IMPORT = "github.com/librescoot/uplink-service"

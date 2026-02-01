@@ -6,7 +6,8 @@ LIC_FILES_CHKSUM = "file://src/github.com/librescoot/update-service/LICENSE;md5=
 SRC_URI = "git://github.com/librescoot/update-service.git;protocol=https;branch=main"
 SRC_URI += "file://mender-apply-delta.py"
 
-SRCREV = "${AUTOREV}"
+# Pinned 2026-01-28: chore(deps): bump redis-ipc to v0.10.1
+SRCREV = "ec52a5e1a748aea97f4252065ed545cfaddbac57"
 
 S = "${WORKDIR}/git"
 

@@ -6,7 +6,8 @@ LIC_FILES_CHKSUM = "file://src/github.com/librescoot/dbc-backlight-service/LICEN
 SRC_URI = "git://github.com/librescoot/dbc-backlight-service.git;protocol=https;branch=main"
 SRC_URI += " file://librescoot-backlight.service"
 
-SRCREV = "${AUTOREV}"
+# Pinned 2026-01-29: test(backlight): add unit tests for state machine and hysteresis
+SRCREV = "3a230187686e409e2f2ea4b141177f1c7f5243dc"
 
 S = "${WORKDIR}/git"
 

@@ -6,7 +6,8 @@ LIC_FILES_CHKSUM = "file://src/github.com/librescoot/settings-service/LICENSE;md
 SRC_URI = "git://github.com/librescoot/settings-service.git;protocol=https;branch=main"
 SRC_URI += " file://librescoot-settings.service"
 
-SRCREV = "${AUTOREV}"
+# Pinned 2025-12-22: feat: add --version flag
+SRCREV = "61fe3b3c292e7b0d32e6ad1525bd9b760e550a0f"
 
 S = "${WORKDIR}/git"
 

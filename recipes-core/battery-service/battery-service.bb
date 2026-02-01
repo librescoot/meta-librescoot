@@ -6,7 +6,8 @@ LIC_FILES_CHKSUM = "file://src/battery-service/LICENSE;md5=fb5d051e53001fdff7fec
 SRC_URI = "git://github.com/librescoot/battery-service.git;protocol=https;branch=main"
 SRC_URI += " file://librescoot-battery.service"
 
-SRCREV = "${AUTOREV}"
+# Pinned 2025-12-26: fix: increase NFC arbiter busy retries
+SRCREV = "555f0c119a75f7907d9879756a02edc8e837eb7d"
 
 S = "${WORKDIR}/git"
 
