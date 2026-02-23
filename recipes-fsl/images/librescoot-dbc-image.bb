@@ -43,6 +43,7 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     curl \
     flutter-engine \
     scootui \
+    dbc-dispatcher \
     onboot-service \
     version-service \
     update-service \

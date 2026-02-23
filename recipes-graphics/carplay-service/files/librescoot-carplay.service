@@ -1,6 +1,6 @@
 [Unit]
 Description=Librescoot CarPlay / Android Auto Service
-After=scootui.service
+After=dbc-dispatcher.service
 
 [Service]
 Type=idle
