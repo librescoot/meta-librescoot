@@ -32,7 +32,7 @@ if (frames[0]) {
 current_frame = 0;
 frame_counter = 0;
 
-Plymouth.SetRefreshFunction(function() {
+Plymouth.SetRefreshFunction(fun() {
     frame_counter++;
     if (frame_counter >= frame_duration) {
         frame_counter = 0;
@@ -43,5 +43,5 @@ Plymouth.SetRefreshFunction(function() {
     }
 });
 
-Plymouth.SetQuitFunction(function() {
+Plymouth.SetQuitFunction(fun() {
 });
