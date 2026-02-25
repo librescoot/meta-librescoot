@@ -3,7 +3,10 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
 SRC_URI += " \
     file://librescoot.script \
     file://librescoot.plymouth \
+    file://windowsxp.script \
+    file://windowsxp.plymouth \
     file://plymouth-start.service \
+    file://plymouth-quit-delay.conf \
 "
 
 PACKAGECONFIG:append = " drm"
@@ -13,6 +16,10 @@ do_install:append() {
     install -d ${D}${datadir}/plymouth/themes/librescoot
     install -m 0644 ${WORKDIR}/librescoot.script ${D}${datadir}/plymouth/themes/librescoot/
     install -m 0644 ${WORKDIR}/librescoot.plymouth ${D}${datadir}/plymouth/themes/librescoot/
+
+    install -d ${D}${datadir}/plymouth/themes/windowsxp
+    install -m 0644 ${WORKDIR}/windowsxp.script ${D}${datadir}/plymouth/themes/windowsxp/
+    install -m 0644 ${WORKDIR}/windowsxp.plymouth ${D}${datadir}/plymouth/themes/windowsxp/
 
     # Configure Plymouth for optimal startup with DRM backend
     install -d ${D}${sysconfdir}/plymouth
@@ -28,12 +35,24 @@ EOF
     # Plymouth's DRM renderer needs neither: card1 exists via devtmpfs at T+0.3s and
     # DRM rendering doesn't require VT font/keymap setup. This starts Plymouth ~3.5s
     # into boot instead of ~7s.
+    #
+    # ExecStartPre reads /data/plymouth-theme at runtime; if set, overrides the default
+    # theme (e.g. write "windowsxp" to /data/plymouth-theme to activate the easter egg).
     install -d ${D}${sysconfdir}/systemd/system
     install -m 0644 ${WORKDIR}/plymouth-start.service \
         ${D}${sysconfdir}/systemd/system/plymouth-start.service
+
+    install -d ${D}${sysconfdir}/systemd/system/plymouth-quit.service.d
+    install -m 0644 ${WORKDIR}/plymouth-quit-delay.conf \
+        ${D}${sysconfdir}/systemd/system/plymouth-quit.service.d/delay.conf
 }
 
 FILES:${PN} += " \
     ${sysconfdir}/plymouth/plymouthd.conf \
     ${sysconfdir}/systemd/system/plymouth-start.service \
+    ${sysconfdir}/systemd/system/plymouth-quit.service.d \
+    ${sysconfdir}/systemd/system/plymouth-quit.service.d/delay.conf \
+    ${datadir}/plymouth/themes/windowsxp \
+    ${datadir}/plymouth/themes/windowsxp/windowsxp.script \
+    ${datadir}/plymouth/themes/windowsxp/windowsxp.plymouth \
 "

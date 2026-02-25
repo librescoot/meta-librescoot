@@ -43,6 +43,7 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     curl \
     flutter-engine \
     scootui \
+    dbc-dispatcher \
     onboot-service \
     version-service \
     update-service \
@@ -71,7 +72,6 @@ CORE_IMAGE_EXTRA_INSTALL += " \
 "
 
 IMAGE_INSTALL:append = " libubootenv-bin"
-IMAGE_INSTALL:append = " psplash"
 IMAGE_INSTALL:append = " plymouth plymouth-animation"
 
 PACKAGE_EXCLUDE = "ofono neard"

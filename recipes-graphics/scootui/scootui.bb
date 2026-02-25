@@ -31,6 +31,7 @@ PUBSPEC_IGNORE_LOCKFILE = "1"
 FLUTTER_APPLICATION_PATH = ""
 
 SYSTEMD_SERVICE:${PN} = "scootui.service"
+SYSTEMD_AUTO_ENABLE:${PN} = "disable"
 
 do_install:append:unu-dbc() {
     install -d ${D}${systemd_system_unitdir}

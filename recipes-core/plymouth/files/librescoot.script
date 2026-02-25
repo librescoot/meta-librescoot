@@ -4,17 +4,15 @@ Window.SetBackgroundBottomColor(0, 0, 0);
 screen_width = Window.GetWidth();
 screen_height = Window.GetHeight();
 
-num_frames = 14;
-frame_duration = 8;
+// 56 frames @ 7fps (8s animation). Plymouth refresh callback fires at ~25Hz.
+// frame_duration=4 → 6.25fps. Pre-load next frame during current frame's window
+// (~160ms) to avoid blocking startup; the ~30ms 8-bit PNG decode is invisible
+// since the previous frame stays on screen via DRM.
+num_frames = 56;
+frame_duration = 4;
 frames = [];
 
-for (i = 1; i <= num_frames; i++) {
-    filename = "frames/frame-" + i + ".png";
-    image = Image(filename);
-    if (image) {
-        frames[i-1] = image;
-    }
-}
+frames[0] = Image("frames/frame-1.png");
 
 anim_sprite = Sprite();
 if (frames[0]) {
@@ -28,12 +26,11 @@ if (frames[0]) {
 
 current_frame = 0;
 frame_counter = 0;
-total_ticks = 0;
-anim_cycles = 0;
+done = 0;
 
-cycles_to_play = 2;
-fade_duration = 60;
+fade_duration = 25;
 fade_tick = -1;
+total_ticks = 0;
 
 Plymouth.SetRefreshFunction(fun() {
     total_ticks++;
@@ -47,20 +44,29 @@ Plymouth.SetRefreshFunction(fun() {
         return;
     }
 
+    if (done) {
+        return;
+    }
+
+    if (frame_counter == 0) {
+        next = current_frame + 1;
+        if (next < num_frames && !frames[next]) {
+            frames[next] = Image("frames/frame-" + (next + 1) + ".png");
+        }
+    }
+
     frame_counter++;
     if (frame_counter >= frame_duration) {
         frame_counter = 0;
-        current_frame = (current_frame + 1) % num_frames;
-        if (current_frame == 0) {
-            anim_cycles++;
+        current_frame++;
+        if (current_frame >= num_frames) {
+            done = 1;
+            fade_tick = total_ticks;
+            return;
         }
         if (frames[current_frame]) {
             anim_sprite.SetImage(frames[current_frame]);
         }
-    }
-
-    if (anim_cycles >= cycles_to_play) {
-        fade_tick = total_ticks;
     }
 });
 
