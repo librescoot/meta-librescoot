@@ -1,6 +1,3 @@
-# LibreScoot Plymouth Boot Animation
-# Optimized for DRM backend with proper frame synchronization
-
 Window.SetBackgroundTopColor(0, 0, 0);
 Window.SetBackgroundBottomColor(0, 0, 0);
 
@@ -31,15 +28,39 @@ if (frames[0]) {
 
 current_frame = 0;
 frame_counter = 0;
+total_ticks = 0;
+anim_cycles = 0;
+
+cycles_to_play = 2;
+fade_duration = 60;
+fade_tick = -1;
 
 Plymouth.SetRefreshFunction(fun() {
+    total_ticks++;
+
+    if (fade_tick >= 0) {
+        progress = (total_ticks - fade_tick) / fade_duration;
+        if (progress > 1) {
+            progress = 1;
+        }
+        anim_sprite.SetOpacity(1 - progress);
+        return;
+    }
+
     frame_counter++;
     if (frame_counter >= frame_duration) {
         frame_counter = 0;
         current_frame = (current_frame + 1) % num_frames;
+        if (current_frame == 0) {
+            anim_cycles++;
+        }
         if (frames[current_frame]) {
             anim_sprite.SetImage(frames[current_frame]);
         }
+    }
+
+    if (anim_cycles >= cycles_to_play) {
+        fade_tick = total_ticks;
     }
 });
 
