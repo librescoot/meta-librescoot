@@ -9,7 +9,6 @@ SRC_URI += " \
     file://plymouth-quit-delay.conf \
 "
 
-PACKAGECONFIG:append = " drm"
 PLYMOUTH_THEME = "librescoot"
 
 do_install:append() {
@@ -31,13 +30,13 @@ IgnoreSerialConsoles=yes
 EOF
 
     # Override plymouth-start.service to remove vconsole-setup and udev-trigger deps.
-    # Plymouth's DRM renderer needs neither: card1 exists via devtmpfs at T+0.3s and
-    # DRM rendering doesn't require VT font/keymap setup. This starts Plymouth ~3.5s
-    # into boot instead of ~7s.
+    # Plymouth uses the fbdev renderer (writes to /dev/fb0 via DRM fbdev emulation),
+    # avoiding any DRM KMS mode set. Flutter/scootui is the sole DRM master and
+    # performs the only mode initialization. This starts Plymouth ~2.9s into boot.
     #
-    # After=data.mount+systemd-remount-fs.service: /data must be mounted (to read
-    # /data/plymouth-theme) and root must be writable (to write plymouthd.conf).
-    # /data survives OTA updates; /etc is overwritten on each update.
+    # ExecStartPre reads /etc/plymouth/theme-override at runtime; if set, overrides
+    # the default theme (e.g. write "windowsxp" to activate the easter egg). Uses a
+    # bind-mount into /run/ since the rootfs is read-only during early boot.
     install -d ${D}${sysconfdir}/systemd/system
     install -m 0644 ${WORKDIR}/plymouth-start.service \
         ${D}${sysconfdir}/systemd/system/plymouth-start.service
