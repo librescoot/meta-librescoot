@@ -1,0 +1,8 @@
+[Plymouth Theme]
+Name=WindowsXP
+Description=WindowsXP easter egg boot animation
+ModuleName=script
+
+[script]
+ImageDir=/usr/share/plymouth/themes/windowsxp
+ScriptFile=/usr/share/plymouth/themes/windowsxp/windowsxp.script
