@@ -1962,10 +1962,10 @@ display@di0 {
 		brightness-levels = <0x00 0x800 0x1000 0x2000 0x4000 0xffff>;
 		num-interpolated-steps = <0x800>;
 		/* 5 intervals × 2048 steps = 10240 total levels (0–10239).
-		 * 0x1000 = 4096 ≈ 40% of range → ~6% PWM duty cycle (dim but visible).
+		 * 9350 matches VeryLow in the backlight service config (~67% PWM).
 		 * systemd-backlight restores the saved value at T+7s; this only applies
 		 * for the first ~7 seconds of boot. */
-		default-brightness-level = <0x1000>;
+		default-brightness-level = <9350>;
 		status = "okay";
 	};
 
