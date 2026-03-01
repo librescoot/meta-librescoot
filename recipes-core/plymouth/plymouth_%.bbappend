@@ -29,11 +29,8 @@ DeviceTimeout=5
 IgnoreSerialConsoles=yes
 EOF
 
-    # Override plymouth-start.service to remove vconsole-setup and udev-trigger deps.
-    # Plymouth uses the fbdev renderer (writes to /dev/fb0 via DRM fbdev emulation),
-    # avoiding any DRM KMS mode set. Flutter/scootui is the sole DRM master and
-    # performs the only mode initialization. This starts Plymouth ~2.9s into boot.
-    #
+    # Override plymouth-start.service to remove vconsole-setup and udev-trigger deps,
+    # starting Plymouth at ~T+2.9s without waiting for udev settle.
     # ExecStartPre reads /etc/plymouth/theme-override at runtime; if set, overrides
     # the default theme (e.g. write "windowsxp" to activate the easter egg). Uses a
     # bind-mount into /run/ since the rootfs is read-only during early boot.
