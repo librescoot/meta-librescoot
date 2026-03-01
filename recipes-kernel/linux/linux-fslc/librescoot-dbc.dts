@@ -1961,7 +1961,11 @@ display@di0 {
 		pwms = <0x4a 0x00 0x4c4b40>;
 		brightness-levels = <0x00 0x800 0x1000 0x2000 0x4000 0xffff>;
 		num-interpolated-steps = <0x800>;
-		default-brightness-level = <0x4000>;
+		/* 5 intervals × 2048 steps = 10240 total levels (0–10239).
+		 * 0x1000 = 4096 ≈ 40% of range → ~6% PWM duty cycle (dim but visible).
+		 * systemd-backlight restores the saved value at T+7s; this only applies
+		 * for the first ~7 seconds of boot. */
+		default-brightness-level = <0x1000>;
 		status = "okay";
 	};
 

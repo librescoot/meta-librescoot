@@ -1,6 +1,6 @@
 [Unit]
 Description=LibreScoot Brightness Reader Service
-After=network.target
+After=librescoot-netconfig.service
 
 [Service]
 Type=simple

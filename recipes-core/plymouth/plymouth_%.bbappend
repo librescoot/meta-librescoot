@@ -21,7 +21,6 @@ do_install:append() {
     install -m 0644 ${WORKDIR}/windowsxp.script ${D}${datadir}/plymouth/themes/windowsxp/
     install -m 0644 ${WORKDIR}/windowsxp.plymouth ${D}${datadir}/plymouth/themes/windowsxp/
 
-    # Configure Plymouth for optimal startup with DRM backend
     install -d ${D}${sysconfdir}/plymouth
     cat > ${D}${sysconfdir}/plymouth/plymouthd.conf <<EOF
 [Daemon]
