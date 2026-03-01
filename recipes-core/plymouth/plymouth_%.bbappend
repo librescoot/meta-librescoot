@@ -35,8 +35,9 @@ EOF
     # DRM rendering doesn't require VT font/keymap setup. This starts Plymouth ~3.5s
     # into boot instead of ~7s.
     #
-    # After=systemd-remount-fs.service ensures root fs is writable before ExecStartPre
-    # runs, so it can write plymouthd.conf when /etc/plymouth/theme-override is set.
+    # After=data.mount+systemd-remount-fs.service: /data must be mounted (to read
+    # /data/plymouth-theme) and root must be writable (to write plymouthd.conf).
+    # /data survives OTA updates; /etc is overwritten on each update.
     install -d ${D}${sysconfdir}/systemd/system
     install -m 0644 ${WORKDIR}/plymouth-start.service \
         ${D}${sysconfdir}/systemd/system/plymouth-start.service
