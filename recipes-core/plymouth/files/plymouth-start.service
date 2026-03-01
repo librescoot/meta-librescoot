@@ -1,6 +1,7 @@
 [Unit]
 Description=Show Plymouth Boot Screen
 DefaultDependencies=no
+After=systemd-remount-fs.service
 Wants=systemd-ask-password-plymouth.path
 Before=systemd-ask-password-plymouth.service
 ConditionKernelCommandLine=!plymouth.enable=0

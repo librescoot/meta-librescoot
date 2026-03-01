@@ -35,8 +35,8 @@ EOF
     # DRM rendering doesn't require VT font/keymap setup. This starts Plymouth ~3.5s
     # into boot instead of ~7s.
     #
-    # ExecStartPre reads /data/plymouth-theme at runtime; if set, overrides the default
-    # theme (e.g. write "windowsxp" to /data/plymouth-theme to activate the easter egg).
+    # After=systemd-remount-fs.service ensures root fs is writable before ExecStartPre
+    # runs, so it can write plymouthd.conf when /etc/plymouth/theme-override is set.
     install -d ${D}${sysconfdir}/systemd/system
     install -m 0644 ${WORKDIR}/plymouth-start.service \
         ${D}${sysconfdir}/systemd/system/plymouth-start.service
