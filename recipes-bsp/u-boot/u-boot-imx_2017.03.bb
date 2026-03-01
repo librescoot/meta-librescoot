@@ -36,6 +36,8 @@ SRC_URI:append:unu-dbc = " file://dbc/0001-add-kernel_addr_r.patch"
 SRC_URI:append:unu-dbc = " file://dbc/0002-remove-LVDS-EPDC-and-ethernet.-add-SPI-LCD-init-and-.patch"
 SRC_URI:append:unu-dbc = " file://dbc/0003-add-SPI-and-FIT-compat-to-configs.patch"
 SRC_URI:append:unu-dbc = " file://dbc/0004-add-console-and-plymouth-boot-args.patch"
+SRC_URI:append:unu-dbc = " file://dbc/0005-fix-display-init-and-enable-splash.patch"
+SRC_URI:append:unu-dbc = " file://dbc/librescoot.bmp"
 
 SRCREV = "b76bb1bf9fd21e21006d79552e28855ac43ad43c"
 
@@ -56,6 +58,10 @@ INSANE_SKIP:${PN} += "patch-status unimplemented-ptest"
 PTEST_ENABLED = "0"
 
 FILES:${PN} += "/uboot/*"
+
+do_configure:append:unu-dbc() {
+    cp ${WORKDIR}/dbc/librescoot.bmp ${S}/tools/logos/freescale.bmp
+}
 
 do_compile:prepend() {
     cp ${S}/include/fdt.h ${S}/lib/libfdt/
