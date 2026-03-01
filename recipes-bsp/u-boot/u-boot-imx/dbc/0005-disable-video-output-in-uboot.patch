@@ -3,17 +3,28 @@ From: LibreScoot <dev@librescoot.org>
 Date: Mon, 01 Jan 2025 00:00:00 +0000
 Subject: [PATCH] disable video output in U-Boot
 
-Disable CONFIG_VIDEO so U-Boot does not initialise the IPU framebuffer
-or render a logo. The LCD panel is still initialised via SPI in
-board_init() → enable_rgb(), which is not guarded by CONFIG_VIDEO_IPUV3.
+Upstream-Status: Inappropriate [board-specific configuration]
 
-Without U-Boot touching the framebuffer the kernel DRM driver starts
-with a clean state. The pwm-backlight driver holds the backlight off
-until it loads and sets the brightness, so the display remains dark
-until the kernel boot logo is ready.
+Disable CONFIG_VIDEO in the defconfig so U-Boot does not initialise the
+IPU framebuffer or render a logo.
+
+mx6sabre_common.h unconditionally defines CONFIG_VIDEO_IPUV3 regardless
+of the Kconfig CONFIG_VIDEO setting. This causes two problems when
+CONFIG_VIDEO=n: mxc_ipuv3_fb.c is still compiled (the driver Makefile
+uses obj-$(CONFIG_VIDEO_IPUV3)), and it references gd->fb_base which is
+only present when CONFIG_VIDEO or CONFIG_LCD is set. Add #undef guards in
+mx6sabresd.h after the common include so all video symbols are cleared when
+CONFIG_VIDEO is not set.
+
+The LCD panel is still initialised via SPI in board_init() -> enable_rgb(),
+which is not guarded by CONFIG_VIDEO_IPUV3. Without U-Boot touching the
+IPU framebuffer the kernel DRM driver starts with a clean state. The
+pwm-backlight driver holds the backlight off until it loads and sets the
+brightness, so the display remains dark until the kernel boot logo is ready.
 ---
- configs/mx6solosabresd_defconfig | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ configs/mx6solosabresd_defconfig |  2 +-
+ include/configs/mx6sabresd.h     | 14 ++++++++++++++
+ 2 files changed, 15 insertions(+), 1 deletion(-)
 
 diff --git a/configs/mx6solosabresd_defconfig b/configs/mx6solosabresd_defconfig
 index 5a6de4eb9de..0000000000a 100644
@@ -28,5 +39,29 @@ index 5a6de4eb9de..0000000000a 100644
  # CONFIG_CONSOLE_MUX is not set
  CONFIG_SYS_CONSOLE_IS_IN_ENV=y
  CONFIG_SYS_CONSOLE_OVERWRITE_ROUTINE=y
---
+diff --git a/include/configs/mx6sabresd.h b/include/configs/mx6sabresd.h
+index 0000000000a..0000000000b 100644
+--- a/include/configs/mx6sabresd.h
++++ b/include/configs/mx6sabresd.h
+@@ -30,5 +30,19 @@
+ #endif
+ 
+ #include "mx6sabre_common.h"
++#ifndef CONFIG_VIDEO
++/* mx6sabre_common.h defines these unconditionally; clear them so that
++ * mxc_ipuv3_fb.c is not compiled and setup_display() is not called. */
++#undef CONFIG_VIDEO_IPUV3
++#undef CONFIG_VIDEO_BMP_RLE8
++#undef CONFIG_SPLASH_SCREEN
++#undef CONFIG_SPLASH_SCREEN_ALIGN
++#undef CONFIG_BMP_16BPP
++#undef CONFIG_VIDEO_LOGO
++#undef CONFIG_VIDEO_BMP_LOGO
++#undef CONFIG_IPUV3_CLK
++#undef CONFIG_IMX_HDMI
++#undef CONFIG_IMX_VIDEO_SKIP
++#endif
+ 
+ /* Falcon Mode */
+-- 
 2.34.1

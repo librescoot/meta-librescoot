@@ -53,6 +53,9 @@ LOCALVERSION ?= "-${SRCBRANCH}"
 PACKAGE_ARCH = "${MACHINE_ARCH}"
 COMPATIBLE_MACHINE = "(mx6|mx7)"
 
+INSANE_SKIP:${PN} += "patch-status unimplemented-ptest"
+PTEST_ENABLED = "0"
+
 FILES:${PN} += "/uboot/*"
 
 do_compile:prepend() {
