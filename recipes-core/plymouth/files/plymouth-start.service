@@ -9,6 +9,7 @@ IgnoreOnIsolate=true
 ExecStartPre=-/usr/libexec/plymouth-set-theme
 ExecStart=/usr/sbin/plymouthd --mode=boot  --kernel-command-line="splash plymouth.ignore-serial-consoles" --pid-file=/run/plymouth/pid --attach-to-session
 ExecStartPost=-/usr/bin/plymouth show-splash
+ExecStartPost=-/bin/sh -c 'echo 0 > /sys/class/vtconsole/vtcon1/bind'
 Type=forking
 RemainAfterExit=yes
 KillMode=mixed
