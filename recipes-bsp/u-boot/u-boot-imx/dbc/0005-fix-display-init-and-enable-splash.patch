@@ -1,38 +1,40 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: LibreScoot <librescoot@example.com>
-Date: Sat, 1 Mar 2026 22:00:00 +0000
+Date: Mon, 2 Mar 2026 09:00:00 +0000
 Subject: [PATCH] fix display init and enable splash screen
 
 Upstream-Status: Inappropriate [board-specific configuration]
 
-The SPI LCD initialization sequence added by the previous patch was
-broken: it sent commands in pairs instead of triplets, inserting a
-spurious register-address byte between the index and data bytes of
-each register write. The LCD controller never initialized, so neither
-the compiled-in logo nor the splash BMP was ever visible.
+Fix all identified bugs in the DBC parallel-RGB display initialization:
 
-Replace the broken struct-based loop with a flat command table that
-sends all 60 SPI transfers in the original order (groups of 3:
-register address, sub-address, data).
+1. lcd_init_spi(): the struct-based loop sent two SPI transfers per entry
+   (register, data) but the AUO A045FTN01 SPI protocol requires three
+   transfers per register write (register address, sub-address, data byte).
+   Replace with a flat command table of 60 entries sent one at a time.
+   Also fix the inter-command delay: 1 ms -> 120 ms (datasheet T10,
+   Sleep Out to Display On).
 
-Also fix:
-- enable_rgb() signature to match display_info_t callback prototype
-- LCD reset timing (1 ms -> 5/10/10 ms per AUO A045FTN01 datasheet)
-- Add mandatory 120 ms delay between Sleep Out and Display On
-- Display timing to match datasheet (16.6 MHz pixel clock, correct
-  blanking values for 480x480 @ 59 Hz)
-- Guard imx_setup_hdmi() (no HDMI on DBC)
-- Guard direct enable_rgb() in board_init() when IPU video is active
-- Enable splash screen from /uboot FAT partition (MMC 2:1)
-- Turn on backlight GPIO after display init
+2. enable_rgb(): fix callback signature to match display_info_t prototype.
+   Add rgb_pads setup (all 24 DISP0_DAT* data lines + DE pin).
+   Fix LCD reset timing: 1 ms udelay -> 5/10/10 ms mdelay per datasheet.
+
+3. enable_backlight(): enable backlight GPIO (was driving it low/off).
+
+4. setup_display(): configure all 29 rgb_pads instead of only 3 di0_pads.
+   Disable LVDS encoder in GPR2 (was routing IPU DI0 to LVDS instead of
+   parallel RGB output). Guard imx_setup_hdmi() (no HDMI on DBC).
+
+5. displays[]: fix pixel clock and blanking to match datasheet
+   (16.6 MHz pixel clock, 480x480 @ 59 Hz).
+
+6. board_init(): guard the direct enable_rgb() call so it only runs
+   without CONFIG_VIDEO_IPUV3; when IPU video is active the callback is
+   invoked via board_video_skip() -> ipuv3_fb_init() -> displays[].enable.
+
+7. Add splash screen support: load splash.bmp from /uboot FAT partition
+   (MMC 2:1). Add splash environment variables.
 ---
- board/freescale/mx6sabresd/mx6sabresd.c | 95 +++++++++++++-----------
- include/configs/mx6sabre_common.h       |  3 +
- include/configs/mx6sabresd.h            |  9 +++
- 3 files changed, 65 insertions(+), 42 deletions(-)
-
 diff --git a/board/freescale/mx6sabresd/mx6sabresd.c b/board/freescale/mx6sabresd/mx6sabresd.c
-index 4518fcd..1234567 100644
 --- a/board/freescale/mx6sabresd/mx6sabresd.c
 +++ b/board/freescale/mx6sabresd/mx6sabresd.c
 @@ -31,6 +31,7 @@
@@ -43,9 +45,9 @@ index 4518fcd..1234567 100644
  #if defined(CONFIG_MX6DL) && defined(CONFIG_MXC_EPDC)
  #include <lcd.h>
  #include <mxc_epdc_fb.h>
-@@ -281,46 +282,45 @@ void setup_lcd_spi(void) {
+@@ -318,49 +319,38 @@
  }
-
+ 
  void lcd_init_spi(void) {
 -    // LCD initialization commands structure
 -    struct lcd_cmd {
@@ -73,7 +75,7 @@ index 4518fcd..1234567 100644
 +        "2011", "0000", "4000",
 +        "2029", "0000", "4000",
      };
--
+-    
 -    // Command sequence for LCD initialization
 -    static const struct lcd_cmd init_seq[] = {
 -        {"20FF", "0000"}, {"20FF", "4080"},
@@ -98,21 +100,20 @@ index 4518fcd..1234567 100644
 -        {"2029", "0000"}, {"2029", "4000"}
 -    };
 -
--    char *argv[4] = {"0", "0:0.0", "16", NULL};
++    int ncmds = sizeof(spi_cmds) / sizeof(spi_cmds[0]);
+     char *argv[4] = {"0", "0:0.0", "16", NULL};
 -    const int argc = sizeof(argv)/sizeof(argv[0]);
--
+-    
 -    for (size_t i = 0; i < sizeof(init_seq)/sizeof(init_seq[0]); i++) {
 -        argv[3] = (char*)init_seq[i].addr;
 -        do_spi_lcd(0, argc, argv);
 -        argv[3] = (char*)init_seq[i].data;
 -        do_spi_lcd(0, argc, argv);
--
+-        
 -        // Special delay case
 -        if (i == sizeof(init_seq)/sizeof(init_seq[0]) - 4) {
 -            udelay(1000);
 -        }
-+    int ncmds = sizeof(spi_cmds) / sizeof(spi_cmds[0]);
-+    char *argv[4] = {"0", "0:0.0", "16", NULL};
 +    int i;
 +
 +    for (i = 0; i < ncmds; i++) {
@@ -123,20 +124,20 @@ index 4518fcd..1234567 100644
 +            mdelay(120);
      }
  }
-
-@@ -404,17 +404,20 @@ static iomux_v3_cfg_t const bl_pads[] = {
- static void enable_backlight(void)
+ 
+@@ -404,19 +394,21 @@
  {
  	imx_iomux_v3_setup_multiple_pads(bl_pads, ARRAY_SIZE(bl_pads));
  	gpio_request(DISP0_PWR_EN, "Display Power Enable");
 -	gpio_direction_output(DISP0_PWR_EN, 0);
 +	gpio_direction_output(DISP0_PWR_EN, 1);
  }
-
+ 
 -static void enable_rgb(void)
 +static void enable_rgb(struct display_info_t const *dev)
  {
 +	(void)dev;
++	imx_iomux_v3_setup_multiple_pads(rgb_pads, ARRAY_SIZE(rgb_pads));
  	setup_lcd_spi();
 -	gpio_request(IMX_GPIO_NR(4, 20), "lcd reset");
 -	gpio_direction_output(IMX_GPIO_NR(4, 20) , 1);
@@ -153,10 +154,9 @@ index 4518fcd..1234567 100644
 +	gpio_direction_output(IMX_GPIO_NR(4, 20), 1);
 +	mdelay(10);
  	lcd_init_spi();
-
+ 
  	enable_backlight();
-@@ -590,13 +593,13 @@ struct display_info_t const displays[] = {{
- 	.mode	= {
+@@ -587,18 +579,35 @@
  		.name		= "AUO",
  		.xres           = 480,
  		.yres           = 480,
@@ -176,11 +176,9 @@ index 4518fcd..1234567 100644
 +		.vsync_len      = 2,
  		.vmode          = FB_VMODE_NONINTERLACED
  } } };
-
-@@ -604,6 +607,20 @@ struct display_info_t const displays[] = {{
-
+ 
  size_t display_count = ARRAY_SIZE(displays);
-
+ 
 +#ifdef CONFIG_SPLASH_SCREEN
 +static struct splash_location dbc_splash_locations[] = {
 +	{
@@ -201,17 +199,30 @@ index 4518fcd..1234567 100644
  static void setup_display(void)
  {
  	struct mxc_ccm_reg *mxc_ccm = (struct mxc_ccm_reg *)CCM_BASE_ADDR;
-@@ -614,7 +631,9 @@ static void setup_display(void)
- 	imx_iomux_v3_setup_multiple_pads(di0_pads, ARRAY_SIZE(di0_pads));
-
+@@ -606,10 +615,12 @@
+ 	int reg;
+ 
+ 	/* Setup HSYNC, VSYNC, DISP_CLK for debugging purposes */
+-	imx_iomux_v3_setup_multiple_pads(di0_pads, ARRAY_SIZE(di0_pads));
++	imx_iomux_v3_setup_multiple_pads(rgb_pads, ARRAY_SIZE(rgb_pads));
+ 
  	enable_ipu_clock();
 +#ifdef CONFIG_IMX_HDMI
  	imx_setup_hdmi();
 +#endif
-
+ 
  	/* Turn on LDB0, LDB1, IPU,IPU DI0 clocks */
  	reg = readl(&mxc_ccm->CCGR3);
-@@ -760,7 +779,9 @@ int board_init(void)
+@@ -643,7 +654,7 @@
+ 	     | IOMUXC_GPR2_BIT_MAPPING_CH0_SPWG
+ 	     | IOMUXC_GPR2_DATA_WIDTH_CH0_18BIT
+ 	     | IOMUXC_GPR2_LVDS_CH0_MODE_DISABLED
+-	     | IOMUXC_GPR2_LVDS_CH1_MODE_ENABLED_DI0;
++	     | IOMUXC_GPR2_LVDS_CH1_MODE_DISABLED;
+ 	writel(reg, &iomux->gpr[2]);
+ 
+ 	reg = readl(&iomux->gpr[3]);
+@@ -760,7 +771,9 @@
  	imx_iomux_set_gpr_register(1, 13, 1, 0);
  #endif
  #endif
@@ -219,15 +230,14 @@ index 4518fcd..1234567 100644
 +#if !defined(CONFIG_VIDEO_IPUV3)
 +	enable_rgb(NULL);
 +#endif
-
+ 
  	return 0;
  }
 diff --git a/include/configs/mx6sabre_common.h b/include/configs/mx6sabre_common.h
-index 0abb6e1..73b829b 100644
 --- a/include/configs/mx6sabre_common.h
 +++ b/include/configs/mx6sabre_common.h
-@@ -151,6 +151,9 @@
- 	"fdt_addr=0x18000000\0" \
+@@ -144,6 +144,9 @@
+ 	"fdt_addr_r=0x18000000\0" \
  	"kernel_addr_r=0x12000000\0" \
  	"bootargs=console=ttymxc0,115200 plymouth.ignore-serial-consoles splash loglevel=3 vt.global_cursor_default=0\0" \
 +	"splashimage=0x12000002\0" \
@@ -237,13 +247,12 @@ index 0abb6e1..73b829b 100644
  	"tee_file=undefined\0" \
  	"boot_fdt=try\0" \
 diff --git a/include/configs/mx6sabresd.h b/include/configs/mx6sabresd.h
-index f603740..abcdef0 100644
 --- a/include/configs/mx6sabresd.h
 +++ b/include/configs/mx6sabresd.h
 @@ -31,6 +31,15 @@
-
+ 
  #include "mx6sabre_common.h"
-
+ 
 +/* DBC: single parallel-RGB display, no HDMI */
 +#undef CONFIG_IMX_HDMI
 +#undef CONFIG_IMX_VIDEO_SKIP
@@ -256,6 +265,6 @@ index f603740..abcdef0 100644
  /* Falcon Mode */
  #define CONFIG_SPL_FS_LOAD_ARGS_NAME	"args"
  #define CONFIG_SPL_FS_LOAD_KERNEL_NAME	"uImage"
---
+-- 
 2.43.0
 
