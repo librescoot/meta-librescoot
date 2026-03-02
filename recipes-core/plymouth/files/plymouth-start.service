@@ -6,7 +6,7 @@ ConditionVirtualization=!container
 IgnoreOnIsolate=true
 
 [Service]
-ExecStartPre=-/bin/sh -c 'theme=$(fw_printenv -n plymouth_theme 2>/dev/null | tr -dc "[:alnum:]_-"); theme=${theme:-librescoot}; printf "[Daemon]\nTheme=%%s\nShowDelay=0\nDeviceTimeout=5\nIgnoreSerialConsoles=yes\n" "$theme" > /etc/plymouth/plymouthd.conf'
+ExecStartPre=-/usr/libexec/plymouth-set-theme
 ExecStart=/usr/sbin/plymouthd --mode=boot  --kernel-command-line="splash plymouth.ignore-serial-consoles" --pid-file=/run/plymouth/pid --attach-to-session
 ExecStartPost=-/usr/bin/plymouth show-splash
 Type=forking

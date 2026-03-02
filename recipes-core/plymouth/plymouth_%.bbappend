@@ -6,6 +6,7 @@ SRC_URI += " \
     file://windowsxp.script \
     file://windowsxp.plymouth \
     file://plymouth-start.service \
+    file://plymouth-set-theme.sh \
     file://plymouth-quit-delay.conf \
 "
 
@@ -21,23 +22,16 @@ do_install:append() {
     install -m 0644 ${WORKDIR}/windowsxp.script ${D}${datadir}/plymouth/themes/windowsxp/
     install -m 0644 ${WORKDIR}/windowsxp.plymouth ${D}${datadir}/plymouth/themes/windowsxp/
 
+    # plymouthd.conf: symlink to /run so the theme script can write at early boot
+    # (root may still be ro). plymouth-set-theme reads plymouth.theme= from
+    # /proc/cmdline (set by U-Boot from ${plymouth_theme} env var, persists
+    # across OTA) and writes the config to /run/plymouth/plymouthd.conf.
     install -d ${D}${sysconfdir}/plymouth
-    cat > ${D}${sysconfdir}/plymouth/plymouthd.conf <<EOF
-[Daemon]
-Theme=librescoot
-ShowDelay=0
-DeviceTimeout=5
-IgnoreSerialConsoles=yes
-EOF
+    ln -sf /run/plymouth/plymouthd.conf ${D}${sysconfdir}/plymouth/plymouthd.conf
 
-    # Override plymouth-start.service to remove vconsole-setup and udev-trigger deps.
-    # Plymouth's DRM renderer needs neither: card1 exists via devtmpfs at T+0.3s and
-    # DRM rendering doesn't require VT font/keymap setup. This starts Plymouth ~3.5s
-    # into boot instead of ~7s.
-    #
-    # After=data.mount+systemd-remount-fs.service: /data must be mounted (to read
-    # /data/plymouth-theme) and root must be writable (to write plymouthd.conf).
-    # /data survives OTA updates; /etc is overwritten on each update.
+    install -d ${D}${libexecdir}
+    install -m 0755 ${WORKDIR}/plymouth-set-theme.sh ${D}${libexecdir}/plymouth-set-theme
+
     install -d ${D}${sysconfdir}/systemd/system
     install -m 0644 ${WORKDIR}/plymouth-start.service \
         ${D}${sysconfdir}/systemd/system/plymouth-start.service
@@ -52,6 +46,7 @@ FILES:${PN} += " \
     ${sysconfdir}/systemd/system/plymouth-start.service \
     ${sysconfdir}/systemd/system/plymouth-quit.service.d \
     ${sysconfdir}/systemd/system/plymouth-quit.service.d/delay.conf \
+    ${libexecdir}/plymouth-set-theme \
     ${datadir}/plymouth/themes/windowsxp \
     ${datadir}/plymouth/themes/windowsxp/windowsxp.script \
     ${datadir}/plymouth/themes/windowsxp/windowsxp.plymouth \
