@@ -6,7 +6,7 @@ SRC_URI += " \
     file://windowsxp.script \
     file://windowsxp.plymouth \
     file://plymouth-start.service \
-    file://plymouth-quit-delay.conf \
+    file://plymouth-quit.timer \
 "
 
 PLYMOUTH_THEME = "librescoot"
@@ -38,16 +38,24 @@ EOF
     install -m 0644 ${WORKDIR}/plymouth-start.service \
         ${D}${sysconfdir}/systemd/system/plymouth-start.service
 
-    install -d ${D}${sysconfdir}/systemd/system/plymouth-quit.service.d
-    install -m 0644 ${WORKDIR}/plymouth-quit-delay.conf \
-        ${D}${sysconfdir}/systemd/system/plymouth-quit.service.d/delay.conf
+    # Timer to quit Plymouth after animation completes (~9s after start)
+    install -m 0644 ${WORKDIR}/plymouth-quit.timer \
+        ${D}${sysconfdir}/systemd/system/plymouth-quit.timer
+
+    # Activate timer when plymouth-start runs
+    install -d ${D}${sysconfdir}/systemd/system/plymouth-start.service.wants
+    ln -sf ../plymouth-quit.timer \
+        ${D}${sysconfdir}/systemd/system/plymouth-start.service.wants/plymouth-quit.timer
+
+    # Remove upstream multi-user.target trigger for plymouth-quit.service
+    rm -f ${D}${systemd_system_unitdir}/multi-user.target.wants/plymouth-quit.service
 }
 
 FILES:${PN} += " \
     ${sysconfdir}/plymouth/plymouthd.conf \
     ${sysconfdir}/systemd/system/plymouth-start.service \
-    ${sysconfdir}/systemd/system/plymouth-quit.service.d \
-    ${sysconfdir}/systemd/system/plymouth-quit.service.d/delay.conf \
+    ${sysconfdir}/systemd/system/plymouth-quit.timer \
+    ${sysconfdir}/systemd/system/plymouth-start.service.wants/plymouth-quit.timer \
     ${datadir}/plymouth/themes/windowsxp \
     ${datadir}/plymouth/themes/windowsxp/windowsxp.script \
     ${datadir}/plymouth/themes/windowsxp/windowsxp.plymouth \
