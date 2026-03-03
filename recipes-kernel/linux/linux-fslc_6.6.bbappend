@@ -6,6 +6,7 @@ SRC_URI:append = " \
 "
 
 SRC_URI:append:unu-dbc = " \
+    file://0001-fbcon-show-boot-logo-regardless-of-loglevel.patch \
     file://config-logo.cfg \
     file://config-opt3001.cfg \
     file://config-tas5720.cfg \

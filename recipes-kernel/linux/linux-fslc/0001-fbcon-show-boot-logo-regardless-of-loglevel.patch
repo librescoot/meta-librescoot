@@ -1,0 +1,33 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: LibreScoot <librescoot@example.com>
+Date: Sun, 2 Mar 2026 14:00:00 +0000
+Subject: [PATCH] fbcon: show boot logo regardless of console loglevel
+
+Upstream-Status: Inappropriate [embedded platform workaround]
+
+The fbcon code suppresses the boot logo when console_loglevel is at or
+below CONSOLE_LOGLEVEL_QUIET (4).  This forces embedded systems to use
+loglevel >= 5 to see the logo, which also prints warning messages over
+the logo on the display.
+
+Remove the loglevel check so the boot logo displays even with 'quiet'
+or low loglevel, allowing a clean full-screen logo with no text.
+
+Signed-off-by: LibreScoot <librescoot@example.com>
+---
+ drivers/video/fbdev/core/fbcon.c | 3 ---
+ 1 file changed, 3 deletions(-)
+
+diff --git a/drivers/video/fbdev/core/fbcon.c b/drivers/video/fbdev/core/fbcon.c
+--- a/drivers/video/fbdev/core/fbcon.c
++++ b/drivers/video/fbdev/core/fbcon.c
+@@ -1004,9 +1004,6 @@
+ 	info = fbcon_info_from_console(vc->vc_num);
+ 
+-	if (logo_shown < 0 && console_loglevel <= CONSOLE_LOGLEVEL_QUIET)
+-		logo_shown = FBCON_LOGO_DONTSHOW;
+-
+ 	if (vc != svc || logo_shown == FBCON_LOGO_DONTSHOW ||
+ 	    (info->fix.type == FB_TYPE_TEXT))
+ 		logo = 0;
+ 
