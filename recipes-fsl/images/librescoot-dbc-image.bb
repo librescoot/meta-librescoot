@@ -67,6 +67,7 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     prime-server \
     libspatialite \
     flutter-drm-gbm-backend \
+    flutter-fbdev-backend \
     ffmpeg \
     carplay-service \
 "
