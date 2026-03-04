@@ -1,0 +1,13 @@
+[Unit]
+Description=Save system clock to fake-hwclock file
+DefaultDependencies=no
+Before=shutdown.target reboot.target halt.target
+After=time-sync.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/sbin/fake-hwclock save
+RemainAfterExit=yes
+
+[Install]
+WantedBy=halt.target reboot.target shutdown.target

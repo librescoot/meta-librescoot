@@ -3,6 +3,8 @@ LICENSE = "MIT"
 
 inherit core-image
 
+require librescoot-hwclock-seed.inc
+
 PLATFORM_FLAVOR    = "mx6qsabresd"
 
 SPLASH = "plymouth"
