@@ -14,7 +14,6 @@ ConditionPathExists=/dev/tty0
 Environment=HOME="/data"
 Environment=XDG_RUNTIME_DIR="/run/user/0"
 Environment=FLUTTER_DRM_DEVICE="/dev/dri/card1"
-ExecStartPre=-/bin/dd if=/dev/zero of=/dev/fb0 bs=460800 count=1
 ExecStart=/usr/bin/dbc-dispatcher
 
 User=root
