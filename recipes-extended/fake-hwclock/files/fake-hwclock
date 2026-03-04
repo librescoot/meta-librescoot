@@ -1,16 +1,11 @@
 #!/bin/sh
 # Save/restore system clock to a file across reboots.
 # On load: only advances the clock (does not roll back a valid RTC).
-# On save: only writes if the current time looks sane.
 FILE=/etc/fake-hwclock.data
-MIN_SANE_SEC=1735689600  # 2025-01-01 00:00:00 UTC
 
 case "${1:-load}" in
     save)
-        NOW_SEC=$(date -u +'%s')
-        if [ "$NOW_SEC" -ge "$MIN_SANE_SEC" ]; then
-            date -u +'%Y-%m-%d %H:%M:%S' > "$FILE"
-        fi
+        date -u +'%Y-%m-%d %H:%M:%S' > "$FILE"
         ;;
     load)
         [ -f "$FILE" ] || exit 0
