@@ -1,0 +1,24 @@
+#!/bin/sh
+# Save/restore system clock to a file across reboots.
+# On load: only advances the clock (does not roll back a valid RTC).
+FILE=/etc/fake-hwclock.data
+
+case "${1:-load}" in
+    save)
+        date -u +'%Y-%m-%d %H:%M:%S' > "$FILE"
+        ;;
+    load)
+        [ -f "$FILE" ] || exit 0
+        SAVED=$(cat "$FILE")
+        SAVED_SEC=$(date -u -d "$SAVED" +'%s' 2>/dev/null) || exit 0
+        NOW_SEC=$(date -u +'%s')
+        if [ "$SAVED_SEC" -gt "$NOW_SEC" ]; then
+            date -u -s "$SAVED"
+            hwclock -w 2>/dev/null || true
+        fi
+        ;;
+    *)
+        echo "Usage: fake-hwclock {load|save}" >&2
+        exit 1
+        ;;
+esac
