@@ -1,0 +1,23 @@
+#!/bin/sh
+# Minimal fake-hwclock: save/restore system clock to a file.
+FILE=/etc/fake-hwclock.data
+
+case "${1:-load}" in
+    save)
+        date -u +'%Y-%m-%d %H:%M:%S' > "$FILE"
+        ;;
+    load)
+        [ -f "$FILE" ] || exit 0
+        SAVED=$(cat "$FILE")
+        SAVED_EPOCH=$(date -u -d "$SAVED" +'%s' 2>/dev/null) || exit 0
+        CURRENT_EPOCH=$(date -u +'%s')
+        if [ "$SAVED_EPOCH" -gt "$CURRENT_EPOCH" ]; then
+            date -u -s "$SAVED"
+            hwclock -w 2>/dev/null || true
+        fi
+        ;;
+    *)
+        echo "Usage: fake-hwclock {load|save}" >&2
+        exit 1
+        ;;
+esac

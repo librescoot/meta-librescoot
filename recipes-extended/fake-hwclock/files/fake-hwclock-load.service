@@ -1,0 +1,13 @@
+[Unit]
+Description=Restore system clock from saved timestamp
+DefaultDependencies=no
+Before=sysinit.target time-sync.target chrony.service
+After=local-fs.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/sbin/fake-hwclock load
+RemainAfterExit=yes
+
+[Install]
+WantedBy=sysinit.target
