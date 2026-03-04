@@ -5,18 +5,19 @@ Subject: [PATCH] add console boot args
 
 Upstream-Status: Inappropriate [embedded platform config]
 ---
- include/configs/mx6sabre_common.h | 1 +
- 1 file changed, 1 insertion(+)
+ include/configs/mx6sabre_common.h | 2 ++
+ 1 file changed, 2 insertions(+)
 
 diff --git a/include/configs/mx6sabre_common.h b/include/configs/mx6sabre_common.h
 index fe1fbb142ac..df752bca617 100644
 --- a/include/configs/mx6sabre_common.h
 +++ b/include/configs/mx6sabre_common.h
-@@ -150,6 +150,7 @@
+@@ -150,6 +150,8 @@
  	"fdt_file=undefined\0" \
  	"fdt_addr=0x18000000\0" \
  	"kernel_addr_r=0x12000000\0" \
-+	"bootargs=console=ttymxc0,115200 loglevel=0 quiet systemd.show_status=false vt.global_cursor_default=0\0" \
++	"boot_animation=librescoot\0" \
++	"bootargs=console=ttymxc0,115200 loglevel=0 quiet systemd.show_status=false vt.global_cursor_default=0 boot.animation=${boot_animation}\0" \
  	"tee_addr=0x20000000\0" \
  	"tee_file=undefined\0" \
  	"boot_fdt=try\0" \
