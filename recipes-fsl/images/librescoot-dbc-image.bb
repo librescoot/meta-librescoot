@@ -5,15 +5,12 @@ inherit core-image
 
 PLATFORM_FLAVOR    = "mx6qsabresd"
 
-SPLASH = "plymouth"
-
 BAD_RECOMMENDATIONS += "busybox-syslog"
 
 IMAGE_FEATURES += " \
     debug-tweaks \
     package-management \
     ssh-server-dropbear \
-    splash \
     hwcodecs \
 "
 
@@ -73,6 +70,6 @@ CORE_IMAGE_EXTRA_INSTALL += " \
 "
 
 IMAGE_INSTALL:append = " libubootenv-bin"
-IMAGE_INSTALL:append = " plymouth plymouth-animation plymouth-animation-xp"
+IMAGE_INSTALL:append = " boot-animation"
 
 PACKAGE_EXCLUDE = "ofono neard"
