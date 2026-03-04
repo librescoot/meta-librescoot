@@ -25,8 +25,6 @@ inherit systemd pkgconfig
 SYSTEMD_SERVICE:${PN} = "boot-animation.service"
 SYSTEMD_AUTO_ENABLE:${PN} = "enable"
 
-ANIMATION_FILE ?= "librescoot.json"
-
 do_compile() {
     ${CC} ${CFLAGS} ${LDFLAGS} \
         $(pkg-config --cflags thorvg-1) \
@@ -42,7 +40,6 @@ do_install() {
     install -d ${D}${datadir}/boot-animation
     install -m 0644 ${WORKDIR}/librescoot.json ${D}${datadir}/boot-animation/
     install -m 0644 ${WORKDIR}/windowsxp.json ${D}${datadir}/boot-animation/
-    ln -sf ${ANIMATION_FILE} ${D}${datadir}/boot-animation/animation.json
 
     install -d ${D}${systemd_system_unitdir}
     install -m 0644 ${WORKDIR}/boot-animation.service ${D}${systemd_system_unitdir}/
