@@ -1959,13 +1959,19 @@ display@di0 {
 	backlight: backlight {
 		compatible = "pwm-backlight";
 		pwms = <0x4a 0x00 0x4c4b40>;
-		brightness-levels = <0x00 0x800 0x1000 0x2000 0x4000 0xffff>;
+		brightness-levels = <100 6000 18000 36000 47000 58000>;
 		num-interpolated-steps = <0x800>;
-		/* 5 intervals × 2048 steps = 10240 total levels (0–10239).
-		 * 0x1000 = 4096 ≈ 40% of range → ~6% PWM duty cycle (dim but visible).
-		 * systemd-backlight restores the saved value at T+7s; this only applies
-		 * for the first ~7 seconds of boot. */
-		default-brightness-level = <0x1000>;
+		/* 5 intervals × 2048 steps = 10240 total levels.
+		 * Anchor points tuned empirically for perceptually linear
+		 * brightness on the A045FTN01 9-LED backlight:
+		 *   100-6000:   dim (fine low-end, LED visible from ~100)
+		 *   6000-18000: low-mid
+		 *   18000-36000: mid (compressed, perceptually flat region)
+		 *   36000-47000: mid-high (finer, ramps harder here)
+		 *   47000-58000: high (finer, caps at perceptual max)
+		 * systemd-backlight restores the saved value at T+7s; this only
+		 * applies for the first ~7 seconds of boot. */
+		default-brightness-level = <18000>;
 		status = "okay";
 	};
 
