@@ -13,8 +13,7 @@ ConditionPathExists=/dev/tty0
 [Service]
 Environment=HOME="/data"
 Environment=XDG_RUNTIME_DIR="/run/user/0"
-Environment=FLUTTER_DRM_DEVICE="/dev/dri/card1"
-ExecStart=/usr/bin/flutter-drm-gbm-backend -b /usr/share/flutter/scootui/3.32.5/release
+ExecStart=/usr/bin/flutter-fbdev-backend -b /usr/share/flutter/scootui/3.32.5/release
 
 User=root
 Group=root
