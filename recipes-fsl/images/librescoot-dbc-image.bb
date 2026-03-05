@@ -46,7 +46,6 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     onboot-service \
     version-service \
     update-service \
-    brightness-reader \
     dbc-backlight-service \
     lsc \
     shell-config \

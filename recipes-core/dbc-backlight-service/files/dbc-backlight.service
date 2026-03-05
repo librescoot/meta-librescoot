@@ -1,13 +1,14 @@
 [Unit]
 Description=Dashboard Controller Backlight Service
 After=librescoot-netconfig.service
-After=librescoot-brightness.service
+ConditionPathExists=/sys/bus/iio/devices/iio:device0/in_illuminance_input
 
 [Service]
 Type=simple
 User=root
 Group=root
-ExecStart=/usr/bin/backlight-service
+ExecStartPre=/bin/sh -c 'echo 0.1 > /sys/bus/iio/devices/iio:device0/in_illuminance_integration_time'
+ExecStart=/usr/bin/backlight-service --sensor-path /sys/bus/iio/devices/iio:device0/in_illuminance_input
 Restart=always
 RestartSec=10
 KillMode=mixed
