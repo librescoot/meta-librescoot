@@ -10,7 +10,7 @@ SRC_URI += "file://0002.patch"
 SRC_URI += "file://valhalla.service"
 SRC_URI += "file://valhalla_config.json"
 
-SRCREV = "3.5.1"
+SRCREV = "d377c8ace9ea88dfa989466258bf738b1080f22a"
 
 S = "${WORKDIR}/git"
 
