@@ -4,12 +4,11 @@ Window.SetBackgroundBottomColor(0, 0, 0);
 screen_width = Window.GetWidth();
 screen_height = Window.GetHeight();
 
-// 56 frames @ 7fps (8s animation). Plymouth refresh callback fires at ~25Hz.
-// frame_duration=4 → 6.25fps. Pre-load next frame during current frame's window
-// (~160ms) to avoid blocking startup; the ~30ms 8-bit PNG decode is invisible
-// since the previous frame stays on screen via DRM.
+// 56 frames @ ~8.3fps (6.7s animation). Plymouth refresh fires at ~25Hz.
+// frame_duration=3 → 8.33fps. Pre-load next frame during current frame's
+// window (~120ms); ~30ms 8-bit PNG decode is invisible.
 num_frames = 56;
-frame_duration = 4;
+frame_duration = 3;
 frames = [];
 
 frames[0] = Image("frames/frame-1.png");

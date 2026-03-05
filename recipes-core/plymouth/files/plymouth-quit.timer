@@ -1,0 +1,10 @@
+[Unit]
+Description=Quit Plymouth after boot animation
+DefaultDependencies=no
+After=plymouth-start.service
+
+[Timer]
+OnActiveSec=10
+
+[Install]
+WantedBy=plymouth-start.service

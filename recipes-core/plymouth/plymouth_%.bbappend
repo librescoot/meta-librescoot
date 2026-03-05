@@ -6,10 +6,9 @@ SRC_URI += " \
     file://windowsxp.script \
     file://windowsxp.plymouth \
     file://plymouth-start.service \
-    file://plymouth-quit-delay.conf \
+    file://plymouth-quit.timer \
 "
 
-PACKAGECONFIG:append = " drm"
 PLYMOUTH_THEME = "librescoot"
 
 do_install:append() {
@@ -30,28 +29,33 @@ DeviceTimeout=5
 IgnoreSerialConsoles=yes
 EOF
 
-    # Override plymouth-start.service to remove vconsole-setup and udev-trigger deps.
-    # Plymouth's DRM renderer needs neither: card1 exists via devtmpfs at T+0.3s and
-    # DRM rendering doesn't require VT font/keymap setup. This starts Plymouth ~3.5s
-    # into boot instead of ~7s.
-    #
-    # After=data.mount+systemd-remount-fs.service: /data must be mounted (to read
-    # /data/plymouth-theme) and root must be writable (to write plymouthd.conf).
-    # /data survives OTA updates; /etc is overwritten on each update.
+    # Override plymouth-start.service to remove vconsole-setup and udev-trigger deps,
+    # starting Plymouth at ~T+2.9s without waiting for udev settle.
+    # ExecStartPre reads /etc/plymouth/theme-override at runtime; if set, overrides
+    # the default theme (e.g. write "windowsxp" to activate the easter egg). Uses a
+    # bind-mount into /run/ since the rootfs is read-only during early boot.
     install -d ${D}${sysconfdir}/systemd/system
     install -m 0644 ${WORKDIR}/plymouth-start.service \
         ${D}${sysconfdir}/systemd/system/plymouth-start.service
 
-    install -d ${D}${sysconfdir}/systemd/system/plymouth-quit.service.d
-    install -m 0644 ${WORKDIR}/plymouth-quit-delay.conf \
-        ${D}${sysconfdir}/systemd/system/plymouth-quit.service.d/delay.conf
+    # Timer to quit Plymouth after animation completes (~9s after start)
+    install -m 0644 ${WORKDIR}/plymouth-quit.timer \
+        ${D}${sysconfdir}/systemd/system/plymouth-quit.timer
+
+    # Activate timer when plymouth-start runs
+    install -d ${D}${sysconfdir}/systemd/system/plymouth-start.service.wants
+    ln -sf ../plymouth-quit.timer \
+        ${D}${sysconfdir}/systemd/system/plymouth-start.service.wants/plymouth-quit.timer
+
+    # Remove upstream multi-user.target trigger for plymouth-quit.service
+    rm -f ${D}${systemd_system_unitdir}/multi-user.target.wants/plymouth-quit.service
 }
 
 FILES:${PN} += " \
     ${sysconfdir}/plymouth/plymouthd.conf \
     ${sysconfdir}/systemd/system/plymouth-start.service \
-    ${sysconfdir}/systemd/system/plymouth-quit.service.d \
-    ${sysconfdir}/systemd/system/plymouth-quit.service.d/delay.conf \
+    ${sysconfdir}/systemd/system/plymouth-quit.timer \
+    ${sysconfdir}/systemd/system/plymouth-start.service.wants/plymouth-quit.timer \
     ${datadir}/plymouth/themes/windowsxp \
     ${datadir}/plymouth/themes/windowsxp/windowsxp.script \
     ${datadir}/plymouth/themes/windowsxp/windowsxp.plymouth \
