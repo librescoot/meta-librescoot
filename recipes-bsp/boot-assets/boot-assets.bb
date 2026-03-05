@@ -2,7 +2,7 @@ SUMMARY = "Boot assets packaged into the rootfs for OTA boot updates"
 LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda2f7b4f302"
 
-COMPATIBLE_MACHINE = "unu-mdb|unu-dbc"
+COMPATIBLE_MACHINE = "(unu-mdb|unu-dbc)"
 
 DEPENDS = "virtual/kernel u-boot-imx"
 
