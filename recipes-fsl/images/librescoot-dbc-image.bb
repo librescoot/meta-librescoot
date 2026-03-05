@@ -73,5 +73,6 @@ CORE_IMAGE_EXTRA_INSTALL += " \
 
 IMAGE_INSTALL:append = " libubootenv-bin"
 IMAGE_INSTALL:append = " boot-animation"
+IMAGE_INSTALL:append = " boot-assets"
 
 PACKAGE_EXCLUDE = "ofono neard"
