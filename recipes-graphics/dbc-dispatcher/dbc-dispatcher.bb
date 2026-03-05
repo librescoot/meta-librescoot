@@ -3,7 +3,7 @@ HOMEPAGE = "https://github.com/librescoot/dbc-dispatcher"
 LICENSE = "CC-BY-NC-SA-4.0"
 LIC_FILES_CHKSUM = "file://src/github.com/librescoot/dbc-dispatcher/LICENSE;md5=444cf8f9f11901e2fa0b24a5562ca5fc"
 
-SRC_URI = "git://github.com/librescoot/dbc-dispatcher.git;protocol=https;branch=feat/fbdev-backend"
+SRC_URI = "git://github.com/librescoot/dbc-dispatcher.git;protocol=https;branch=main"
 SRC_URI += " file://dbc-dispatcher.service"
 SRC_URI += " file://dbc-dispatcher-rpi4.service"
 
