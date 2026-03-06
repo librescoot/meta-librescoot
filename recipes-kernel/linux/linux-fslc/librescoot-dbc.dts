@@ -144,12 +144,14 @@
 		compatible = "usb-nop-xceiv";
 		#phy-cells = <0x00>;
 		phandle = <0x26>;
+		status = "disabled";
 	};
 
 	usbphynop2 {
 		compatible = "usb-nop-xceiv";
 		#phy-cells = <0x00>;
 		phandle = <0x27>;
+		status = "disabled";
 	};
 
 	soc {
@@ -1266,6 +1268,7 @@ display@di0 {
 				ahb-burst-config = <0x00>;
 				tx-burst-size-dword = <0x10>;
 				rx-burst-size-dword = <0x10>;
+				disable-over-current;
 				status = "okay";
 			};
 
@@ -1971,7 +1974,7 @@ display@di0 {
 		 *   47000-58000: high (finer, caps at perceptual max)
 		 * systemd-backlight restores the saved value at T+7s; this only
 		 * applies for the first ~7 seconds of boot. */
-		default-brightness-level = <18000>;
+		default-brightness-level = <4096>;
 		status = "okay";
 	};
 
