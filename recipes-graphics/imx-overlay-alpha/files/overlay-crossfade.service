@@ -1,0 +1,13 @@
+[Unit]
+Description=Overlay Crossfade (boot animation -> Flutter)
+After=dbc-dispatcher.service
+ConditionPathExists=/dev/fb1
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/imx-overlay-alpha wait-fade 0 255 500 15000
+ExecStartPost=-/bin/systemctl stop boot-animation.service
+RemainAfterExit=no
+
+[Install]
+WantedBy=multi-user.target

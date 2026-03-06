@@ -1,0 +1,485 @@
+From b886675b0bc3294b2f8fa23c35a435e2df4c5a06 Mon Sep 17 00:00:00 2001
+From: Teal Bauer <teal@librescoot.org>
+Date: Fri, 6 Mar 2026 12:00:00 +0100
+Subject: [PATCH] feat: add IPU overlay fbdev with alpha control
+
+Add support for exposing the IPU Display Processor overlay plane as a
+second framebuffer device (/dev/fb1) with sysfs-based global alpha
+control. This enables seamless crossfade transitions between boot
+animation (on fb0/primary) and application UI (on fb1/overlay).
+
+Changes:
+- ipuv3-plane.h: Move to_ipu_plane() to header for shared access
+- ipuv3-plane.c: Add DRM alpha property to DP overlay planes,
+  use state->alpha instead of hardcoded 0xff
+- imx-drm-core.c: Add overlay fbdev subsystem that creates /dev/fb1
+  backed by the overlay plane with sysfs alpha attribute
+
+Upstream-Status: Pending
+
+Signed-off-by: Teal Bauer <teal@librescoot.org>
+---
+ drivers/gpu/drm/imx/ipuv3/imx-drm-core.c | 352 +++++++++++++++++++++++
+ drivers/gpu/drm/imx/ipuv3/ipuv3-plane.c  |  23 +-
+ drivers/gpu/drm/imx/ipuv3/ipuv3-plane.h  |   5 +
+ 3 files changed, 369 insertions(+), 11 deletions(-)
+
+diff --git a/drivers/gpu/drm/imx/ipuv3/imx-drm-core.c b/drivers/gpu/drm/imx/ipuv3/imx-drm-core.c
+index 4a866ac60fff..f40d14477a04 100644
+--- a/drivers/gpu/drm/imx/ipuv3/imx-drm-core.c
++++ b/drivers/gpu/drm/imx/ipuv3/imx-drm-core.c
+@@ -13,8 +13,16 @@
+ 
+ #include <video/imx-ipu-v3.h>
+ 
++#include <linux/delay.h>
++#include <linux/fb.h>
++#include <linux/workqueue.h>
+ #include <drm/drm_atomic.h>
+ #include <drm/drm_atomic_helper.h>
++#include <drm/drm_atomic_uapi.h>
++#include <drm/drm_blend.h>
++#include <drm/drm_client.h>
++#include <drm/drm_fourcc.h>
++#include <drm/drm_framebuffer.h>
+ #include <drm/drm_drv.h>
+ #include <drm/drm_fbdev_dma.h>
+ #include <drm/drm_gem_dma_helper.h>
+@@ -32,6 +40,346 @@
+ static int legacyfb_depth = 16;
+ module_param(legacyfb_depth, int, 0444);
+ 
++/* --- Overlay framebuffer device (fb1) with alpha control --- */
++
++struct imx_overlay_fbdev {
++	struct drm_device *drm;
++	struct drm_plane *overlay;
++	struct drm_crtc *crtc;
++	struct drm_gem_dma_object *dma_obj;
++	struct drm_framebuffer *fb;
++	struct fb_info *info;
++	struct drm_client_dev client;
++	struct drm_client_buffer *buffer;
++	u8 alpha;
++	struct delayed_work setup_work;
++	bool active;
++};
++
++static struct imx_overlay_fbdev *g_overlay;
++
++static int imx_overlay_fb_mmap(struct fb_info *info, struct vm_area_struct *vma)
++{
++	struct imx_overlay_fbdev *ofb = info->par;
++
++	return dma_mmap_wc(ofb->drm->dev, vma, info->screen_buffer,
++			   info->fix.smem_start, info->fix.smem_len);
++}
++
++static const struct fb_ops imx_overlay_fb_ops = {
++	.owner = THIS_MODULE,
++	.fb_read = fb_sys_read,
++	.fb_write = fb_sys_write,
++	.fb_fillrect = sys_fillrect,
++	.fb_copyarea = sys_copyarea,
++	.fb_imageblit = sys_imageblit,
++	.fb_mmap = imx_overlay_fb_mmap,
++};
++
++static ssize_t overlay_alpha_show(struct device *dev,
++				  struct device_attribute *attr, char *buf)
++{
++	struct imx_overlay_fbdev *ofb = g_overlay;
++
++	if (!ofb || !ofb->active)
++		return -ENODEV;
++
++	return sysfs_emit(buf, "%u\n", ofb->alpha);
++}
++
++static ssize_t overlay_alpha_store(struct device *dev,
++				   struct device_attribute *attr,
++				   const char *buf, size_t count)
++{
++	struct imx_overlay_fbdev *ofb = g_overlay;
++	struct ipu_plane *ipu_plane;
++	unsigned int alpha;
++
++	if (!ofb || !ofb->active)
++		return -ENODEV;
++
++	if (kstrtouint(buf, 10, &alpha) || alpha > 255)
++		return -EINVAL;
++
++	ofb->alpha = alpha;
++
++	ipu_plane = to_ipu_plane(ofb->overlay);
++	if (ipu_plane->dp)
++		ipu_dp_set_global_alpha(ipu_plane->dp, true, alpha, false);
++
++	return count;
++}
++
++static DEVICE_ATTR_RW(overlay_alpha);
++
++static int imx_overlay_atomic_commit(struct imx_overlay_fbdev *ofb, u16 alpha)
++{
++	struct drm_device *drm = ofb->drm;
++	struct drm_atomic_state *state;
++	struct drm_plane_state *plane_state;
++	struct drm_modeset_acquire_ctx ctx;
++	int ret;
++
++	drm_modeset_acquire_init(&ctx, 0);
++retry:
++	state = drm_atomic_state_alloc(drm);
++	if (!state) {
++		ret = -ENOMEM;
++		goto out;
++	}
++	state->acquire_ctx = &ctx;
++
++	plane_state = drm_atomic_get_plane_state(state, ofb->overlay);
++	if (IS_ERR(plane_state)) {
++		ret = PTR_ERR(plane_state);
++		goto out_state;
++	}
++
++	drm_atomic_set_fb_for_plane(plane_state, ofb->fb);
++	drm_atomic_set_crtc_for_plane(plane_state, ofb->crtc);
++	plane_state->src_x = 0;
++	plane_state->src_y = 0;
++	plane_state->src_w = (u32)ofb->fb->width << 16;
++	plane_state->src_h = (u32)ofb->fb->height << 16;
++	plane_state->crtc_x = 0;
++	plane_state->crtc_y = 0;
++	plane_state->crtc_w = ofb->fb->width;
++	plane_state->crtc_h = ofb->fb->height;
++	plane_state->alpha = alpha;
++
++	ret = drm_atomic_commit(state);
++	if (ret == -EDEADLK) {
++		drm_atomic_state_clear(state);
++		drm_modeset_backoff(&ctx);
++		goto retry;
++	}
++
++out_state:
++	drm_atomic_state_put(state);
++out:
++	drm_modeset_drop_locks(&ctx);
++	drm_modeset_acquire_fini(&ctx);
++
++	if (ret)
++		DRM_DEV_ERROR(drm->dev,
++			      "overlay atomic commit failed: %d\n", ret);
++	return ret;
++}
++
++static void imx_overlay_setup_work_fn(struct work_struct *work)
++{
++	struct imx_overlay_fbdev *ofb =
++		container_of(work, struct imx_overlay_fbdev, setup_work.work);
++	struct drm_device *drm = ofb->drm;
++	struct drm_plane *plane;
++	struct drm_crtc *crtc;
++	struct drm_client_buffer *buffer;
++	struct drm_gem_dma_object *dma_obj;
++	struct iosys_map map;
++	struct fb_info *info;
++	u32 width, height, format;
++	int ret;
++
++	ofb->crtc = NULL;
++	drm_for_each_crtc(crtc, drm) {
++		if (crtc->state && crtc->state->active) {
++			ofb->crtc = crtc;
++			break;
++		}
++	}
++
++	if (!ofb->crtc) {
++		schedule_delayed_work(&ofb->setup_work, msecs_to_jiffies(100));
++		return;
++	}
++
++	ofb->overlay = NULL;
++	drm_for_each_plane(plane, drm) {
++		if (plane->type == DRM_PLANE_TYPE_OVERLAY &&
++		    (plane->possible_crtcs & drm_crtc_mask(ofb->crtc))) {
++			ofb->overlay = plane;
++			break;
++		}
++	}
++
++	if (!ofb->overlay) {
++		DRM_DEV_INFO(drm->dev,
++			     "no overlay plane found, skipping overlay fbdev\n");
++		return;
++	}
++
++	width = ofb->crtc->state->adjusted_mode.hdisplay;
++	height = ofb->crtc->state->adjusted_mode.vdisplay;
++	format = DRM_FORMAT_RGB565;
++
++	if (!width || !height) {
++		schedule_delayed_work(&ofb->setup_work, msecs_to_jiffies(100));
++		return;
++	}
++
++	DRM_DEV_INFO(drm->dev,
++		     "setting up overlay fbdev: %ux%u on plane %u\n",
++		     width, height, ofb->overlay->base.id);
++
++	buffer = drm_client_framebuffer_create(&ofb->client, width, height,
++					       format);
++	if (IS_ERR(buffer)) {
++		DRM_DEV_ERROR(drm->dev,
++			      "failed to create overlay buffer: %ld\n",
++			      PTR_ERR(buffer));
++		return;
++	}
++	ofb->buffer = buffer;
++	ofb->fb = buffer->fb;
++
++	dma_obj = to_drm_gem_dma_obj(buffer->gem);
++	ofb->dma_obj = dma_obj;
++
++	ret = drm_client_buffer_vmap(buffer, &map);
++	if (ret) {
++		DRM_DEV_ERROR(drm->dev,
++			      "failed to vmap overlay buffer: %d\n", ret);
++		goto err_buffer;
++	}
++
++	memset(map.vaddr, 0, buffer->gem->size);
++
++	ret = imx_overlay_atomic_commit(ofb, 0);
++	if (ret)
++		goto err_vmap;
++
++	info = framebuffer_alloc(0, drm->dev);
++	if (!info) {
++		ret = -ENOMEM;
++		goto err_vmap;
++	}
++
++	info->par = ofb;
++	info->fbops = &imx_overlay_fb_ops;
++
++	info->fix.type = FB_TYPE_PACKED_PIXELS;
++	info->fix.visual = FB_VISUAL_TRUECOLOR;
++	info->fix.accel = FB_ACCEL_NONE;
++	info->fix.smem_start = dma_obj->dma_addr;
++	info->fix.smem_len = buffer->gem->size;
++	info->fix.line_length = ofb->fb->pitches[0];
++	strscpy(info->fix.id, "imx-overlay", sizeof(info->fix.id));
++
++	info->var.xres = width;
++	info->var.yres = height;
++	info->var.xres_virtual = width;
++	info->var.yres_virtual = height;
++	info->var.bits_per_pixel = 16;
++	info->var.red.offset = 11;
++	info->var.red.length = 5;
++	info->var.green.offset = 5;
++	info->var.green.length = 6;
++	info->var.blue.offset = 0;
++	info->var.blue.length = 5;
++	info->var.activate = FB_ACTIVATE_NOW;
++
++	info->screen_buffer = map.vaddr;
++	info->screen_size = buffer->gem->size;
++	info->flags = FBINFO_VIRTFB;
++
++	ret = register_framebuffer(info);
++	if (ret) {
++		DRM_DEV_ERROR(drm->dev,
++			      "failed to register overlay fb: %d\n", ret);
++		goto err_fbinfo;
++	}
++	ofb->info = info;
++
++	device_create_file(info->dev, &dev_attr_overlay_alpha);
++
++	ofb->alpha = 0;
++	ofb->active = true;
++
++	DRM_DEV_INFO(drm->dev,
++		     "overlay fbdev registered as fb%d (%ux%u RGB565)\n",
++		     info->node, width, height);
++	return;
++
++err_fbinfo:
++	framebuffer_release(info);
++err_vmap:
++	drm_client_buffer_vunmap(buffer);
++err_buffer:
++	drm_client_framebuffer_delete(buffer);
++	ofb->buffer = NULL;
++	ofb->fb = NULL;
++}
++
++static void imx_overlay_client_unregister(struct drm_client_dev *client)
++{
++	struct imx_overlay_fbdev *ofb =
++		container_of(client, struct imx_overlay_fbdev, client);
++
++	if (ofb->info) {
++		device_remove_file(ofb->info->dev, &dev_attr_overlay_alpha);
++		unregister_framebuffer(ofb->info);
++		framebuffer_release(ofb->info);
++	}
++	if (ofb->buffer) {
++		drm_client_buffer_vunmap(ofb->buffer);
++		drm_client_framebuffer_delete(ofb->buffer);
++	}
++	drm_client_release(client);
++	kfree(ofb);
++	g_overlay = NULL;
++}
++
++static int imx_overlay_client_hotplug(struct drm_client_dev *client)
++{
++	return 0;
++}
++
++static const struct drm_client_funcs imx_overlay_client_funcs = {
++	.owner = THIS_MODULE,
++	.unregister = imx_overlay_client_unregister,
++	.hotplug = imx_overlay_client_hotplug,
++};
++
++static void imx_overlay_fbdev_init(struct drm_device *drm)
++{
++	struct imx_overlay_fbdev *ofb;
++	int ret;
++
++	ofb = kzalloc(sizeof(*ofb), GFP_KERNEL);
++	if (!ofb)
++		return;
++
++	ofb->drm = drm;
++
++	ret = drm_client_init(drm, &ofb->client, "overlay-fbdev",
++			      &imx_overlay_client_funcs);
++	if (ret) {
++		DRM_DEV_ERROR(drm->dev,
++			      "failed to init overlay client: %d\n", ret);
++		kfree(ofb);
++		return;
++	}
++
++	drm_client_register(&ofb->client);
++
++	INIT_DELAYED_WORK(&ofb->setup_work, imx_overlay_setup_work_fn);
++	schedule_delayed_work(&ofb->setup_work, msecs_to_jiffies(500));
++
++	g_overlay = ofb;
++}
++
++static void imx_overlay_fbdev_fini(struct drm_device *drm)
++{
++	struct imx_overlay_fbdev *ofb = g_overlay;
++
++	if (!ofb)
++		return;
++
++	cancel_delayed_work_sync(&ofb->setup_work);
++}
++
++/* --- End overlay fbdev --- */
++
+ DEFINE_DRM_GEM_DMA_FOPS(imx_drm_driver_fops);
+ 
+ void imx_drm_connector_destroy(struct drm_connector *connector)
+@@ -251,6 +599,8 @@ static int imx_drm_bind(struct device *dev)
+ 
+ 	drm_fbdev_dma_setup(drm, legacyfb_depth);
+ 
++	imx_overlay_fbdev_init(drm);
++
+ 	return 0;
+ 
+ err_poll_fini:
+@@ -268,6 +618,8 @@ static void imx_drm_unbind(struct device *dev)
+ 
+ 	drm_dev_unregister(drm);
+ 
++	imx_overlay_fbdev_fini(drm);
++
+ 	drm_kms_helper_poll_fini(drm);
+ 
+ 	component_unbind_all(drm->dev, drm);
+diff --git a/drivers/gpu/drm/imx/ipuv3/ipuv3-plane.c b/drivers/gpu/drm/imx/ipuv3/ipuv3-plane.c
+index dade8b59feae..0a4ccb98d15a 100644
+--- a/drivers/gpu/drm/imx/ipuv3/ipuv3-plane.c
++++ b/drivers/gpu/drm/imx/ipuv3/ipuv3-plane.c
+@@ -36,11 +36,6 @@ static unsigned int ipu_src_rect_width(const struct drm_plane_state *state)
+ 	return ALIGN(drm_rect_width(&state->src) >> 16, 8);
+ }
+ 
+-static inline struct ipu_plane *to_ipu_plane(struct drm_plane *p)
+-{
+-	return container_of(p, struct ipu_plane, base);
+-}
+-
+ static const uint32_t ipu_plane_all_formats[] = {
+ 	DRM_FORMAT_ARGB1555,
+ 	DRM_FORMAT_XRGB1555,
+@@ -599,18 +594,18 @@ static void ipu_plane_atomic_update(struct drm_plane *plane,
+ 	case IPU_DP_FLOW_SYNC_BG:
+ 		if (new_state->normalized_zpos == 1) {
+ 			ipu_dp_set_global_alpha(ipu_plane->dp,
+-						!fb->format->has_alpha, 0xff,
++						!fb->format->has_alpha,
++						new_state->alpha >> 8,
+ 						true);
+ 		} else {
+ 			ipu_dp_set_global_alpha(ipu_plane->dp, true, 0, true);
+ 		}
+ 		break;
+ 	case IPU_DP_FLOW_SYNC_FG:
+-		if (new_state->normalized_zpos == 1) {
+-			ipu_dp_set_global_alpha(ipu_plane->dp,
+-						!fb->format->has_alpha, 0xff,
+-						false);
+-		}
++		ipu_dp_set_global_alpha(ipu_plane->dp,
++					!fb->format->has_alpha,
++					new_state->alpha >> 8,
++					false);
+ 		break;
+ 	}
+ 
+@@ -927,6 +922,12 @@ struct ipu_plane *ipu_plane_init(struct drm_device *dev, struct ipu_soc *ipu,
+ 	if (ret)
+ 		return ERR_PTR(ret);
+ 
++	if (type == DRM_PLANE_TYPE_OVERLAY && dp >= 0) {
++		ret = drm_plane_create_alpha_property(&ipu_plane->base);
++		if (ret)
++			return ERR_PTR(ret);
++	}
++
+ 	ret = drm_plane_create_color_properties(&ipu_plane->base,
+ 			BIT(DRM_COLOR_YCBCR_BT601) |
+ 			BIT(DRM_COLOR_YCBCR_BT709),
+diff --git a/drivers/gpu/drm/imx/ipuv3/ipuv3-plane.h b/drivers/gpu/drm/imx/ipuv3/ipuv3-plane.h
+index 6d544e6ce63f..21397c82d27f 100644
+--- a/drivers/gpu/drm/imx/ipuv3/ipuv3-plane.h
++++ b/drivers/gpu/drm/imx/ipuv3/ipuv3-plane.h
+@@ -29,6 +29,11 @@ struct ipu_plane {
+ 	bool			disabling;
+ };
+ 
++static inline struct ipu_plane *to_ipu_plane(struct drm_plane *p)
++{
++	return container_of(p, struct ipu_plane, base);
++}
++
+ struct ipu_plane *ipu_plane_init(struct drm_device *dev, struct ipu_soc *ipu,
+ 				 int dma, int dp, unsigned int possible_crtcs,
+ 				 enum drm_plane_type type);
+-- 
+2.43.0
+
