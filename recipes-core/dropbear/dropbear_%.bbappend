@@ -1,5 +1,7 @@
 FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
 
+SRC_URI:append = " file://dropbear.socket"
+
 SRC_URI:append:unu-mdb = " file://id-mdb"
 SRC_URI:append:unu-mdb = " file://knownhosts-mdb"
 SRC_URI:append:unu-mdb = " file://hostkey-mdb"
@@ -13,6 +15,10 @@ SRC_URI:append:librescoot-dbc-rpi4 = " file://hostkey-dbc"
 FILES:${PN} += " \
     /root/.ssh/* \
 "
+
+do_install:append() {
+    install -m 0644 ${WORKDIR}/dropbear.socket ${D}${systemd_system_unitdir}/dropbear.socket
+}
 
 do_install:append:unu-mdb() {
     install -d ${D}${sysconfdir}/dropbear

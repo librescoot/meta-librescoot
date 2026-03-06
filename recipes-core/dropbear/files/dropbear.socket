@@ -1,0 +1,13 @@
+[Unit]
+DefaultDependencies=no
+After=systemd-networkd.service
+Wants=systemd-networkd.service
+Conflicts=dropbear.service
+
+[Socket]
+ListenStream=22
+Accept=yes
+
+[Install]
+WantedBy=sockets.target
+Also=dropbearkey.service
