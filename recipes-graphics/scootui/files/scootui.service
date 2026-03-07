@@ -2,10 +2,7 @@
 Description=ScootUI Application
 Documentation=https://github.com/librescoot/meta-librescoot
 
-Requires=systemd-user-sessions.service
-After=systemd-user-sessions.service
-
-After=plymouth-quit-wait.service
+After=basic.target
 
 Conflicts=dbc-dispatcher.service
 ConditionPathExists=/dev/tty0
@@ -14,6 +11,8 @@ ConditionPathExists=/dev/tty0
 Environment=HOME="/data"
 Environment=XDG_RUNTIME_DIR="/run/user/0"
 Environment=FLUTTER_FB_DEVICE="/dev/fb1"
+Environment=FLUTTER_EGL_DEVICE="/dev/dri/renderD128"
+RuntimeDirectory=user/0
 ExecStart=/usr/bin/flutter-fbdev-backend -b /usr/share/flutter/scootui/3.32.5/release
 
 User=root
@@ -27,6 +26,9 @@ StandardError=journal
 # Auto-restart on crash/quit
 Restart=always
 RestartSec=1
+
+# Give scootui time to render the blackout frame before SIGKILL
+TimeoutStopSec=3s
 
 [Install]
 WantedBy=multi-user.target
