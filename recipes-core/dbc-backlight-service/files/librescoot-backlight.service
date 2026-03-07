@@ -1,6 +1,5 @@
 [Unit]
 Description=Dashboard Controller Backlight Service
-After=librescoot-netconfig.service
 ConditionPathExists=/sys/bus/iio/devices/iio:device0/in_illuminance_input
 
 [Service]
