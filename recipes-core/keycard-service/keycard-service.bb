@@ -1,7 +1,7 @@
 SUMMARY = "LibreScoot Keycard Service"
 HOMEPAGE = "https://github.com/librescoot/keycard-service"
-LICENSE = "MIT"
-LIC_FILES_CHKSUM = "file://src/keycard-service/LICENSE;md5=ff1d608f2b44ef24b63d4f8cdbab0ce4"
+LICENSE = "CC-BY-NC-4.0"
+LIC_FILES_CHKSUM = "file://src/keycard-service/LICENSE;md5=f5a53c7ab38ba3772e879f1407d3d412"
 
 SRC_URI = "git://github.com/librescoot/keycard-service.git;protocol=https;branch=main"
 SRC_URI:append = " file://librescoot-keycard.service"
