@@ -6,7 +6,7 @@ Before=sysinit.target
 
 [Service]
 Type=oneshot
-ExecStart=/usr/bin/greenled.sh amber
+ExecStart=/usr/bin/set-dbc-led amber
 RemainAfterExit=yes
 
 [Install]
