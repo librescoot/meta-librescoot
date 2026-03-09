@@ -1,0 +1,9 @@
+{
+    "device": "/dev/dri/card1",
+    "outputs": [
+        {
+            "name": "DPI-1",
+            "mode": "480x480"
+        }
+    ]
+}

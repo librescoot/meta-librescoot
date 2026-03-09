@@ -1,0 +1,32 @@
+[Unit]
+Description=ScootUI Qt Application
+Documentation=https://github.com/librescoot/scootui-qt
+
+Requires=systemd-user-sessions.service
+After=systemd-user-sessions.service
+
+After=plymouth-quit-wait.service
+
+Conflicts=dbc-dispatcher.service scootui.service
+ConditionPathExists=/dev/tty0
+
+[Service]
+Environment=HOME="/data"
+Environment=XDG_RUNTIME_DIR="/run/user/0"
+Environment=QT_QPA_PLATFORM=eglfs
+Environment=QT_QPA_EGLFS_INTEGRATION=eglfs_kms
+Environment=SCOOTUI_RESOLUTION="1024x600"
+RuntimeDirectory=user/0
+ExecStart=/usr/bin/scootui-qt
+
+User=root
+Group=root
+
+StandardOutput=journal
+StandardError=journal
+
+Restart=always
+RestartSec=1
+
+[Install]
+WantedBy=multi-user.target
