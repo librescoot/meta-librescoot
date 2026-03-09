@@ -68,6 +68,7 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     flutter-fbdev-backend \
     ffmpeg \
     carplay-service \
+    scootui-qt \
 "
 
 IMAGE_INSTALL:append = " libubootenv-bin"
