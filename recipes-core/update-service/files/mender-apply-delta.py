@@ -72,16 +72,17 @@ def update_header_with_payload_checksum(output_dir, work_dir, new_payload_tar_pa
     header_tar_path = os.path.join(output_dir, 'header.tar.gz')
     if not os.path.exists(header_tar_path): return
 
-    if progress_callback: progress_callback("Extracting payload for verification")
-    with tempfile.TemporaryDirectory(dir=work_dir) as fs_extract_dir:
-        with tarfile.open(new_payload_tar_path, 'r') as tar: tar.extractall(fs_extract_dir)
-        fs_image_path = next(Path(fs_extract_dir).rglob('*'), None)
-        if not fs_image_path: raise Exception("No filesystem image in reconstructed payload.")
-
-        if progress_callback: progress_callback(f"Verifying rootfs checksum ({format_size(os.path.getsize(fs_image_path))})")
-        actual_payload_checksum = calculate_sha256(fs_image_path)
-        if expected_new_payload_checksum and actual_payload_checksum != expected_new_payload_checksum:
-            raise Exception("CRITICAL: Final filesystem checksum mismatch!")
+    sha256_hash = hashlib.sha256()
+    with tarfile.open(new_payload_tar_path, 'r') as tar:
+        member = next((m for m in tar.getmembers() if m.isfile()), None)
+        if not member: raise Exception("No filesystem image in reconstructed payload.")
+        if progress_callback: progress_callback(f"Verifying rootfs checksum ({format_size(member.size)})")
+        with tar.extractfile(member) as f:
+            for chunk in iter(lambda: f.read(65536), b''):
+                sha256_hash.update(chunk)
+    actual_payload_checksum = sha256_hash.hexdigest()
+    if expected_new_payload_checksum and actual_payload_checksum != expected_new_payload_checksum:
+        raise Exception("CRITICAL: Final filesystem checksum mismatch!")
 
     if progress_callback: progress_callback("Updating header metadata")
     with tempfile.TemporaryDirectory(dir=work_dir) as header_extract_dir:
@@ -134,7 +135,18 @@ PHASE_WEIGHT_DECOMPRESS = 0.15
 PHASE_WEIGHT_XDELTA = 0.35
 PHASE_WEIGHT_COMPRESS = 0.50
 
+# Minimum free space required before starting delta application.
+# Peak usage: decompressed old rootfs (~1GB) + patched new rootfs (~1GB) + compressed output (~250MB)
+REQUIRED_DISK_SPACE = 2_500_000_000
+
 def apply_delta_patch(old_mender, delta_patch, output_mender, temp_base_dir):
+    usage = shutil.disk_usage(temp_base_dir)
+    if usage.free < REQUIRED_DISK_SPACE:
+        raise Exception(
+            f"Insufficient disk space: {format_size(usage.free)} free in {temp_base_dir}, "
+            f"{format_size(REQUIRED_DISK_SPACE)} required"
+        )
+
     with tempfile.TemporaryDirectory(dir=temp_base_dir) as temp_dir:
         old_dir, delta_dir, output_dir, work_dir = [os.path.join(temp_dir, d) for d in ['old', 'delta', 'output', 'work']]
         for d in [old_dir, delta_dir, output_dir, work_dir]: os.makedirs(d)
@@ -231,6 +243,8 @@ def apply_delta_patch(old_mender, delta_patch, output_mender, temp_base_dir):
                 file_phase_progress(PHASE_WEIGHT_DECOMPRESS, "applying delta")
                 new_temp_path = os.path.join(work_dir, f"new_patched_{rel_path.replace('/', '_')}")
                 apply_xdelta_patch(source_for_patching, patch_file_path, new_temp_path)
+                if old_meta.get('compressed'):
+                    os.unlink(source_for_patching)
                 delta_out_size = os.path.getsize(new_temp_path)
                 report_progress(base_progress + int(file_progress_range * (PHASE_WEIGHT_DECOMPRESS + PHASE_WEIGHT_XDELTA * 0.5)),
                     f"[{idx}/{len(metadata['changes'])}] patch: {rel_path} - delta produced {format_size(delta_out_size)}")
@@ -252,16 +266,14 @@ def apply_delta_patch(old_mender, delta_patch, output_mender, temp_base_dir):
 
         report_progress(80, "Finalizing artifact")
         # Progress breakdown for finalization (80-100%):
-        # 80-81: Extract payload for verification
-        # 81-87: Verify rootfs checksum (SHA256 of ~1GB)
+        # 80-87: Verify rootfs checksum (SHA256 streamed from payload tar)
         # 87-88: Update header metadata
         # 88-89: Recreate header.tar.gz
         # 89-95: Generate manifest (SHA256 of each output file)
         # 95-100: Create output mender file
 
         header_progress_map = {
-            "Extracting payload for verification": 80,
-            "Verifying rootfs checksum": 81,
+            "Verifying rootfs checksum": 80,
             "Updating header metadata": 87,
             "Recreating header.tar.gz": 88,
         }
