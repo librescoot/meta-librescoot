@@ -25,6 +25,7 @@ DEPENDS = " \
     qtbase \
     qtdeclarative \
     qtsvg \
+    qttools \
 "
 
 RDEPENDS:${PN} = " \
