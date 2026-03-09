@@ -24,6 +24,7 @@ inherit cmake qt6-cmake pkgconfig systemd
 DEPENDS = " \
     qtbase \
     qtdeclarative \
+    qtdeclarative-native \
     qtshadertools \
     qtsvg \
     qttools \
