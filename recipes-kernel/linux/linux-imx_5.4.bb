@@ -32,6 +32,7 @@ SRC_URI = " ${KERNEL_SRC};branch=${SRCBRANCH} \
 SRC_URI:append:unu-mdb = " file://mdb_defconfig"
 SRC_URI:append:unu-mdb = " file://librescoot-mdb.dts"
 SRC_URI:append:unu-mdb = " file://config-iotop.cfg"
+SRC_URI:append:unu-mdb = " file://config-bmx055.cfg"
 
 SRC_URI:append:unu-dbc = " file://dbc_defconfig"
 SRC_URI:append:unu-dbc = " file://librescoot-dbc.dts"
@@ -49,6 +50,7 @@ COMPATIBLE_MACHINE = "(mx6|mx7|mx8)"
 
 KERNEL_CONFIG_FRAGMENTS:append:unu-mdb = " \
     ${WORKDIR}/config-iotop.cfg \
+    ${WORKDIR}/config-bmx055.cfg \
 "
 
 do_compile:prepend() {
