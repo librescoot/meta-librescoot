@@ -8,6 +8,7 @@ LIC_FILES_CHKSUM = "file://LICENSES/BSD-2-Clause.txt;md5=272be00ca1ae12eceb040a3
 
 DEPENDS = " \
     qtbase \
+    qtdeclarative-native \
     qtdeclarative \
     qtlocation \
     qtsvg \
@@ -19,9 +20,9 @@ DEPENDS = " \
     jpeg \
 "
 
-# maplibre-native-qt fetches maplibre-native as a submodule during CMake configure.
-# We need network access during configure, or pre-fetch. Using AUTOREV + submodules.
-SRC_URI = "git://github.com/maplibre/maplibre-native-qt.git;protocol=https;branch=main"
+# maplibre-native-qt vendors maplibre-native as a git submodule under vendor/.
+# Use gitsm:// to recursively fetch all submodules during do_fetch.
+SRC_URI = "gitsm://github.com/maplibre/maplibre-native-qt.git;protocol=https;branch=main"
 SRCREV = "${AUTOREV}"
 
 # Allow CMake to fetch dependencies during build (maplibre-native uses FetchContent)
