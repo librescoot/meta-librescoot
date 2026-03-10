@@ -66,6 +66,7 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     battery-service \
     modem-service \
     onboot-service \
+    machine-id-init \
     bluetooth-service \
     version-service \
     pm-service \

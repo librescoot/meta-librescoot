@@ -1,0 +1,14 @@
+[Unit]
+Description=Persist machine-id to U-Boot env
+DefaultDependencies=no
+After=local-fs.target
+Before=shutdown.target
+ConditionPathExists=/sys/bus/nvmem/devices/imx-ocotp0/nvmem
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/lib/machine-id-init/machine-id-init.sh
+
+[Install]
+WantedBy=multi-user.target
