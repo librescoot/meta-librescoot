@@ -33,6 +33,9 @@ S = "${WORKDIR}/git"
 
 inherit cmake qt6-cmake pkgconfig
 
+# Qt6 private headers trigger -Wshadow in constructors; suppress as error
+CXXFLAGS:append = " -Wno-error=shadow"
+
 EXTRA_OECMAKE = " \
     -DMLN_QT_WITH_LOCATION=ON \
     -DMLN_QT_WITH_WIDGETS=OFF \
