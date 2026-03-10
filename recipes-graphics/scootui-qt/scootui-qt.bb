@@ -32,13 +32,11 @@ DEPENDS = " \
 
 RDEPENDS:${PN} = " \
     qtbase \
+    qtbase-plugins \
     qtdeclarative \
     qtdeclarative-qmlplugins \
     qtsvg \
     qtsvg-plugins \
-    qtbase-plugin-platforms-eglfs \
-    qtbase-plugin-egldeviceintegrations-eglfs-kms-integration \
-    qtbase-plugin-platforms-linuxfb \
 "
 
 EXTRA_OECMAKE = "-DCMAKE_BUILD_TYPE=Release"
