@@ -50,6 +50,64 @@ def compress_gz(input_file, gz_file):
     output_size = os.path.getsize(gz_file)
     return input_size, output_size
 
+def compress_gz_and_hash(input_file, gz_file):
+    """Compress with gzip while stream-hashing in one pass.
+    Returns (outer_sha256, input_size, output_size).
+    Saves one full read vs calling calculate_sha256 + compress_gz separately.
+    """
+    hasher = hashlib.sha256()
+    input_size = os.path.getsize(input_file)
+    with open(input_file, 'rb') as f_in, gzip.open(gz_file, 'wb', compresslevel=3) as f_out:
+        while True:
+            chunk = f_in.read(65536)
+            if not chunk:
+                break
+            hasher.update(chunk)
+            f_out.write(chunk)
+    return hasher.hexdigest(), input_size, os.path.getsize(gz_file)
+
+def compress_payload_tar_and_hash(input_file, gz_file):
+    """Compress a payload tar with gzip while computing both checksums in one pass:
+    - outer_sha256: SHA256 of the raw tar (for decompressed_sha256 verification)
+    - inner_sha256: SHA256 of the first file inside the tar (for rootfs-image.checksum)
+    Returns (outer_sha256, inner_sha256, input_size, output_size).
+    Saves two full reads vs the previous separate verify + compress + stream-hash calls.
+    """
+    TAR_BLOCK = 512
+    CHUNK = 65536
+
+    outer_hasher = hashlib.sha256()
+    inner_hasher = hashlib.sha256()
+    input_size = os.path.getsize(input_file)
+
+    with open(input_file, 'rb') as f_in, gzip.open(gz_file, 'wb', compresslevel=3) as f_out:
+        # Read the first tar header block to extract the inner file's size
+        header = f_in.read(TAR_BLOCK)
+        if len(header) < TAR_BLOCK:
+            raise Exception("Payload tar smaller than one tar block")
+        outer_hasher.update(header)
+        f_out.write(header)
+
+        # UStar header: file size at bytes 124-135 as null-padded octal ASCII
+        size_field = header[124:136].split(b'\x00', 1)[0].strip()
+        try:
+            inner_bytes_remaining = int(size_field, 8)
+        except ValueError:
+            inner_bytes_remaining = 0
+
+        while True:
+            chunk = f_in.read(CHUNK)
+            if not chunk:
+                break
+            outer_hasher.update(chunk)
+            f_out.write(chunk)
+            if inner_bytes_remaining > 0:
+                usable = min(len(chunk), inner_bytes_remaining)
+                inner_hasher.update(chunk[:usable])
+                inner_bytes_remaining -= usable
+
+    return outer_hasher.hexdigest(), inner_hasher.hexdigest(), input_size, os.path.getsize(gz_file)
+
 def apply_xdelta_patch(old_file, patch_file, output_file):
     cmd = ['xdelta3', '-d', '-s', old_file, patch_file, output_file]
     result = subprocess.run(cmd, capture_output=True, text=True)
@@ -68,20 +126,12 @@ def update_manifest_file(output_dir, progress_callback=None):
         manifest_lines.append(f"{calculate_sha256(filepath)}  {rel_path}\n")
     with open(manifest_path, 'w') as f: f.writelines(manifest_lines)
 
-def update_header_with_payload_checksum(output_dir, work_dir, new_payload_tar_path, expected_new_payload_checksum, progress_callback=None):
+def update_header_with_payload_checksum(output_dir, work_dir, actual_payload_checksum, expected_new_payload_checksum, progress_callback=None):
     header_tar_path = os.path.join(output_dir, 'header.tar.gz')
     if not os.path.exists(header_tar_path): return
 
-    if progress_callback: progress_callback("Extracting payload for verification")
-    with tempfile.TemporaryDirectory(dir=work_dir) as fs_extract_dir:
-        with tarfile.open(new_payload_tar_path, 'r') as tar: tar.extractall(fs_extract_dir)
-        fs_image_path = next(Path(fs_extract_dir).rglob('*'), None)
-        if not fs_image_path: raise Exception("No filesystem image in reconstructed payload.")
-
-        if progress_callback: progress_callback(f"Verifying rootfs checksum ({format_size(os.path.getsize(fs_image_path))})")
-        actual_payload_checksum = calculate_sha256(fs_image_path)
-        if expected_new_payload_checksum and actual_payload_checksum != expected_new_payload_checksum:
-            raise Exception("CRITICAL: Final filesystem checksum mismatch!")
+    if expected_new_payload_checksum and actual_payload_checksum != expected_new_payload_checksum:
+        raise Exception("CRITICAL: Final filesystem checksum mismatch!")
 
     if progress_callback: progress_callback("Updating header metadata")
     with tempfile.TemporaryDirectory(dir=work_dir) as header_extract_dir:
@@ -134,7 +184,18 @@ PHASE_WEIGHT_DECOMPRESS = 0.15
 PHASE_WEIGHT_XDELTA = 0.35
 PHASE_WEIGHT_COMPRESS = 0.50
 
+# Minimum free space required before starting delta application.
+# Peak usage: decompressed old rootfs (~1GB) + patched new rootfs (~1GB) + compressed output (~250MB)
+REQUIRED_DISK_SPACE = 2_500_000_000
+
 def apply_delta_patch(old_mender, delta_patch, output_mender, temp_base_dir):
+    usage = shutil.disk_usage(temp_base_dir)
+    if usage.free < REQUIRED_DISK_SPACE:
+        raise Exception(
+            f"Insufficient disk space: {format_size(usage.free)} free in {temp_base_dir}, "
+            f"{format_size(REQUIRED_DISK_SPACE)} required"
+        )
+
     with tempfile.TemporaryDirectory(dir=temp_base_dir) as temp_dir:
         old_dir, delta_dir, output_dir, work_dir = [os.path.join(temp_dir, d) for d in ['old', 'delta', 'output', 'work']]
         for d in [old_dir, delta_dir, output_dir, work_dir]: os.makedirs(d)
@@ -148,7 +209,7 @@ def apply_delta_patch(old_mender, delta_patch, output_mender, temp_base_dir):
             metadata = json.load(f)
 
         report_progress(12, f"Applying {len(metadata['changes'])} changes")
-        newly_created_payload_tar = None
+        newly_created_payload_checksum = None
 
         all_new_files = set(metadata['changes'].keys())
         all_old_files = {p.relative_to(old_dir).as_posix() for p in Path(old_dir).rglob('*') if p.is_file()}
@@ -231,20 +292,28 @@ def apply_delta_patch(old_mender, delta_patch, output_mender, temp_base_dir):
                 file_phase_progress(PHASE_WEIGHT_DECOMPRESS, "applying delta")
                 new_temp_path = os.path.join(work_dir, f"new_patched_{rel_path.replace('/', '_')}")
                 apply_xdelta_patch(source_for_patching, patch_file_path, new_temp_path)
+                if old_meta.get('compressed'):
+                    os.unlink(source_for_patching)
                 delta_out_size = os.path.getsize(new_temp_path)
                 report_progress(base_progress + int(file_progress_range * (PHASE_WEIGHT_DECOMPRESS + PHASE_WEIGHT_XDELTA * 0.5)),
                     f"[{idx}/{len(metadata['changes'])}] patch: {rel_path} - delta produced {format_size(delta_out_size)}")
 
                 if new_meta.get('compressed'):
-                    file_phase_progress(PHASE_WEIGHT_DECOMPRESS + PHASE_WEIGHT_XDELTA, "compressing")
-                    if calculate_sha256(new_temp_path) != new_meta['decompressed_sha256']:
-                        raise Exception(f"Checksum mismatch on patched content for {rel_path}")
-                    in_sz, out_sz = compress_gz(new_temp_path, output_file_path)
+                    file_phase_progress(PHASE_WEIGHT_DECOMPRESS + PHASE_WEIGHT_XDELTA, "compressing + verifying")
+                    if rel_path.startswith('data/'):
+                        # Single pass: compress + verify outer sha256 + compute inner rootfs sha256
+                        outer_sha256, inner_sha256, in_sz, out_sz = compress_payload_tar_and_hash(new_temp_path, output_file_path)
+                        if outer_sha256 != new_meta.get('decompressed_sha256', outer_sha256):
+                            raise Exception(f"Checksum mismatch on patched content for {rel_path}")
+                        newly_created_payload_checksum = inner_sha256
+                    else:
+                        # Single pass: compress + verify outer sha256
+                        outer_sha256, in_sz, out_sz = compress_gz_and_hash(new_temp_path, output_file_path)
+                        if outer_sha256 != new_meta.get('decompressed_sha256', outer_sha256):
+                            raise Exception(f"Checksum mismatch on patched content for {rel_path}")
                     ratio = (out_sz / in_sz * 100) if in_sz > 0 else 0
                     report_progress(base_progress + int(file_progress_range * 0.95),
                         f"[{idx}/{len(metadata['changes'])}] patch: {rel_path} - compressed {format_size(in_sz)} -> {format_size(out_sz)} ({ratio:.1f}%)")
-                    if rel_path.startswith('data/'):
-                        newly_created_payload_tar = new_temp_path
                 else:
                      shutil.move(new_temp_path, output_file_path)
 
@@ -252,18 +321,14 @@ def apply_delta_patch(old_mender, delta_patch, output_mender, temp_base_dir):
 
         report_progress(80, "Finalizing artifact")
         # Progress breakdown for finalization (80-100%):
-        # 80-81: Extract payload for verification
-        # 81-87: Verify rootfs checksum (SHA256 of ~1GB)
-        # 87-88: Update header metadata
-        # 88-89: Recreate header.tar.gz
-        # 89-95: Generate manifest (SHA256 of each output file)
+        # 80-81: Update header metadata
+        # 81-82: Recreate header.tar.gz
+        # 82-95: Generate manifest (SHA256 of each output file)
         # 95-100: Create output mender file
 
         header_progress_map = {
-            "Extracting payload for verification": 80,
-            "Verifying rootfs checksum": 81,
-            "Updating header metadata": 87,
-            "Recreating header.tar.gz": 88,
+            "Updating header metadata": 80,
+            "Recreating header.tar.gz": 81,
         }
 
         def header_progress_callback(msg):
@@ -274,14 +339,13 @@ def apply_delta_patch(old_mender, delta_patch, output_mender, temp_base_dir):
                     return
             report_progress(80, msg)
 
-        if newly_created_payload_tar:
-            update_header_with_payload_checksum(output_dir, work_dir, newly_created_payload_tar,
+        if newly_created_payload_checksum is not None:
+            update_header_with_payload_checksum(output_dir, work_dir, newly_created_payload_checksum,
                 metadata.get('new_payload_checksum'), progress_callback=header_progress_callback)
 
-        report_progress(89, "Generating manifest")
+        report_progress(82, "Generating manifest")
         def manifest_progress_callback(msg):
-            # Manifest generation is 89-95% range
-            report_progress(89, msg)
+            report_progress(82, msg)
 
         update_manifest_file(output_dir, progress_callback=manifest_progress_callback)
 
