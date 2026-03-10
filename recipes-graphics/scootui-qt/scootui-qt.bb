@@ -28,6 +28,7 @@ DEPENDS = " \
     qtshadertools \
     qtsvg \
     qttools \
+    qmaplibre \
 "
 
 RDEPENDS:${PN} = " \
