@@ -18,8 +18,8 @@ if [ ! -r "$NVMEM" ]; then
     exit 1
 fi
 
-# Read OCOTP CFG0+CFG1 (8 bytes at offset 4): lower 64 bits of hardware UID.
-uid=$(od -A n -t x1 -j 4 -N 8 "$NVMEM" | tr -d ' \n')
+# Read OCOTP_CFG0+CFG1 as 32-bit words (native endian, matches U-Boot's view).
+uid=$(od -A n -t x4 -j 4 -N 8 "$NVMEM" | tr -d ' \n')
 
 if [ "${#uid}" -ne 16 ]; then
     echo "machine-id-init: unexpected UID length ${#uid}, expected 16" >&2
