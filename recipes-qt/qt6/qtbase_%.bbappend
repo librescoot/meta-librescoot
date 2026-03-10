@@ -1,1 +1,1 @@
-PACKAGECONFIG:append = " eglfs kms gbm linuxfb"
+PACKAGECONFIG:append:class-target = " eglfs kms gbm linuxfb"
