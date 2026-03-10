@@ -4,7 +4,7 @@ enabling hardware-accelerated vector map rendering with OpenGL ES 2.0. \
 Used by ScootUI for the map screen with offline MBTiles support."
 HOMEPAGE = "https://github.com/maplibre/maplibre-native-qt"
 LICENSE = "BSD-2-Clause"
-LIC_FILES_CHKSUM = "file://LICENSE;md5=e3fc50a88d0a364313df4b21ef20c29e"
+LIC_FILES_CHKSUM = "file://LICENSES/BSD-2-Clause.txt;md5=272be00ca1ae12eceb040a3946c3c2cc"
 
 DEPENDS = " \
     qtbase \
