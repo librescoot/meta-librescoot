@@ -36,6 +36,7 @@ inherit cmake qt6-cmake pkgconfig
 EXTRA_OECMAKE = " \
     -DMLN_QT_WITH_LOCATION=ON \
     -DMLN_QT_WITH_WIDGETS=OFF \
+    -DMLN_WITH_OPENGL=ON \
     -DCMAKE_BUILD_TYPE=Release \
     -DFETCHCONTENT_FULLY_DISCONNECTED=OFF \
 "
