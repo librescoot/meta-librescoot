@@ -70,6 +70,7 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     carplay-service \
     scootui-qt \
     gdb \
+    glmark2 \
 "
 
 IMAGE_INSTALL:append = " libubootenv-bin"

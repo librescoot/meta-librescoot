@@ -23,7 +23,11 @@ DEPENDS = " \
 # maplibre-native-qt vendors maplibre-native as a git submodule under vendor/.
 # Use gitsm:// to recursively fetch all submodules during do_fetch.
 SRC_URI = "gitsm://github.com/maplibre/maplibre-native-qt.git;protocol=https;branch=main"
-SRCREV = "${AUTOREV}"
+
+# Pin to 10c6d828: last commit before the "Drawables Renderer" switch to OpenGL ES 3.0+.
+# This version vendors maplibre-native from the opengl-2 branch (b50faeb9a24e)
+# which preserves OpenGL ES 2.0 support needed for the i.MX6 Vivante GC880 GPU.
+SRCREV = "10c6d828bab661330cf9cb08d4d3bb9defb74582"
 
 # Allow CMake to fetch dependencies during build (maplibre-native uses FetchContent)
 do_configure[network] = "1"
