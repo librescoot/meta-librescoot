@@ -1,1 +1,1 @@
-PACKAGECONFIG:append:class-target = " linuxfb"
+PACKAGECONFIG:append:class-target = " linuxfb sql-sqlite"

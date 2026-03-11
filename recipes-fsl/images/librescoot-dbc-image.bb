@@ -69,6 +69,7 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     ffmpeg \
     carplay-service \
     scootui-qt \
+    gdb \
 "
 
 IMAGE_INSTALL:append = " libubootenv-bin"
