@@ -44,6 +44,7 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     scootui \
     dbc-dispatcher \
     onboot-service \
+    machine-id-init \
     version-service \
     update-service \
     dbc-backlight-service \
