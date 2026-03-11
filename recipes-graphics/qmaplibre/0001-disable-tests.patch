@@ -1,0 +1,22 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 46f5cd3..da9d885 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -125,12 +125,13 @@ target_link_libraries(
+         $<$<BOOL:${MLN_QT_WITH_COVERAGE}>:--coverage>
+ )
+ 
+-# Enable testing
+-enable_testing()
+-
+ # Add subdirectories
+ add_subdirectory(src)
+-add_subdirectory(test)
++
++if(BUILD_TESTING)
++    enable_testing()
++    add_subdirectory(test)
++endif()
+ 
+ # Coverage
+ if(MLN_QT_WITH_COVERAGE)

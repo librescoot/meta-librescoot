@@ -22,7 +22,9 @@ DEPENDS = " \
 
 # maplibre-native-qt vendors maplibre-native as a git submodule under vendor/.
 # Use gitsm:// to recursively fetch all submodules during do_fetch.
-SRC_URI = "gitsm://github.com/maplibre/maplibre-native-qt.git;protocol=https;branch=main"
+SRC_URI = "gitsm://github.com/maplibre/maplibre-native-qt.git;protocol=https;branch=main \
+    file://0001-disable-tests.patch \
+"
 
 # Pin to 10c6d828: last commit before the "Drawables Renderer" switch to OpenGL ES 3.0+.
 # This version vendors maplibre-native from the opengl-2 branch (b50faeb9a24e)
@@ -44,6 +46,7 @@ EXTRA_OECMAKE = " \
     -DMLN_QT_WITH_LOCATION=ON \
     -DMLN_QT_WITH_WIDGETS=OFF \
     -DMLN_WITH_OPENGL=ON \
+    -DBUILD_TESTING=OFF \
     -DCMAKE_BUILD_TYPE=Release \
     -DFETCHCONTENT_FULLY_DISCONNECTED=OFF \
 "
