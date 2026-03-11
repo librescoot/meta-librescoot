@@ -42,9 +42,7 @@ RDEPENDS:${PN} = " \
     qmaplibre \
 "
 
-EXTRA_OECMAKE = "-DCMAKE_BUILD_TYPE=RelWithDebInfo"
-INHIBIT_PACKAGE_STRIP = "1"
-INHIBIT_PACKAGE_DEBUG_SPLIT = "1"
+EXTRA_OECMAKE = "-DCMAKE_BUILD_TYPE=Release"
 
 do_install() {
     install -d ${D}${bindir}
