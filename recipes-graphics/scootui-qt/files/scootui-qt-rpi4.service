@@ -16,7 +16,7 @@ Environment=XDG_RUNTIME_DIR="/run/user/0"
 Environment=QT_QPA_PLATFORM=eglfs
 Environment=QT_QPA_EGLFS_INTEGRATION=eglfs_kms
 Environment=SCOOTUI_RESOLUTION="1024x600"
-Environment=QT_PLUGIN_PATH=/usr/plugins
+Environment=QT_PLUGIN_PATH=/usr/plugins:/usr/lib/plugins
 RuntimeDirectory=user/0
 ExecStart=/usr/bin/scootui-qt
 
