@@ -38,6 +38,8 @@ RDEPENDS:${PN} = " \
     qtdeclarative-qmlplugins \
     qtsvg \
     qtsvg-plugins \
+    qtlocation \
+    qmaplibre \
 "
 
 EXTRA_OECMAKE = "-DCMAKE_BUILD_TYPE=Release"

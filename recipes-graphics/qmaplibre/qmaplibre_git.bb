@@ -53,6 +53,7 @@ DEPENDS += "virtual/egl virtual/libgles2"
 FILES:${PN} += " \
     ${libdir}/lib*.so.* \
     ${libdir}/qt6/qml/* \
+    ${libdir}/qt6/plugins/geoservices/* \
     ${prefix}/plugins/geoservices/* \
     ${prefix}/qml/MapLibre/* \
     ${prefix}/qml/MapLibre/Location/* \
