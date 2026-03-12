@@ -56,7 +56,6 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     xdg-user-dirs \
     sqlite3 \
     libsqlite3-dev \
-    alsa-utils \
     htop \
     iotop \
     vim-common \
@@ -68,7 +67,6 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     flutter-drm-gbm-backend \
     flutter-fbdev-backend \
     ffmpeg \
-    carplay-service \
     scootui-qt \
     gdb \
     glmark2 \
