@@ -29,6 +29,7 @@ DEPENDS = " \
     qtsvg \
     qttools \
     qmaplibre \
+    zlib \
 "
 
 RDEPENDS:${PN} = " \
