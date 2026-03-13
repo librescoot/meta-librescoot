@@ -94,4 +94,4 @@ do_install:append() {
 }
 
 # maplibre-native contains pre-generated shaders; skip QA on these
-INSANE_SKIP:${PN} += "already-stripped"
+INSANE_SKIP:${PN} += "already-stripped dev-so"
