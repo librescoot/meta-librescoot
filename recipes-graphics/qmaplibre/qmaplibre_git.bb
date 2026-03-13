@@ -72,5 +72,26 @@ FILES:${PN}-dev += " \
     ${includedir}/* \
 "
 
+# At this pinned commit the QML module registers as "MapLibre" (flat).
+# Newer versions (4.x) moved it to "MapLibre.Location". Create a compatibility
+# shim so "import MapLibre.Location" works with this 3.x build.
+do_install:append() {
+    if [ -d "${D}${prefix}/qml/MapLibre" ] && [ ! -d "${D}${prefix}/qml/MapLibre/Location" ]; then
+        install -d "${D}${prefix}/qml/MapLibre/Location"
+        # Symlink the plugin .so into the Location subdirectory
+        for f in "${D}${prefix}/qml/MapLibre"/lib*.so*; do
+            [ -e "$f" ] && ln -sr "$f" "${D}${prefix}/qml/MapLibre/Location/$(basename $f)"
+        done
+        # Copy qmltypes if present
+        for f in "${D}${prefix}/qml/MapLibre"/*.qmltypes; do
+            [ -e "$f" ] && cp "$f" "${D}${prefix}/qml/MapLibre/Location/"
+        done
+        # Create a qmldir that registers as MapLibre.Location
+        sed 's/^module MapLibre$/module MapLibre.Location/' \
+            "${D}${prefix}/qml/MapLibre/qmldir" \
+            > "${D}${prefix}/qml/MapLibre/Location/qmldir"
+    fi
+}
+
 # maplibre-native contains pre-generated shaders; skip QA on these
 INSANE_SKIP:${PN} += "already-stripped"
