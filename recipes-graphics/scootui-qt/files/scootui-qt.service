@@ -4,7 +4,7 @@ Documentation=https://github.com/librescoot/scootui-qt
 
 After=basic.target
 
-Conflicts=dbc-dispatcher.service scootui.service
+Conflicts=scootui.service
 ConditionPathExists=/dev/tty0
 
 [Service]

@@ -4,16 +4,7 @@ Documentation=https://github.com/librescoot/dbc-dispatcher
 
 After=basic.target
 
-Conflicts=scootui.service scootui-qt.service
-ConditionPathExists=/dev/tty0
-
 [Service]
-Environment=HOME="/data"
-Environment=XDG_RUNTIME_DIR="/run/user/0"
-Environment=FLUTTER_DRM_DEVICE="/dev/dri/card1"
-Environment=FLUTTER_FB_DEVICE="/dev/fb1"
-Environment=FLUTTER_EGL_DEVICE="/dev/dri/renderD128"
-RuntimeDirectory=user/0
 ExecStart=/usr/bin/dbc-dispatcher
 
 User=root
@@ -23,7 +14,7 @@ StandardOutput=journal
 StandardError=journal
 
 Restart=always
-RestartSec=1
+RestartSec=3
 
 [Install]
 WantedBy=multi-user.target

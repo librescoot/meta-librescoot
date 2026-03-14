@@ -7,7 +7,7 @@ After=systemd-user-sessions.service
 
 After=plymouth-quit-wait.service
 
-Conflicts=dbc-dispatcher.service
+Conflicts=scootui-qt.service
 ConditionPathExists=/dev/tty0
 
 [Service]

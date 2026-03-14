@@ -2,19 +2,9 @@
 Description=DBC Display Dispatcher
 Documentation=https://github.com/librescoot/dbc-dispatcher
 
-Requires=systemd-user-sessions.service
-After=systemd-user-sessions.service
-
-After=plymouth-quit-wait.service
-
-Conflicts=scootui.service scootui-qt.service
-ConditionPathExists=/dev/tty0
+After=basic.target
 
 [Service]
-Environment=HOME="/data"
-Environment=XDG_RUNTIME_DIR="/run/user/0"
-Environment=FLUTTER_DRM_DEVICE="/dev/dri/card0"
-Environment=SCOOTUI_RESOLUTION="1024x600"
 ExecStart=/usr/bin/dbc-dispatcher
 
 User=root
@@ -24,7 +14,7 @@ StandardOutput=journal
 StandardError=journal
 
 Restart=always
-RestartSec=1
+RestartSec=3
 
 [Install]
 WantedBy=multi-user.target
