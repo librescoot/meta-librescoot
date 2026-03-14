@@ -5,6 +5,8 @@ iptables --table nat --append POSTROUTING --out-interface eth0 -j MASQUERADE
 iptables --table nat --append POSTROUTING --out-interface wwan0 -j MASQUERADE
 iptables --table nat --append POSTROUTING --out-interface wwu1i5 -j MASQUERADE
 iptables --append FORWARD --in-interface usb0 -j ACCEPT
+iptables --append INPUT --in-interface wwan0 -p tcp --dport 6379 -j DROP
+iptables --append INPUT --in-interface wwu1i5 -p tcp --dport 6379 -j DROP
 echo 1 > /proc/sys/net/ipv4/ip_forward
 
 ip link set can0 type can bitrate 125000 restart-ms 100
