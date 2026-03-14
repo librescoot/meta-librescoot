@@ -4,6 +4,7 @@ After=local-fs.target
 
 [Service]
 Type=simple
+ExecStartPre=/sbin/modprobe ppp_generic
 ExecStartPre=/bin/mkdir -p /var/run/pppd/lock
 ExecStart=/usr/sbin/pppd call uart-link nodetach
 Restart=on-failure
