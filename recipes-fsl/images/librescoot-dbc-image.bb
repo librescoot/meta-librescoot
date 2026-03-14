@@ -69,6 +69,7 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     flutter-fbdev-backend \
     ffmpeg \
     scootui-qt \
+    scootui-tui \
     gdb \
     glmark2 \
 "
