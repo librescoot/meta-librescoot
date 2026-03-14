@@ -1144,7 +1144,7 @@ display@di0 {
 					};
 
 					uart2grp {
-						/* DTE mode: EIM_D26 (TX pad) receives, EIM_D27 (RX pad) transmits */
+						/* DTE mode: GPIO_7 (TX pad) receives, GPIO_8 (RX pad) transmits */
 						fsl,pins = <0x238 0x608 0x904 0x04 0x02 0x1b0b1 0x23c 0x60c 0x00 0x04 0x00 0x1b0b1>;
 						phandle = <0x38>;
 					};
