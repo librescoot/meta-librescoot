@@ -4,21 +4,22 @@ Date: Mon, 14 Oct 2024 08:52:34 +0000
 Subject: [PATCH] enable usb mass storage
 
 ---
- configs/mx6ul_14x14_evk_defconfig | 19 ++++++++++---------
- 1 file changed, 10 insertions(+), 9 deletions(-)
+ configs/mx6ul_14x14_evk_defconfig | 20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
 diff --git a/configs/mx6ul_14x14_evk_defconfig b/configs/mx6ul_14x14_evk_defconfig
 index 3d75b0725fc..883c1e9df8e 100644
 --- a/configs/mx6ul_14x14_evk_defconfig
 +++ b/configs/mx6ul_14x14_evk_defconfig
-@@ -1,7 +1,6 @@
+@@ -1,8 +1,7 @@
  CONFIG_ARM=y
  CONFIG_ARCH_MX6=y
  CONFIG_TARGET_MX6UL_14X14_EVK=y
 -CONFIG_VIDEO=y
  CONFIG_DEFAULT_DEVICE_TREE="imx6ul-14x14-evk"
  CONFIG_SYS_EXTRA_OPTIONS="IMX_CONFIG=board/freescale/mx6ul_14x14_evk/imximage.cfg"
- CONFIG_BOOTDELAY=1
+-CONFIG_BOOTDELAY=3
++CONFIG_BOOTDELAY=1
 @@ -11,7 +10,6 @@ CONFIG_CMD_BOOTZ=y
  # CONFIG_CMD_IMLS is not set
  CONFIG_CMD_MEMTEST=y
