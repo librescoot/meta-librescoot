@@ -18,6 +18,7 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     wireguard-tools \
     u-boot-default-env \
     mdb-netconfig \
+    ppp-link \
     modemmanager \
     networkmanager \
     networkmanager-nmcli \

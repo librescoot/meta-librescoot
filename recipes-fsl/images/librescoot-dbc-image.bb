@@ -18,6 +18,7 @@ IMAGE_FEATURES += " \
 
 CORE_IMAGE_EXTRA_INSTALL += " \
     dbc-netconfig \
+    ppp-link \
     u-boot-default-env \
     packagegroup-core-base-utils \
     firmwared \

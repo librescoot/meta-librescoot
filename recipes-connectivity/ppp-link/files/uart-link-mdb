@@ -1,0 +1,12 @@
+# PPP backup link over UART to DBC
+/dev/ttymxc2
+250000
+local
+nocrtscts
+noauth
+nodefaultroute
+192.168.8.1:192.168.8.2
+persist
+holdoff 5
+maxfail 0
+lock

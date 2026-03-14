@@ -1,0 +1,13 @@
+[Unit]
+Description=PPP backup link over UART
+After=local-fs.target
+
+[Service]
+Type=simple
+ExecStartPre=/bin/mkdir -p /var/run/pppd/lock
+ExecStart=/usr/sbin/pppd call uart-link nodetach
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
