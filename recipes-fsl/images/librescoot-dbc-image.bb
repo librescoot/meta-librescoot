@@ -46,6 +46,7 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     dbc-dispatcher \
     onboot-service \
     machine-id-init \
+    uboot-env-sync \
     version-service \
     update-service \
     dbc-backlight-service \

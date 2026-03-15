@@ -68,6 +68,7 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     modem-service \
     onboot-service \
     machine-id-init \
+    uboot-env-sync \
     bluetooth-service \
     version-service \
     pm-service \
