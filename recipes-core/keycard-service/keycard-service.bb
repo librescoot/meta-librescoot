@@ -1,31 +1,31 @@
-LICENSE = "CLOSED"
-LIC_FILES_CHKSUM = ""
+SUMMARY = "LibreScoot Keycard Service"
+HOMEPAGE = "https://github.com/librescoot/keycard-service"
+LICENSE = "CC-BY-NC-4.0"
+LIC_FILES_CHKSUM = "file://src/keycard-service/LICENSE;md5=f5a53c7ab38ba3772e879f1407d3d412"
 
-inherit systemd
+SRC_URI = "git://github.com/librescoot/keycard-service.git;protocol=https;branch=main"
+SRC_URI:append = " file://librescoot-keycard.service"
 
-SRC_URI = "file://keycard.sh"
-SRC_URI += "file://ledcontrol.sh"
-SRC_URI += "file://greenled.sh"
-SRC_URI += "file://keycard.py"
-SRC_URI += "file://PN7150.py"
-SRC_URI += "file://librescoot-keycard.service"
+SRCREV = "${AUTOREV}"
+
+S = "${WORKDIR}/git"
+
+inherit librescoot-go systemd
+
+GO_IMPORT = "keycard-service"
+
+GO_LINKSHARED = ""
+GOBUILDFLAGS:remove = "-buildmode=pie"
+
+FILES:${PN} += "/usr/lib/systemd/system/librescoot-keycard.service"
 
 SYSTEMD_SERVICE:${PN} = "librescoot-keycard.service"
 SYSTEMD_AUTO_ENABLE:${PN} = "enable"
 
-FILES:${PN} = "/opt/librescoot-keycard/*"
-FILES:${PN} += "/usr/bin/ledcontrol.sh"
-FILES:${PN} += "/usr/bin/greenled.sh"
-FILES:${PN} += "/usr/bin/keycard.sh"
-
 do_install() {
-    install -d ${D}/opt/librescoot-keycard
-    install -d ${D}/usr/bin
+    install -d ${D}${bindir}
     install -d ${D}${systemd_system_unitdir}
-    install -m 0755 ${WORKDIR}/keycard.sh ${D}/usr/bin/
-    install -m 0755 ${WORKDIR}/ledcontrol.sh ${D}/usr/bin/
-    install -m 0755 ${WORKDIR}/greenled.sh ${D}/usr/bin/
-    install -m 0644 ${WORKDIR}/PN7150.py ${D}/opt/librescoot-keycard
-    install -m 0644 ${WORKDIR}/keycard.py ${D}/opt/librescoot-keycard
+
+    install -m 0755 ${B}/bin/linux_arm/keycard-service ${D}${bindir}/
     install -m 0644 ${WORKDIR}/librescoot-keycard.service ${D}${systemd_system_unitdir}
 }

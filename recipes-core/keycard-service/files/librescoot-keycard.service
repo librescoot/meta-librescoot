@@ -6,10 +6,10 @@ After=librescoot-vehicle.service
 
 [Service]
 Type=simple
+User=root
+Group=root
+ExecStart=/usr/bin/keycard-service -led-device /dev/i2c-2
 Restart=always
-WorkingDirectory=/opt/librescoot-keycard
-ExecStart=/usr/bin/python3 /opt/librescoot-keycard/keycard.py
-LimitAS=128M
 
 [Install]
 WantedBy=multi-user.target
