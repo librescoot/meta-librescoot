@@ -41,8 +41,6 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     bash \
     rsync \
     curl \
-    flutter-engine \
-    scootui \
     dbc-dispatcher \
     onboot-service \
     machine-id-init \
@@ -66,8 +64,6 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     valhalla \
     prime-server \
     libspatialite \
-    flutter-drm-gbm-backend \
-    flutter-fbdev-backend \
     ffmpeg \
     scootui-qt \
     scootui-tui \
