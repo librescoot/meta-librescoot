@@ -1,0 +1,3 @@
+# Disable runtime PM autosuspend for etnaviv GPU to prevent intermittent
+# display dropouts caused by GPU suspend/resume latency exceeding vblank.
+ACTION=="add", SUBSYSTEM=="drm", DRIVERS=="etnaviv", ATTR{power/control}="on"

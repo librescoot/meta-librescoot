@@ -1,6 +1,12 @@
+FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
+
+SRC_URI:append:unu-dbc = " file://99-etnaviv-no-autosuspend.rules"
+
 # Remove unnecessary udev rules for unu-dbc (saves ~0.7-1.0s in coldplug time)
 # Only applies to unu-dbc, not to rpi4 DBC variant
 do_install:append:unu-dbc () {
+	# Disable etnaviv GPU autosuspend to prevent display flickering
+	install -m 0644 ${WORKDIR}/99-etnaviv-no-autosuspend.rules ${D}${sysconfdir}/udev/rules.d/
 	# Power management (DBC plugged into MDB, no battery)
 	rm -f ${D}${sysconfdir}/udev/rules.d/60-autosuspend.rules
 
