@@ -1,8 +1,0 @@
-[Plymouth Theme]
-Name=LibreScoot
-Description=LibreScoot boot animation
-ModuleName=script
-
-[script]
-ImageDir=/usr/share/plymouth/themes/librescoot
-ScriptFile=/usr/share/plymouth/themes/librescoot/librescoot.script

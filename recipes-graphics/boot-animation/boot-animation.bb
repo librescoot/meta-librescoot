@@ -49,9 +49,6 @@ do_install() {
     install -m 0644 ${WORKDIR}/dbc-dispatcher-after-boot-animation.conf \
         ${D}${sysconfdir}/systemd/system/dbc-dispatcher.service.d/after-boot-animation.conf
 
-    # Mask plymouth-start so Plymouth doesn't interfere
-    ln -sf /dev/null ${D}${sysconfdir}/systemd/system/plymouth-start.service
-
     # Mask getty on tty1 to prevent console flash
     ln -sf /dev/null ${D}${sysconfdir}/systemd/system/getty@tty1.service
 
@@ -64,7 +61,6 @@ do_install() {
 FILES:${PN} += " \
     ${datadir}/boot-animation \
     ${sysconfdir}/systemd/system/dbc-dispatcher.service.d \
-    ${sysconfdir}/systemd/system/plymouth-start.service \
     ${sysconfdir}/systemd/system/getty@tty1.service \
     ${sysconfdir}/systemd/system.conf.d \
 "
