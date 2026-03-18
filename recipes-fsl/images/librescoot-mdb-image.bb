@@ -44,8 +44,6 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     python3-click \
     redis \
     dropbear \
-    nxp-nfc \
-    libnfc \
     ioctl \
     bash \
     gpsd \
@@ -81,11 +79,9 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     shell-config \
     radio-gaga \
     iptables \
-    mc \
     htop \
     iotop \
     vim-common \
-    nano \
     tzdata \
     xdelta3 \
     nrf-ble-driver \
