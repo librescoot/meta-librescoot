@@ -18,7 +18,7 @@ GO_IMPORT = "github.com/librescoot/dbc-dispatcher"
 GO_LINKSHARED = ""
 GOBUILDFLAGS:remove = "-buildmode=pie"
 
-RDEPENDS:${PN} += "scootui"
+RDEPENDS:${PN} += "scootui-qt"
 
 FILES:${PN} += "/usr/lib/systemd/system/dbc-dispatcher.service"
 
