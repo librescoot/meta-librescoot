@@ -26,8 +26,6 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     firmwared \
     rpm \
     python3 \
-    python3-can \
-    python3-numpy \
     canutils \
     i2c-tools \
     python3-pyserial \
@@ -36,10 +34,8 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     python3-pyyaml \
     python3-aioredis \
     python3-redis \
-    python3-cbor \
     python3-cbor2 \
     python3-crccheck \
-    python3-smbus2 \
     python3-typing-extensions \
     python3-click \
     redis \
@@ -52,8 +48,6 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     gpsd-udev \
     rsync \
     curl \
-    lsof \
-    screen \
     libgpiod \
     libgpiod-tools \
     chrony \
@@ -79,8 +73,6 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     shell-config \
     radio-gaga \
     iptables \
-    htop \
-    iotop \
     vim-common \
     tzdata \
     xdelta3 \
