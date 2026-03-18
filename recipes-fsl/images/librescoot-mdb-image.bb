@@ -73,6 +73,10 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     shell-config \
     radio-gaga \
     iptables \
+    htop \
+    iotop \
+    lsof \
+    screen \
     vim-common \
     tzdata \
     xdelta3 \
