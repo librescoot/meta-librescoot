@@ -58,7 +58,7 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     libsqlite3-dev \
     htop \
     iotop \
-    vim-common \
+    vim-tiny \
     tzdata \
     xdelta3 \
     valhalla \
