@@ -53,9 +53,7 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     screen \
     chrony \
     chronyc \
-    xdg-user-dirs \
     sqlite3 \
-    libsqlite3-dev \
     htop \
     iotop \
     vim-common \
@@ -67,7 +65,6 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     ffmpeg \
     scootui-qt \
     scootui-tui \
-    gdb \
     glmark2 \
     nano \
 "
