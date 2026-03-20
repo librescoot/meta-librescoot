@@ -89,6 +89,7 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     python3-protobuf \
     udev-rules-mdb \
     g-ether-conf \
+    nano \
 "
 
 IMAGE_INSTALL:append = " libubootenv-bin"
