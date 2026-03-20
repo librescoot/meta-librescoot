@@ -56,7 +56,7 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     sqlite3 \
     htop \
     iotop \
-    vim-common \
+    vim-tiny \
     tzdata \
     xdelta3 \
     valhalla \
