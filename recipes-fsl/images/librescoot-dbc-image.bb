@@ -11,7 +11,6 @@ BAD_RECOMMENDATIONS += "busybox-syslog"
 
 IMAGE_FEATURES += " \
     debug-tweaks \
-    package-management \
     ssh-server-dropbear \
     hwcodecs \
 "
