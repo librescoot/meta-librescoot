@@ -7,6 +7,7 @@ SRC_URI = "git://github.com/librescoot/ums-service.git;protocol=https;branch=mai
 SRC_URI += " file://librescoot-ums.service"
 
 SRCREV = "${AUTOREV}"
+PE = "1"
 
 S = "${WORKDIR}/git"
 
