@@ -10,7 +10,7 @@ SRC_URI += "file://0002.patch"
 SRC_URI += "file://valhalla.service"
 SRC_URI += "file://valhalla_config.json"
 
-SRCREV = "3.6.3"
+SRCREV = "3.5.1"
 
 S = "${WORKDIR}/git"
 
@@ -31,7 +31,7 @@ DEPENDS = " \
 "
 
 # Optional dependencies
-PACKAGECONFIG ??= "tools data-tools http services"
+PACKAGECONFIG ??= "tools data-tools http python services benchmarks tests"
 PACKAGECONFIG[tools] = "-DENABLE_TOOLS=ON,-DENABLE_TOOLS=OFF"
 PACKAGECONFIG[data-tools] = "-DENABLE_DATA_TOOLS=ON,-DENABLE_DATA_TOOLS=OFF"
 PACKAGECONFIG[http] = "-DENABLE_HTTP=ON,-DENABLE_HTTP=OFF"
