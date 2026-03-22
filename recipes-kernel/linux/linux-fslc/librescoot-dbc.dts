@@ -1963,7 +1963,7 @@ display@di0 {
 
 	backlight: backlight {
 		compatible = "pwm-backlight";
-		pwms = <0x4a 0x00 0x4c4b40>;
+		pwms = <0x4a 0x00 0x30D40>;
 		brightness-levels = <100 6000 18000 36000 47000 58000>;
 		num-interpolated-steps = <0x800>;
 		/* 5 intervals × 2048 steps = 10240 total levels.
