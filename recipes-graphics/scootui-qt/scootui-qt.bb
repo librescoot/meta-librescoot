@@ -22,6 +22,7 @@ S = "${WORKDIR}/git"
 inherit cmake qt6-cmake pkgconfig systemd
 
 DEPENDS = " \
+    hiredis \
     qtbase \
     qtdeclarative \
     qtdeclarative-native \
@@ -33,6 +34,7 @@ DEPENDS = " \
 "
 
 RDEPENDS:${PN} = " \
+    hiredis \
     qtbase \
     qtbase-plugins \
     qtdeclarative \
