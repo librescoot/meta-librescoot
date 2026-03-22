@@ -66,6 +66,7 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     scootui-tui \
     glmark2 \
     nano \
+    hiredis \
 "
 
 IMAGE_INSTALL:append = " libubootenv-bin"
