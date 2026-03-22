@@ -6,7 +6,7 @@ LIC_FILES_CHKSUM = "file://src/github.com/librescoot/bluetooth-service/LICENSE;m
 SRC_URI = "git://github.com/librescoot/bluetooth-service.git;protocol=https;branch=main"
 SRC_URI:append = " file://librescoot-bluetooth.service"
 SRC_URI:append = " file://nrfupdate.py"
-SRC_URI:append = " file://mdb-nrf52-full-v2.0.0-ls.zip"
+SRC_URI:append = " file://mdb-nrf52-full-v2.0.0-ls.zip;unpack=0"
 
 SRCREV = "${AUTOREV}"
 
