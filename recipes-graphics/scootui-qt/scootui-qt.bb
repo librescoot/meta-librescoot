@@ -15,8 +15,8 @@ SRC_URI += "file://scootui-qt.service"
 SRC_URI += "file://scootui-qt-rpi4.service"
 SRC_URI += "file://scootui-qt-kms.json"
 
-PV = "1.0.0+git"
-
+PV = "1.0.0+git${SRCPV}"
+PE = "1"
 S = "${WORKDIR}/git"
 
 inherit cmake qt6-cmake pkgconfig systemd
