@@ -1964,12 +1964,12 @@ display@di0 {
 	backlight: backlight {
 		compatible = "pwm-backlight";
 		pwms = <0x4a 0x00 0x30D40>;
-		brightness-levels = <100 6000 18000 36000 47000 58000>;
+		brightness-levels = <1500 6000 18000 36000 47000 58000>;
 		num-interpolated-steps = <0x800>;
 		/* 5 intervals × 2048 steps = 10240 total levels.
 		 * Anchor points tuned empirically for perceptually linear
 		 * brightness on the A045FTN01 9-LED backlight:
-		 *   100-6000:   dim (fine low-end, LED visible from ~100)
+		 *   1500-6000:  dim (min ensures ≥5µs on-pulse for boost converter at 5kHz)
 		 *   6000-18000: low-mid
 		 *   18000-36000: mid (compressed, perceptually flat region)
 		 *   36000-47000: mid-high (finer, ramps harder here)

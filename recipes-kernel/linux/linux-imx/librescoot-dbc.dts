@@ -1935,7 +1935,7 @@
 	backlight {
 		compatible = "pwm-backlight";
 		pwms = <0x4a 0x00 0x30D40>;
-		brightness-levels = <100 6000 18000 36000 47000 58000>;
+		brightness-levels = <1500 6000 18000 36000 47000 58000>;
 		num-interpolated-steps = <0x800>;
 		default-brightness-level = <18000>;
 		status = "okay";
