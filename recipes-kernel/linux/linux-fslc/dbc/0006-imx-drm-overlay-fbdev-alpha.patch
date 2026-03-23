@@ -46,7 +46,7 @@ index 4a866ac60fff..f40d14477a04 100644
  #include <drm/drm_fbdev_dma.h>
  #include <drm/drm_gem_dma_helper.h>
 @@ -32,6 +40,346 @@
- static int legacyfb_depth = 16;
+ static int legacyfb_depth = 32;
  module_param(legacyfb_depth, int, 0444);
  
 +/* --- Overlay framebuffer device (fb1) with alpha control --- */
