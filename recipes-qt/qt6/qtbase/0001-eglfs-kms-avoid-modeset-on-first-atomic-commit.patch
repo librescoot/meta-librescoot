@@ -1,0 +1,61 @@
+From f3f8a22b6a6e7db1b3588cbeeb9b7cac4c82dced Mon Sep 17 00:00:00 2001
+From: Teal Bauer <teal@librescoot.org>
+Date: Mon, 23 Mar 2026 17:09:40 +0000
+Subject: [PATCH] eglfs: kms: avoid unnecessary modeset on first frame
+
+Upstream-Status: Pending
+Signed-off-by: Teal Bauer <teal@librescoot.org>
+---
+ src/platformsupport/kmsconvenience/qkmsdevice.cpp     | 11 ++++++++---
+ .../eglfs_kms/qeglfskmsgbmscreen.cpp                  | 11 +++++++++--
+ 2 files changed, 17 insertions(+), 5 deletions(-)
+
+diff --git a/src/platformsupport/kmsconvenience/qkmsdevice.cpp b/src/platformsupport/kmsconvenience/qkmsdevice.cpp
+index 421e9f05..b69bedf5 100644
+--- a/src/platformsupport/kmsconvenience/qkmsdevice.cpp
++++ b/src/platformsupport/kmsconvenience/qkmsdevice.cpp
+@@ -924,9 +924,14 @@ bool QKmsDevice::threadLocalAtomicCommit(void *user_data)
+     if (!a.request)
+         return false;
+ 
+-    int ret = drmModeAtomicCommit(m_dri_fd, a.request,
+-                                  DRM_MODE_ATOMIC_NONBLOCK | DRM_MODE_PAGE_FLIP_EVENT | DRM_MODE_ATOMIC_ALLOW_MODESET,
+-                                  user_data);
++    // Try without ALLOW_MODESET first. If the CRTC is already active with a
++    // compatible mode (e.g. set up by a boot splash) and the request only
++    // contains plane properties, this succeeds as a page flip -- zero display
++    // disruption. Fall back to ALLOW_MODESET for cold start or mode changes.
++    uint32_t flags = DRM_MODE_ATOMIC_NONBLOCK | DRM_MODE_PAGE_FLIP_EVENT;
++    int ret = drmModeAtomicCommit(m_dri_fd, a.request, flags, user_data);
++    if (ret)
++        ret = drmModeAtomicCommit(m_dri_fd, a.request, flags | DRM_MODE_ATOMIC_ALLOW_MODESET, user_data);
+ 
+     if (ret) {
+         qWarning("Failed to commit atomic request (code=%d)", ret);
+diff --git a/src/plugins/platforms/eglfs/deviceintegration/eglfs_kms/qeglfskmsgbmscreen.cpp b/src/plugins/platforms/eglfs/deviceintegration/eglfs_kms/qeglfskmsgbmscreen.cpp
+index 073ba3bd..a52ff55e 100644
+--- a/src/plugins/platforms/eglfs/deviceintegration/eglfs_kms/qeglfskmsgbmscreen.cpp
++++ b/src/plugins/platforms/eglfs/deviceintegration/eglfs_kms/qeglfskmsgbmscreen.cpp
+@@ -224,10 +224,17 @@ void QEglFSKmsGbmScreen::ensureModeSet(uint32_t fb)
+ 
+         bool doModeSet = true;
+         drmModeCrtcPtr currentMode = drmModeGetCrtc(fd, op.crtc_id);
+-        const bool alreadySet = currentMode && currentMode->buffer_id == fb && !memcmp(&currentMode->mode, &op.modes[op.mode], sizeof(drmModeModeInfo));
++        // Check if the CRTC mode matches, ignoring buffer_id. A different
++        // buffer is just a page flip (plane property), not a mode change.
++        // This lets the first frame after boot skip mode properties so the
++        // atomic commit in threadLocalAtomicCommit() can succeed as a plain
++        // page flip without ALLOW_MODESET.
++        const bool modeMatches = currentMode
++            && currentMode->mode_valid
++            && !memcmp(&currentMode->mode, &op.modes[op.mode], sizeof(drmModeModeInfo));
+         if (currentMode)
+             drmModeFreeCrtc(currentMode);
+-        if (alreadySet)
++        if (modeMatches)
+             doModeSet = false;
+ 
+         if (doModeSet) {
+-- 
+2.43.0
+
