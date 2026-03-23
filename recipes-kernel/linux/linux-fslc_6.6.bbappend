@@ -7,9 +7,6 @@ SRC_URI:append = " \
 
 SRC_URI:append:unu-dbc = " \
     file://0001-fbcon-show-boot-logo-regardless-of-loglevel.patch \
-    file://dbc/0006-imx-drm-overlay-fbdev-alpha.patch \
-    file://dbc/0007-fix-route-overlay-alpha-sysfs-writes-through-DRM-ato.patch \
-    file://dbc/0008-fix-disable-overlay-plane-when-not-in-use-to-prevent.patch \
     file://config-logo.cfg \
     file://config-opt3001.cfg \
     file://config-tas5720.cfg \
