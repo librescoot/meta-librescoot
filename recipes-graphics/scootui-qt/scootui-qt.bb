@@ -3,6 +3,7 @@ DESCRIPTION = "ScootUI instrument cluster UI - Qt/QML port"
 AUTHOR = "LibreScoot Contributors"
 HOMEPAGE = "https://github.com/librescoot/scootui-qt"
 SECTION = "graphics"
+PROVIDES += "scootui"
 
 LICENSE = "CC-BY-NC-SA-4.0"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=fb5d051e53001fdff7fec0f368f47190"
