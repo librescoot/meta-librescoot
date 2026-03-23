@@ -1,0 +1,133 @@
+From f2e519a8b6fc5ff34068219578ffa7a2b2565996 Mon Sep 17 00:00:00 2001
+From: Danylo Storozhev <office@storozhev.net>
+Date: Mon, 23 Mar 2026 23:23:30 +0100
+Subject: [PATCH] fix: disable overlay plane when not in use to prevent DP
+ flicker
+
+The overlay plane was committed onto the CRTC at setup time with
+alpha=0 and left permanently active. This caused
+drm_atomic_add_affected_planes() to pull the overlay into every Qt
+atomic commit, triggering ipu_plane_atomic_update() for the FG flow
+path on every frame. The resulting DP global alpha register writes on
+both BG and FG channels during each commit produced visible flicker,
+even though the overlay was fully transparent.
+
+Fix by:
+- Removing the eager imx_overlay_atomic_commit(ofb, 0) from setup,
+  so the overlay is never added to the CRTC scanout pipeline at init.
+- Adding imx_overlay_atomic_disable() which removes the overlay from
+  the CRTC by setting fb=NULL and crtc=NULL.
+- In overlay_alpha_store: when alpha > 0, activate the overlay via
+  atomic commit; when alpha == 0, disable the overlay to take the DP
+  out of blending mode entirely.
+
+This ensures the DP stays in single-plane mode during normal Qt
+operation, eliminating the flicker completely.
+---
+ drivers/gpu/drm/imx/ipuv3/imx-drm-core.c | 62 +++++++++++++++++++++---
+ 1 file changed, 56 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/gpu/drm/imx/ipuv3/imx-drm-core.c b/drivers/gpu/drm/imx/ipuv3/imx-drm-core.c
+index 4a97f310ac99..73bce6e2eeb3 100644
+--- a/drivers/gpu/drm/imx/ipuv3/imx-drm-core.c
++++ b/drivers/gpu/drm/imx/ipuv3/imx-drm-core.c
+@@ -59,6 +59,7 @@ struct imx_overlay_fbdev {
+ static struct imx_overlay_fbdev *g_overlay;
+ 
+ static int imx_overlay_atomic_commit(struct imx_overlay_fbdev *ofb, u16 alpha);
++static int imx_overlay_atomic_disable(struct imx_overlay_fbdev *ofb);
+ 
+ static int imx_overlay_fb_mmap(struct fb_info *info, struct vm_area_struct *vma)
+ {
+@@ -105,7 +106,11 @@ static ssize_t overlay_alpha_store(struct device *dev,
+ 
+ 	ofb->alpha = alpha;
+ 
+-	ret = imx_overlay_atomic_commit(ofb, (u16)alpha << 8 | alpha);
++	if (alpha == 0)
++		ret = imx_overlay_atomic_disable(ofb);
++	else
++		ret = imx_overlay_atomic_commit(ofb, (u16)alpha << 8 | alpha);
++
+ 	if (ret)
+ 		return ret;
+ 
+@@ -138,7 +143,9 @@ static int imx_overlay_atomic_commit(struct imx_overlay_fbdev *ofb, u16 alpha)
+ 	}
+ 
+ 	drm_atomic_set_fb_for_plane(plane_state, ofb->fb);
+-	drm_atomic_set_crtc_for_plane(plane_state, ofb->crtc);
++	ret = drm_atomic_set_crtc_for_plane(plane_state, ofb->crtc);
++	if (ret)
++		goto out_state;
+ 	plane_state->src_x = 0;
+ 	plane_state->src_y = 0;
+ 	plane_state->src_w = (u32)ofb->fb->width << 16;
+@@ -168,6 +175,53 @@ static int imx_overlay_atomic_commit(struct imx_overlay_fbdev *ofb, u16 alpha)
+ 	return ret;
+ }
+ 
++static int imx_overlay_atomic_disable(struct imx_overlay_fbdev *ofb)
++{
++	struct drm_device *drm = ofb->drm;
++	struct drm_atomic_state *state;
++	struct drm_plane_state *plane_state;
++	struct drm_modeset_acquire_ctx ctx;
++	int ret;
++
++	drm_modeset_acquire_init(&ctx, 0);
++retry:
++	state = drm_atomic_state_alloc(drm);
++	if (!state) {
++		ret = -ENOMEM;
++		goto out;
++	}
++	state->acquire_ctx = &ctx;
++
++	plane_state = drm_atomic_get_plane_state(state, ofb->overlay);
++	if (IS_ERR(plane_state)) {
++		ret = PTR_ERR(plane_state);
++		goto out_state;
++	}
++
++	drm_atomic_set_fb_for_plane(plane_state, NULL);
++	ret = drm_atomic_set_crtc_for_plane(plane_state, NULL);
++	if (ret)
++		goto out_state;
++
++	ret = drm_atomic_commit(state);
++	if (ret == -EDEADLK) {
++		drm_atomic_state_clear(state);
++		drm_modeset_backoff(&ctx);
++		goto retry;
++	}
++
++out_state:
++	drm_atomic_state_put(state);
++out:
++	drm_modeset_drop_locks(&ctx);
++	drm_modeset_acquire_fini(&ctx);
++
++	if (ret)
++		DRM_DEV_ERROR(drm->dev,
++			      "overlay atomic disable failed: %d\n", ret);
++	return ret;
++}
++
+ static void imx_overlay_setup_work_fn(struct work_struct *work)
+ {
+ 	struct imx_overlay_fbdev *ofb =
+@@ -246,10 +300,6 @@ static void imx_overlay_setup_work_fn(struct work_struct *work)
+ 
+ 	memset(map.vaddr, 0, buffer->gem->size);
+ 
+-	ret = imx_overlay_atomic_commit(ofb, 0);
+-	if (ret)
+-		goto err_vmap;
+-
+ 	info = framebuffer_alloc(0, drm->dev);
+ 	if (!info) {
+ 		ret = -ENOMEM;
+-- 
+2.53.0
+
