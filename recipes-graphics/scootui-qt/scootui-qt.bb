@@ -43,6 +43,7 @@ RDEPENDS:${PN} = " \
     qtsvg-plugins \
     qtlocation \
     qmaplibre \
+    qt-eglfs-fbdev \
 "
 
 EXTRA_OECMAKE = "-DCMAKE_BUILD_TYPE=Release"
