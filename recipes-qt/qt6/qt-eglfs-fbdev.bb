@@ -17,4 +17,4 @@ DEPENDS = " \
     virtual/egl \
 "
 
-FILES:${PN} = "${libdir}/qt6/plugins/egldeviceintegrations/*.so"
+FILES:${PN} = "${libdir}/plugins/egldeviceintegrations/*.so"
