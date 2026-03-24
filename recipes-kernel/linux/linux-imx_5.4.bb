@@ -27,6 +27,7 @@ SRC_URI = " ${KERNEL_SRC};branch=${SRCBRANCH} \
             file://0001-replace-solaris-style-flag.patch \
             file://0002-ata-ahci-fix-enum-constants-for-gcc-13.patch \
             file://0003-querystatus.patch \
+            file://0004-leds-lp5562-init-amber-at-boot.patch \
           "
 
 SRC_URI:append:unu-mdb = " file://mdb_defconfig"
