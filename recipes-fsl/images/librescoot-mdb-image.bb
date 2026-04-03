@@ -93,6 +93,7 @@ CORE_IMAGE_EXTRA_INSTALL += " \
 "
 
 IMAGE_INSTALL:append = " libubootenv-bin"
+IMAGE_INSTALL:append = " bmap-tools"
 IMAGE_INSTALL:append = " linux-firmware-imx-sdma-imx6q"
 ## TODO: boot-assets adds ~5.5MB which exceeds MDB partition size.
 ## Needs MENDER_STORAGE_TOTAL_SIZE_MB increase before enabling.
