@@ -5,3 +5,10 @@ Name=usb0
 ConfigureWithoutCarrier=yes
 Address=192.168.7.1/24
 LinkLocalAddressing=no
+DHCPServer=yes
+
+[DHCPServer]
+PoolOffset=100
+PoolSize=10
+EmitDNS=no
+EmitRouter=no
