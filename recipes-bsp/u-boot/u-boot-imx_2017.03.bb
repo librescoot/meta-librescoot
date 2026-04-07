@@ -56,11 +56,10 @@ COMPATIBLE_MACHINE = "(mx6|mx7)"
 
 FILES:${PN} += "/uboot/*"
 
-do_patch:append:unu-dbc() {
-    cp ${WORKDIR}/dbc/mx6sabresd.bmp ${S}/tools/logos/mx6sabresd.bmp
-}
-
 do_compile:prepend() {
+    if [ -f ${WORKDIR}/dbc/mx6sabresd.bmp ]; then
+        cp ${WORKDIR}/dbc/mx6sabresd.bmp ${S}/tools/logos/mx6sabresd.bmp
+    fi
     cp ${S}/include/fdt.h ${S}/lib/libfdt/
     cp ${S}/include/libfdt.h ${S}/lib/libfdt/
     cp ${S}/include/libfdt_env.h ${S}/lib/libfdt/
