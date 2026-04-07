@@ -38,6 +38,7 @@ SRC_URI:append:unu-dbc = " file://dbc/0002-remove-LVDS-EPDC-and-ethernet.-add-SP
 SRC_URI:append:unu-dbc = " file://dbc/0003-add-SPI-and-FIT-compat-to-configs.patch"
 SRC_URI:append:unu-dbc = " file://dbc/0004-add-console-and-boot-animation-args.patch"
 
+PR = "r1"
 SRCREV = "b76bb1bf9fd21e21006d79552e28855ac43ad43c"
 
 S = "${WORKDIR}/git"
