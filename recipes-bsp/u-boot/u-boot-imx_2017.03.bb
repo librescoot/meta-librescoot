@@ -57,7 +57,7 @@ FILES:${PN} += "/uboot/*"
 
 do_compile:prepend() {
     if [ -f ${WORKDIR}/dbc/mx6sabresd.bmp ]; then
-        cp ${WORKDIR}/dbc/mx6sabresd.bmp ${S}/tools/logos/mx6sabresd.bmp
+        cp ${WORKDIR}/dbc/mx6sabresd.bmp ${S}/tools/logos/freescale.bmp
     fi
     cp ${S}/include/fdt.h ${S}/lib/libfdt/
     cp ${S}/include/libfdt.h ${S}/lib/libfdt/
