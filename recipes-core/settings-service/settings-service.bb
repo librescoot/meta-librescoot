@@ -30,5 +30,5 @@ do_install() {
 
     install -m 0755 ${B}/bin/linux_arm/settings-service ${D}${bindir}/settings-service
     install -m 0644 ${WORKDIR}/librescoot-settings.service ${D}${systemd_system_unitdir}
-    install -m 0644 ${S}/settings.schema.json ${D}/usr/share/settings-service/settings.schema.json
+    install -m 0644 ${S}/src/${GO_IMPORT}/settings.schema.json ${D}/usr/share/settings-service/settings.schema.json
 }
