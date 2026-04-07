@@ -24,6 +24,7 @@ SRC_URI:append:mender-uboot = " file://common/0004-mender-malloc.patch"
 
 SRC_URI:append = " file://common/0001-helloworld.patch"
 SRC_URI:append = " file://common/0003-sanity-check.patch"
+SRC_URI:append:unu-dbc = " file://dbc/mx6sabresd.bmp"
 
 SRC_URI:append:unu-mdb = " file://mdb/0004-enable-usb-mass-storage.patch"
 SRC_URI:append:unu-mdb = " file://mdb/0006-spi-remove.patch"
@@ -36,6 +37,7 @@ SRC_URI:append:unu-dbc = " file://dbc/0001-add-kernel_addr_r.patch"
 SRC_URI:append:unu-dbc = " file://dbc/0002-remove-LVDS-EPDC-and-ethernet.-add-SPI-LCD-init-and-.patch"
 SRC_URI:append:unu-dbc = " file://dbc/0003-add-SPI-and-FIT-compat-to-configs.patch"
 SRC_URI:append:unu-dbc = " file://dbc/0004-add-console-and-boot-animation-args.patch"
+SRC_URI:append:unu-dbc = " file://dbc/0005-center-boot-logo.patch"
 
 SRCREV = "b76bb1bf9fd21e21006d79552e28855ac43ad43c"
 
@@ -53,6 +55,10 @@ PACKAGE_ARCH = "${MACHINE_ARCH}"
 COMPATIBLE_MACHINE = "(mx6|mx7)"
 
 FILES:${PN} += "/uboot/*"
+
+do_patch:append:unu-dbc() {
+    cp ${WORKDIR}/dbc/mx6sabresd.bmp ${S}/tools/logos/mx6sabresd.bmp
+}
 
 do_compile:prepend() {
     cp ${S}/include/fdt.h ${S}/lib/libfdt/
