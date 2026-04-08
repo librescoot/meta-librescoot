@@ -26,7 +26,6 @@ case "${1:-load}" in
         NOW_SEC=$(date -u +'%s')
         if [ "$SAVED_SEC" -gt "$NOW_SEC" ]; then
             date -u -s "$SAVED"
-            hwclock -w 2>/dev/null || true
         fi
         ;;
     *)
