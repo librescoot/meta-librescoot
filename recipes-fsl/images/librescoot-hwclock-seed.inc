@@ -11,20 +11,16 @@
 
 CORE_IMAGE_EXTRA_INSTALL += "fake-hwclock"
 
-python do_image_complete:append() {
-    import time, os
-    rootfs = d.getVar('IMAGE_ROOTFS')
-    epoch = int(time.time())
+IMAGE_POSTPROCESS_COMMAND:append = " seed_fake_hwclock;"
+
+seed_fake_hwclock() {
+    EPOCH=$(date -u +'%s')
 
     # Seed fake-hwclock so first boot starts at build time, not epoch.
-    hwclock_path = os.path.join(rootfs, 'etc', 'fake-hwclock.data')
-    with open(hwclock_path, 'w') as f:
-        f.write(time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(epoch)) + '\n')
+    date -u +'%Y-%m-%d %H:%M:%S' > ${IMAGE_ROOTFS}/etc/fake-hwclock.data
 
     # Write build timestamp (epoch seconds) so userspace can determine
     # whether the current system time is merely plausible (>= build time,
     # set by fake-hwclock) or actually correct (synced by Chrony/GPS).
-    ts_path = os.path.join(rootfs, 'etc', 'build-timestamp')
-    with open(ts_path, 'w') as f:
-        f.write(str(epoch) + '\n')
+    echo "$EPOCH" > ${IMAGE_ROOTFS}/etc/build-timestamp
 }
