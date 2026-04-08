@@ -11,7 +11,7 @@
 
 CORE_IMAGE_EXTRA_INSTALL += "fake-hwclock"
 
-IMAGE_POSTPROCESS_COMMAND:append = " seed_fake_hwclock;"
+ROOTFS_POSTPROCESS_COMMAND:append = " seed_fake_hwclock;"
 
 seed_fake_hwclock() {
     EPOCH=$(date -u +'%s')
