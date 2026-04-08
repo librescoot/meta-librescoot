@@ -4,12 +4,14 @@
 # approximately the image build time instead of the epoch. fake-hwclock then
 # updates the seed file on every shutdown, so subsequent boots use the
 # last-known-good time.
+#
+# The persistent copy lives at /data/fake-hwclock.data (survives OTA updates).
+# /etc/fake-hwclock.data is the build-time seed, used as fallback when /data
+# has no saved timestamp yet (e.g. first boot, fresh device).
 
 CORE_IMAGE_EXTRA_INSTALL += "fake-hwclock"
 
-IMAGE_POSTPROCESS_COMMAND:append = " seed_fake_hwclock; "
-
-python seed_fake_hwclock() {
+python do_image_complete:append() {
     import time, os
     rootfs = d.getVar('IMAGE_ROOTFS')
     epoch = int(time.time())

@@ -1,16 +1,28 @@
 #!/bin/sh
 # Save/restore system clock to a file across reboots.
 # On load: only advances the clock (does not roll back a valid RTC).
-FILE=/etc/fake-hwclock.data
+#
+# Persistent copy (survives OTA updates):
+FILE=/data/fake-hwclock.data
+# Build-time seed (may be newer than /data after an OTA update):
+SEED=/etc/fake-hwclock.data
 
 case "${1:-load}" in
     save)
         date -u +'%Y-%m-%d %H:%M:%S' > "$FILE"
         ;;
     load)
-        [ -f "$FILE" ] || exit 0
-        SAVED=$(cat "$FILE")
-        SAVED_SEC=$(date -u -d "$SAVED" +'%s' 2>/dev/null) || exit 0
+        SAVED=""
+        for F in "$FILE" "$SEED"; do
+            [ -f "$F" ] || continue
+            TS=$(cat "$F")
+            TS_SEC=$(date -u -d "$TS" +'%s' 2>/dev/null) || continue
+            if [ -z "$SAVED" ] || [ "$TS_SEC" -gt "$SAVED_SEC" ]; then
+                SAVED="$TS"
+                SAVED_SEC="$TS_SEC"
+            fi
+        done
+        [ -n "$SAVED" ] || exit 0
         NOW_SEC=$(date -u +'%s')
         if [ "$SAVED_SEC" -gt "$NOW_SEC" ]; then
             date -u -s "$SAVED"
