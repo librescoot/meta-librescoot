@@ -10,5 +10,13 @@ ExecStart=/usr/bin/valhalla_service /etc/valhalla/valhalla_config.json
 Restart=always
 RestartSec=5
 
+# Memory containment for the 1 GB DBC. Valhalla's upstream defaults are
+# tuned for cloud servers; on the DBC we want it killed cleanly under a
+# hard cap rather than dragging scootui-qt down with page thrashing.
+MemoryAccounting=yes
+MemoryHigh=250M
+MemoryMax=300M
+OOMScoreAdjust=500
+
 [Install]
 WantedBy=multi-user.target

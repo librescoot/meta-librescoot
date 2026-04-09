@@ -132,8 +132,8 @@
       "file_name": "path_to_some_file.log",
       "type": "std_out"
     },
-    "lru_mem_cache_hard_control": false,
-    "max_cache_size": 1000000000,
+    "lru_mem_cache_hard_control": true,
+    "max_cache_size": 50000000,
     "max_concurrent_reader_users": 1,
     "reclassify_links": true,
     "shortcuts": true,
@@ -270,7 +270,7 @@
     "prefix": "valhalla"
   },
   "thor": {
-    "clear_reserved_memory": false,
+    "clear_reserved_memory": true,
     "costmatrix_allow_second_pass": false,
     "costmatrix_check_reverse_connection": false,
     "extended_search": false,
