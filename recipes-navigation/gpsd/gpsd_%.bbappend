@@ -2,6 +2,8 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 
 SRC_URI += "file://gpsd.default file://gpsd.service.conf"
 
+FILES:${PN} += "${systemd_system_unitdir}/gpsd.service.d"
+
 do_install:append() {
     install -d ${D}${sysconfdir}
     install -d ${D}${sysconfdir}/default/
