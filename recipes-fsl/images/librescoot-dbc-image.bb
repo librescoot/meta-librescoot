@@ -42,6 +42,7 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     curl \
     dbc-dispatcher \
     onboot-service \
+    data-server \
     machine-id-init \
     uboot-env-sync \
     version-service \
