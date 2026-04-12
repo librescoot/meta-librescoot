@@ -1,10 +1,12 @@
 [Unit]
 Description=ScootUI Qt Application
 Documentation=https://github.com/librescoot/scootui-qt
+DefaultDependencies=no
 
-After=basic.target
-
-Conflicts=scootui.service
+After=systemd-networkd.service systemd-journald.socket
+Wants=systemd-networkd.service
+Conflicts=scootui.service shutdown.target
+Before=shutdown.target
 ConditionPathExists=/dev/tty0
 
 [Service]
