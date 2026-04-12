@@ -10,6 +10,7 @@ Before=shutdown.target
 ConditionPathExists=/dev/tty0
 
 [Service]
+Environment=LANG=C.UTF-8
 Environment=HOME="/data"
 Environment=XDG_RUNTIME_DIR="/run/user/0"
 Environment=QT_QPA_PLATFORM=eglfs
