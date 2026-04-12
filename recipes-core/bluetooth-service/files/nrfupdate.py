@@ -43,12 +43,11 @@ def serial_request(tx_packet):
     print("  Tx:", end=' ')
     print_packet(tx_packet)
     serial.write(tx_packet)
-    rx_packet = bytearray()
-    while True:
-        rx = serial.read()
-        if len(rx) == 0:
-            break
-        rx_packet = rx_packet + rx
+    # Read a bounded number of bytes. The nRF's data stream may still be
+    # active when we send the DFU command, so an unbounded read-until-silence
+    # loop would hang for as long as telemetry frames keep arriving. 256
+    # bytes is more than enough for any single USOCK response frame.
+    rx_packet = serial.read(256)
     serial.close()
     print("  Rx:", end=' ')
     print_packet(rx_packet)
