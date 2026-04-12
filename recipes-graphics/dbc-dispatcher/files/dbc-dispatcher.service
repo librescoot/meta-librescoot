@@ -2,7 +2,8 @@
 Description=DBC Display Dispatcher
 Documentation=https://github.com/librescoot/dbc-dispatcher
 
-After=basic.target
+After=systemd-networkd.service
+Wants=systemd-networkd.service
 
 [Service]
 ExecStart=/usr/bin/dbc-dispatcher
