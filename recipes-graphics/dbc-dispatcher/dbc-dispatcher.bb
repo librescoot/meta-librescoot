@@ -1,22 +1,20 @@
 SUMMARY = "LibreScoot DBC Display Dispatcher"
 HOMEPAGE = "https://github.com/librescoot/dbc-dispatcher"
 LICENSE = "CC-BY-NC-SA-4.0"
-LIC_FILES_CHKSUM = "file://src/github.com/librescoot/dbc-dispatcher/LICENSE;md5=444cf8f9f11901e2fa0b24a5562ca5fc"
+LIC_FILES_CHKSUM = "file://LICENSE;md5=444cf8f9f11901e2fa0b24a5562ca5fc"
 
-SRC_URI = "git://github.com/librescoot/dbc-dispatcher.git;protocol=https;branch=main"
+SRC_URI = "git://github.com/librescoot/dbc-dispatcher.git;protocol=https;branch=feat/c-rewrite"
 SRC_URI += " file://dbc-dispatcher.service"
 SRC_URI += " file://dbc-dispatcher-rpi4.service"
 
 SRCREV = "${AUTOREV}"
+PV = "0.3.0+git"
 
 S = "${WORKDIR}/git"
 
-inherit librescoot-go systemd
+DEPENDS = "systemd hiredis"
 
-GO_IMPORT = "github.com/librescoot/dbc-dispatcher"
-
-GO_LINKSHARED = ""
-GOBUILDFLAGS:remove = "-buildmode=pie"
+inherit systemd pkgconfig
 
 RDEPENDS:${PN} += "scootui-qt"
 
@@ -25,15 +23,23 @@ FILES:${PN} += "/usr/lib/systemd/system/dbc-dispatcher.service"
 SYSTEMD_SERVICE:${PN} = "dbc-dispatcher.service"
 SYSTEMD_AUTO_ENABLE:${PN} = "enable"
 
-do_install:prepend:librescoot-dbc-rpi4() {
-    mv ${B}/bin/linux_arm64 ${B}/bin/linux_arm || true
+do_compile() {
+    cd ${S}
+    GITDIR="${S}"
+    VERSION=$(cd $GITDIR && git describe --tags --always --dirty 2>/dev/null || echo "dev")
+
+    ${CC} ${CFLAGS} ${LDFLAGS} \
+        $(pkg-config --cflags libsystemd hiredis) \
+        -DVERSION=\"${VERSION}\" \
+        -o ${B}/dbc-dispatcher ${S}/src/main.c \
+        $(pkg-config --libs libsystemd hiredis)
 }
 
 do_install() {
     install -d ${D}${bindir}
     install -d ${D}${systemd_system_unitdir}
 
-    install -m 0755 ${B}/bin/linux_arm/dbc-dispatcher ${D}${bindir}/dbc-dispatcher
+    install -m 0755 ${B}/dbc-dispatcher ${D}${bindir}/dbc-dispatcher
     install -m 0644 ${WORKDIR}/dbc-dispatcher.service ${D}${systemd_system_unitdir}
 }
 

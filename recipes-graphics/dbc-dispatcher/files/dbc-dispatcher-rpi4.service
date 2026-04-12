@@ -1,9 +1,12 @@
 [Unit]
 Description=DBC Display Dispatcher
 Documentation=https://github.com/librescoot/dbc-dispatcher
+DefaultDependencies=no
 
-After=systemd-networkd.service
+After=systemd-networkd.service systemd-journald.socket
 Wants=systemd-networkd.service
+Conflicts=shutdown.target
+Before=shutdown.target
 
 [Service]
 ExecStart=/usr/bin/dbc-dispatcher
