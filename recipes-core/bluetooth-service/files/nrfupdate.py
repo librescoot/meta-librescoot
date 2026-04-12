@@ -69,16 +69,8 @@ def wake_nrf():
     serial.reset_input_buffer()
     serial.send_break(wake_break_duration)
     time.sleep(wake_settle_delay)
-    # Drain anything the nRF may have emitted on wake (reset info broadcast etc.)
-    rx_packet = bytearray()
-    while True:
-        rx = serial.read()
-        if len(rx) == 0:
-            break
-        rx_packet = rx_packet + rx
+    serial.reset_input_buffer()
     serial.close()
-    print("  Rx:", end=' ')
-    print_packet(rx_packet)
 
 
 def dfu():
