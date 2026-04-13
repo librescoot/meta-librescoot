@@ -75,7 +75,7 @@ IMAGE_INSTALL:append = " boot-animation"
 IMAGE_INSTALL:append = " imx-overlay-alpha"
 IMAGE_INSTALL:append:unu-dbc = " boot-assets"
 
-PACKAGE_EXCLUDE = "ofono neard rpcbind xinetd"
+PACKAGE_EXCLUDE = "ofono neard"
 BAD_RECOMMENDATIONS += "ofono neard rpcbind xinetd"
 
 # ---------------------------------------------------------------------------
