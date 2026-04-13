@@ -76,12 +76,21 @@ IMAGE_INSTALL:append = " imx-overlay-alpha"
 IMAGE_INSTALL:append:unu-dbc = " boot-assets"
 
 PACKAGE_EXCLUDE = "ofono neard"
-BAD_RECOMMENDATIONS += "ofono neard rpcbind xinetd"
+BAD_RECOMMENDATIONS += "ofono neard"
 
 # ---------------------------------------------------------------------------
 # Boot-time optimisations
 # ---------------------------------------------------------------------------
-ROOTFS_POSTPROCESS_COMMAND:append = " mask_ldconfig_service; optimize_fstab_for_boot;"
+ROOTFS_POSTPROCESS_COMMAND:append = " mask_ldconfig_service; mask_unused_services; optimize_fstab_for_boot;"
+
+# rpcbind and xinetd are pulled in as hard RDEPENDS (inetutils→xinetd,
+# packagegroup-base-nfs→rpcbind) so they cannot be excluded from the image.
+# Mask their services so they never start.
+mask_unused_services() {
+    for svc in rpcbind.service rpcbind.socket xinetd.service; do
+        ln -sf /dev/null ${IMAGE_ROOTFS}${systemd_system_unitdir}/$svc
+    done
+}
 
 # The ld.so.cache is pre-built during image creation.  Running ldconfig on
 # every boot wastes ~1.8 s on the i.MX6 and is unnecessary because shared
