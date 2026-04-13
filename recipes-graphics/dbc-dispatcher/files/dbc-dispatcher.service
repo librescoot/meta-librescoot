@@ -3,8 +3,7 @@ Description=DBC Display Dispatcher
 Documentation=https://github.com/librescoot/dbc-dispatcher
 DefaultDependencies=no
 
-After=systemd-networkd.service systemd-journald.socket
-Wants=systemd-networkd.service
+After=systemd-journald.socket
 Conflicts=shutdown.target
 Before=shutdown.target
 

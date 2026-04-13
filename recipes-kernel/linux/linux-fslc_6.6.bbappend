@@ -14,6 +14,7 @@ SRC_URI:append:unu-dbc = " \
     file://config-cmdline.cfg \
     file://config-iotop.cfg \
     file://config-ppp.cfg \
+    file://config-dbc-strip.cfg \
 "
 
 # Override the default KBUILD_DEFCONFIG for librescoot-dbc machine
@@ -27,6 +28,7 @@ KERNEL_CONFIG_FRAGMENTS:append:unu-dbc = " \
     ${WORKDIR}/config-cmdline.cfg \
     ${WORKDIR}/config-iotop.cfg \
     ${WORKDIR}/config-ppp.cfg \
+    ${WORKDIR}/config-dbc-strip.cfg \
 "
 
 do_configure:prepend:unu-dbc() {

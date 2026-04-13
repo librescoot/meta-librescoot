@@ -75,4 +75,35 @@ IMAGE_INSTALL:append = " boot-animation"
 IMAGE_INSTALL:append = " imx-overlay-alpha"
 IMAGE_INSTALL:append:unu-dbc = " boot-assets"
 
-PACKAGE_EXCLUDE = "ofono neard"
+PACKAGE_EXCLUDE = "ofono neard rpcbind xinetd"
+BAD_RECOMMENDATIONS += "ofono neard rpcbind xinetd"
+
+# ---------------------------------------------------------------------------
+# Boot-time optimisations
+# ---------------------------------------------------------------------------
+ROOTFS_POSTPROCESS_COMMAND:append = " mask_ldconfig_service; optimize_fstab_for_boot;"
+
+# The ld.so.cache is pre-built during image creation.  Running ldconfig on
+# every boot wastes ~1.8 s on the i.MX6 and is unnecessary because shared
+# libraries never change at runtime on this image.
+mask_ldconfig_service() {
+    ln -sf /dev/null ${IMAGE_ROOTFS}${systemd_system_unitdir}/ldconfig.service
+}
+
+# /uboot is only accessed during OTA updates — lazy-mount it via automount so
+# it never blocks the boot path.  /data is needed early but should not stall
+# the rest of boot if device discovery is slow; nofail lets local-fs.target
+# proceed without waiting.  fsck pass is set to 0 for both (ext4 journal
+# recovery and vfat integrity are sufficient for this use-case).
+optimize_fstab_for_boot() {
+    local fstab="${IMAGE_ROOTFS}${sysconfdir}/fstab"
+    [ -f "$fstab" ] || return 0
+    sed -i '/\/uboot/{
+        s/\bdefaults\b/noauto,x-systemd.automount,nofail/
+    }' "$fstab"
+    sed -i '/[[:space:]]\/data[[:space:]]/{
+        s/\bdefaults\b/defaults,nofail/
+    }' "$fstab"
+    # Set fsck pass (last field) to 0 for both
+    sed -i -E '/(\/uboot|[[:space:]]\/data[[:space:]])/s/[0-9]+[[:space:]]*$/0/' "$fstab"
+}
