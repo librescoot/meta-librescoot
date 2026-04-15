@@ -2,11 +2,12 @@
 # Sync U-Boot environment variables from /etc/uboot-env.d/*.conf.
 # Runs on every boot. Supported directives:
 #
-#   set-if-missing key value       — set only if unset or empty
-#   set-always key value           — always overwrite
-#   set-if-matches key old new     — replace old value with new (safe migration)
-#   unset key                      — remove unconditionally
-#   unset-if-matches key value     — remove only if current value matches
+#   set-if-missing key value          set only if unset or empty
+#   set-always key value              always overwrite
+#   set-if-matches key old new        replace old value with new (safe migration)
+#   set-prepend-if-missing key prefix prepend prefix to key if not already present
+#   unset key                         remove unconditionally
+#   unset-if-matches key value        remove only if current value matches
 
 CONF_DIR=/etc/uboot-env.d
 changed=0
@@ -50,6 +51,20 @@ for conf in "$CONF_DIR"/*.conf; do
                     echo "uboot-env-sync: set-if-matches $key: [$oldval] -> [$newval]"
                     changed=1
                 fi
+                ;;
+            set-prepend-if-missing)
+                key="${rest%% *}"
+                prefix="${rest#* }"
+                current="$(fw_printenv -n "$key" 2>/dev/null)" || true
+                case "$current" in
+                    "$prefix"*)
+                        ;;
+                    *)
+                        fw_setenv "$key" "${prefix}${current}"
+                        echo "uboot-env-sync: set-prepend-if-missing $key: prepended [$prefix]"
+                        changed=1
+                        ;;
+                esac
                 ;;
             unset)
                 key="${rest%% *}"
