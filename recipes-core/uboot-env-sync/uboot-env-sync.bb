@@ -6,7 +6,8 @@ inherit systemd
 
 SRC_URI = "file://uboot-env-sync.sh \
            file://uboot-env-sync.service \
-           file://identity.conf"
+           file://identity.conf \
+           file://uboot-ab-watchdog.conf"
 SRC_URI:append:unu-dbc = " file://boot-animation.conf"
 
 FILESEXTRAPATHS:prepend := "${THISDIR}/files/${MACHINE}:"
@@ -25,6 +26,7 @@ do_install() {
 
     install -d ${D}${sysconfdir}/uboot-env.d
     install -m 0644 ${WORKDIR}/identity.conf ${D}${sysconfdir}/uboot-env.d/identity.conf
+    install -m 0644 ${WORKDIR}/uboot-ab-watchdog.conf ${D}${sysconfdir}/uboot-env.d/uboot-ab-watchdog.conf
     if [ -f ${WORKDIR}/boot-animation.conf ]; then
         install -m 0644 ${WORKDIR}/boot-animation.conf ${D}${sysconfdir}/uboot-env.d/boot-animation.conf
     fi
