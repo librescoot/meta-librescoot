@@ -28,6 +28,7 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     python3 \
     canutils \
     i2c-tools \
+    mmc-utils \
     python3-pyserial \
     python3-systemd \
     python3-dateutil \
