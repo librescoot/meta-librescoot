@@ -1,10 +1,11 @@
 [Unit]
 Description=LibreScoot Modem Service
 Requires=redis.service
-After=redis.service
+After=redis.service dbus.service ModemManager.service
+Wants=ModemManager.service
 
 [Service]
-Type=idle
+Type=simple
 User=root
 Group=root
 ExecStart=/usr/bin/modem-service -interface wwu1i5
