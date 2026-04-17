@@ -1,4 +1,4 @@
-PACKAGECONFIG:remove:pn-systemd = "timesyncd"
+PACKAGECONFIG:remove:pn-systemd = "timesyncd logind"
 
 FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 

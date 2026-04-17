@@ -8,8 +8,7 @@ ConditionPathExists=/dev/fb0
 [Service]
 ExecStartPre=/bin/sh -c "echo 0 > /sys/class/vtconsole/vtcon1/bind"
 ExecStart=/bin/sh -c 'ANIM=$$(sed -n "s/.*boot\.animation=\([^ ]*\).*/\1/p" /proc/cmdline); ANIM=$${ANIM:-librescoot}; ONCE=""; [ "$$ANIM" = "librescoot" ] && ONCE="--once"; exec /usr/bin/boot-animation /usr/share/boot-animation/$${ANIM}.json --fps 25 --fade-ms 1000 $$ONCE'
-Type=notify
-NotifyAccess=main
+Type=exec
 
 [Install]
 WantedBy=sysinit.target
