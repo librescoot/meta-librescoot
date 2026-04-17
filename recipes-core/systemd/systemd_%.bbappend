@@ -1,4 +1,9 @@
-PACKAGECONFIG:remove:pn-systemd = "timesyncd logind"
+PACKAGECONFIG:remove:pn-systemd = "timesyncd"
+
+# logind is only dropped on DBC — MDB needs it so battery-service (and others)
+# can acquire org.freedesktop.login1.Manager.Inhibit suspend-inhibitor locks.
+PACKAGECONFIG:remove:pn-systemd:unu-dbc = "logind"
+PACKAGECONFIG:remove:pn-systemd:librescoot-dbc-rpi4 = "logind"
 
 FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 
