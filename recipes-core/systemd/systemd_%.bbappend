@@ -5,7 +5,7 @@ PACKAGECONFIG:remove:pn-systemd = "timesyncd"
 PACKAGECONFIG:remove:pn-systemd:unu-dbc = "logind"
 PACKAGECONFIG:remove:pn-systemd:librescoot-dbc-rpi4 = "logind"
 
-PACKAGECONFIG:append:pn-systemd = " journal-upload microhttpd gnutls"
+PACKAGECONFIG:append:pn-systemd = " journal-upload microhttpd gnutls pstore"
 
 FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 
