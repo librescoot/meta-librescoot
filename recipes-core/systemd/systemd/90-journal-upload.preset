@@ -1,1 +1,1 @@
-enable systemd-journal-upload.service
+disable systemd-journal-upload.service
