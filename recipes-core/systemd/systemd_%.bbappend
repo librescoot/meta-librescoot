@@ -5,9 +5,7 @@ PACKAGECONFIG:remove:pn-systemd = "timesyncd"
 PACKAGECONFIG:remove:pn-systemd:unu-dbc = "logind"
 PACKAGECONFIG:remove:pn-systemd:librescoot-dbc-rpi4 = "logind"
 
-# Enable systemd-journal-upload for realtime log shipping off-device.
-# microhttpd pulls in the journal-remote/upload build; gnutls gives TLS.
-PACKAGECONFIG:append:pn-systemd = " microhttpd gnutls"
+PACKAGECONFIG:append:pn-systemd = " journal-upload microhttpd gnutls"
 
 FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 
