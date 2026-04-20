@@ -14,6 +14,7 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 SRC_URI += "file://journald.conf"
 SRC_URI += "file://00-create-volatile.conf"
 SRC_URI += "file://journal-upload.conf"
+SRC_URI += "file://journal-upload-volatile-state.conf"
 SRC_URI += "file://90-journal-upload.preset"
 SRC_URI:append:unu-dbc = " file://99-etnaviv-no-autosuspend.rules"
 
@@ -28,6 +29,13 @@ do_install:append() {
     # Preset: auto-enable systemd-journal-upload.service at first boot
     install -d ${D}${systemd_unitdir}/system-preset
     install -m 0644 ${WORKDIR}/90-journal-upload.preset ${D}${systemd_unitdir}/system-preset/90-journal-upload.preset
+
+    # Drop-in: redirect journal-upload's state directory to tmpfs so the
+    # cursor file doesn't wear out the eMMC. Lives under vendor
+    # /usr/lib/systemd/system so admins can still override via /etc.
+    install -d ${D}${systemd_unitdir}/system/systemd-journal-upload.service.d
+    install -m 0644 ${WORKDIR}/journal-upload-volatile-state.conf \
+        ${D}${systemd_unitdir}/system/systemd-journal-upload.service.d/volatile-state.conf
 }
 
 # Drop udev rules that don't match any hardware on unu-dbc. Systemd's udev
