@@ -1427,6 +1427,19 @@
 			size = <0x2000000>;
 			linux,cma-default;
 		};
+
+		/* Placed 32 MB below end of DRAM (0xA0000000) to clear u-boot's
+		 * post-relocation region (text + 16 MB malloc + BSS + stack,
+		 * roughly top 18–20 MB) and well above kernel/FDT/TEE load
+		 * addresses (0x80800000 / 0x83000000 / 0x84000000). */
+		ramoops@9e000000 {
+			compatible = "ramoops";
+			reg = <0x9e000000 0x100000>;
+			record-size = <0x20000>;
+			console-size = <0x20000>;
+			pmsg-size = <0x10000>;
+			ecc-size = <16>;
+		};
 	};
 
 	regulators {

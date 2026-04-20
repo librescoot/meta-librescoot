@@ -5,18 +5,29 @@ PACKAGECONFIG:remove:pn-systemd = "timesyncd"
 PACKAGECONFIG:remove:pn-systemd:unu-dbc = "logind"
 PACKAGECONFIG:remove:pn-systemd:librescoot-dbc-rpi4 = "logind"
 
+# Enable systemd-journal-upload for realtime log shipping off-device.
+# microhttpd pulls in the journal-remote/upload build; gnutls gives TLS.
+PACKAGECONFIG:append:pn-systemd = " microhttpd gnutls"
+
 FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 
 SRC_URI += "file://journald.conf"
 SRC_URI += "file://00-create-volatile.conf"
+SRC_URI += "file://journal-upload.conf"
+SRC_URI += "file://90-journal-upload.preset"
 SRC_URI:append:unu-dbc = " file://99-etnaviv-no-autosuspend.rules"
 
 do_install:append() {
     install -d ${D}${sysconfdir}/systemd
     install -m 0644 ${WORKDIR}/journald.conf ${D}${sysconfdir}/systemd/journald.conf
+    install -m 0644 ${WORKDIR}/journal-upload.conf ${D}${sysconfdir}/systemd/journal-upload.conf
 
     # Override the default 00-create-volatile.conf to avoid duplicate /run/lock
     install -m 0644 ${WORKDIR}/00-create-volatile.conf ${D}${libdir}/tmpfiles.d/00-create-volatile.conf
+
+    # Preset: auto-enable systemd-journal-upload.service at first boot
+    install -d ${D}${systemd_unitdir}/system-preset
+    install -m 0644 ${WORKDIR}/90-journal-upload.preset ${D}${systemd_unitdir}/system-preset/90-journal-upload.preset
 }
 
 # Drop udev rules that don't match any hardware on unu-dbc. Systemd's udev
