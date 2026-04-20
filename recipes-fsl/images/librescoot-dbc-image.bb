@@ -72,7 +72,8 @@ CORE_IMAGE_EXTRA_INSTALL += " \
 
 IMAGE_INSTALL:append = " libubootenv-bin"
 IMAGE_INSTALL:append = " boot-animation"
-IMAGE_INSTALL:append = " imx-overlay-alpha"
+IMAGE_INSTALL:append:unu-dbc = " imx-overlay-alpha"
+IMAGE_INSTALL:append:unu-dbc = " drm-holder"
 IMAGE_INSTALL:append = " systemd-journal-upload"
 IMAGE_INSTALL:append:unu-dbc = " boot-assets"
 

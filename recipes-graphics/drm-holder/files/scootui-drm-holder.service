@@ -1,0 +1,19 @@
+[Unit]
+Description=Hold /dev/dri/card1 open to suppress imx-drm lastclose modeset flash
+DefaultDependencies=no
+After=systemd-journald.socket
+Before=scootui-qt.service shutdown.target
+Conflicts=shutdown.target
+ConditionPathExists=/dev/dri/card1
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/drm-holder /dev/dri/card1
+Restart=always
+RestartSec=1
+
+StandardOutput=null
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
