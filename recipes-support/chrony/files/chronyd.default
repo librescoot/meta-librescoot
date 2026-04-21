@@ -1,0 +1,6 @@
+# Options to pass to chronyd via the chronyd.service unit.
+# The stock unit has: ExecStart=/usr/sbin/chronyd $OPTIONS
+# With an empty OPTIONS, systemd no longer warns:
+#   chronyd.service: Referenced but unset environment variable evaluates to
+#   an empty string: OPTIONS
+OPTIONS=""

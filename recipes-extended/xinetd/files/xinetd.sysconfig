@@ -1,0 +1,8 @@
+# Options to pass to xinetd via the xinetd.service unit.
+# Stock unit has:
+#   EnvironmentFile=-/etc/sysconfig/xinetd
+#   ExecStart=/usr/sbin/xinetd -dontfork "$EXTRAOPTIONS"
+# With EXTRAOPTIONS defined (even as empty), systemd stops warning:
+#   xinetd.service: Referenced but unset environment variable evaluates to
+#   an empty string: EXTRAOPTIONS
+EXTRAOPTIONS=""
