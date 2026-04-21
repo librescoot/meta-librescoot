@@ -1,0 +1,14 @@
+[Unit]
+Description=Enable persistent journal storage when marker exists
+Documentation=man:systemd-journald(8) man:journald.conf(5)
+ConditionPathExists=/data/settings/journald-persistent
+RequiresMountsFor=/data
+Before=systemd-journal-flush.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/bin/sh -c 'mkdir -p /data/journal && chown root:systemd-journal /data/journal && chmod 2755 /data/journal && ln -sfn /data/journal /var/log/journal'
+
+[Install]
+WantedBy=sysinit.target

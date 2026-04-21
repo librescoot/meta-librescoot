@@ -14,6 +14,8 @@ SRC_URI += "file://00-create-volatile.conf"
 SRC_URI += "file://journal-upload.conf"
 SRC_URI += "file://journal-upload-volatile-state.conf"
 SRC_URI += "file://90-journal-upload.preset"
+SRC_URI += "file://librescoot-journal-persistent.service"
+SRC_URI += "file://90-journal-persistent.preset"
 SRC_URI:append:unu-dbc = " file://99-etnaviv-no-autosuspend.rules"
 
 do_install:append() {
@@ -27,6 +29,7 @@ do_install:append() {
     # Preset: auto-enable systemd-journal-upload.service at first boot
     install -d ${D}${systemd_unitdir}/system-preset
     install -m 0644 ${WORKDIR}/90-journal-upload.preset ${D}${systemd_unitdir}/system-preset/90-journal-upload.preset
+    install -m 0644 ${WORKDIR}/90-journal-persistent.preset ${D}${systemd_unitdir}/system-preset/90-journal-persistent.preset
 
     # Drop-in: redirect journal-upload's state directory to tmpfs so the
     # cursor file doesn't wear out the eMMC. Lives under vendor
@@ -34,6 +37,13 @@ do_install:append() {
     install -d ${D}${systemd_unitdir}/system/systemd-journal-upload.service.d
     install -m 0644 ${WORKDIR}/journal-upload-volatile-state.conf \
         ${D}${systemd_unitdir}/system/systemd-journal-upload.service.d/volatile-state.conf
+
+    # Opt-in persistent journal: when /data/settings/journald-persistent exists,
+    # symlink /var/log/journal -> /data/journal so journald (Storage=auto)
+    # persists logs to the data partition. No marker = volatile, no wear.
+    install -d ${D}${systemd_unitdir}/system
+    install -m 0644 ${WORKDIR}/librescoot-journal-persistent.service \
+        ${D}${systemd_unitdir}/system/librescoot-journal-persistent.service
 }
 
 # Drop udev rules that don't match any hardware on unu-dbc. Systemd's udev
