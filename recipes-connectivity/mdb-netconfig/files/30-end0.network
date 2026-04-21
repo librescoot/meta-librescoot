@@ -1,3 +1,11 @@
+# MDB may or may not have a PHY wired to the i.MX6 FEC controller: production
+# boards don't, some dev boards do. Leave the interface configured for DHCP so
+# dev boards work out of the box.
+#
+# DHCP=ipv4 (instead of 'yes') avoids the boot-time warning
+#   DHCPv6 client is enabled but IPv6 link-local addressing is disabled.
+# since we keep LLA off here.
+
 [Match]
 Name=end0
 
@@ -5,5 +13,5 @@ Name=end0
 RequiredForOnline=no
 
 [Network]
-DHCP=yes
+DHCP=ipv4
 LinkLocalAddressing=no

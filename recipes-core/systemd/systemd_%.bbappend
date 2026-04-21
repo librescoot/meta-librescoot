@@ -11,6 +11,8 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 
 SRC_URI += "file://journald.conf"
 SRC_URI += "file://00-create-volatile.conf"
+SRC_URI += "file://var.conf"
+SRC_URI += "file://tmp.conf"
 SRC_URI += "file://journal-upload.conf"
 SRC_URI += "file://journal-upload-volatile-state.conf"
 SRC_URI += "file://90-journal-upload.preset"
@@ -25,6 +27,12 @@ do_install:append() {
 
     # Override the default 00-create-volatile.conf to avoid duplicate /run/lock
     install -m 0644 ${WORKDIR}/00-create-volatile.conf ${D}${libdir}/tmpfiles.d/00-create-volatile.conf
+
+    # Override stock /usr/lib/tmpfiles.d/{var,tmp}.conf via /etc so the 'd /var/log'
+    # and 'q /var/tmp' entries don't error out on our volatile/ symlinks.
+    install -d ${D}${sysconfdir}/tmpfiles.d
+    install -m 0644 ${WORKDIR}/var.conf ${D}${sysconfdir}/tmpfiles.d/var.conf
+    install -m 0644 ${WORKDIR}/tmp.conf ${D}${sysconfdir}/tmpfiles.d/tmp.conf
 
     # Preset: auto-enable systemd-journal-upload.service at first boot
     install -d ${D}${systemd_unitdir}/system-preset
