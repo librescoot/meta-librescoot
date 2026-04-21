@@ -4,14 +4,13 @@ Documentation=man:systemd-journald(8) man:journald.conf(5)
 ConditionPathExists=/data/settings/journald-persistent
 DefaultDependencies=no
 RequiresMountsFor=/data
-After=local-fs.target systemd-tmpfiles-setup.service
-Before=sysinit.target systemd-journal-flush.service shutdown.target
+Before=systemd-journal-flush.service shutdown.target
 Conflicts=shutdown.target
 
 [Service]
 Type=oneshot
 RemainAfterExit=yes
-ExecStart=/bin/sh -c 'mkdir -p /data/journal && chown root:systemd-journal /data/journal && chmod 2755 /data/journal && ln -sfn /data/journal /var/log/journal'
+ExecStart=/bin/sh -c 'mkdir -p /var/volatile/log /data/journal && chown root:systemd-journal /data/journal && chmod 2755 /data/journal && ln -sfn /data/journal /var/log/journal'
 
 [Install]
 WantedBy=sysinit.target
