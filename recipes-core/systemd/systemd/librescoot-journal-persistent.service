@@ -2,8 +2,11 @@
 Description=Enable persistent journal storage when marker exists
 Documentation=man:systemd-journald(8) man:journald.conf(5)
 ConditionPathExists=/data/settings/journald-persistent
+DefaultDependencies=no
 RequiresMountsFor=/data
-Before=systemd-journal-flush.service
+After=local-fs.target systemd-tmpfiles-setup.service
+Before=sysinit.target systemd-journal-flush.service shutdown.target
+Conflicts=shutdown.target
 
 [Service]
 Type=oneshot
