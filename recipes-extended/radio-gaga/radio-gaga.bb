@@ -6,6 +6,7 @@ LIC_FILES_CHKSUM = "file://src/radio-gaga/LICENSE;md5=4ae09d45eac4aa08d013b5f2e0
 SRC_URI = "git://github.com/rescoot/radio-gaga.git;protocol=https;branch=main"
 SRC_URI += " file://radio-gaga.service"
 
+# AUTOREV: version pinning is handled by kas lockfiles, not in recipes
 SRCREV = "${AUTOREV}"
 
 S = "${WORKDIR}/git"

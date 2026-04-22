@@ -5,6 +5,27 @@
 #   -X main.version=$(git describe --tags --always --dirty)
 #
 # It also sets PV and PKGV to reflect the git-derived version.
+#
+# == Version Pinning Philosophy ==
+#
+# Recipes use SRCREV = "${AUTOREV}" for development flexibility.
+# This means bitbake fetches the latest commit from each service's
+# branch on every build — ideal for development and nightly builds.
+#
+# For reproducible release builds, version pinning is handled externally
+# via kas lockfiles, NOT in individual recipes. The workflow:
+#
+#   1. `kas dump --lock kas/<target>.yml` resolves all AUTOREV entries
+#      to specific commit hashes and writes a lockfile
+#   2. CI generates lockfiles per channel:
+#      - nightly: build with AUTOREV, then dump lockfile for reference
+#      - testing: build from nightly lockfile (proven revisions)
+#      - stable:  build from testing lockfile (promoted revisions)
+#   3. `kas build kas/lock/<channel>-<target>.lock.yml` builds from
+#      the pinned revisions in the lockfile
+#
+# This keeps recipes clean and maintainable while achieving full
+# reproducibility through the build system's configuration layer.
 
 inherit go-mod
 
@@ -18,7 +39,15 @@ PV = "0.0+git${SRCPV}"
 PKGV = "${LIBRESCOOT_GO_VERSION}"
 LIBRESCOOT_GO_VERSION ?= "${PV}"
 
-# Go needs network access to download modules during compile
+# FIXME: Network access during do_compile is a Yocto anti-pattern.
+# It breaks build reproducibility, offline builds, and hash equivalence.
+# The correct fix is to vendor Go modules in each service repository:
+#   cd <service-repo> && go mod vendor && git add vendor/
+# Then go-mod.bbclass will use the vendored deps automatically and
+# no network access is needed during compile.
+#
+# Until all service repos have vendored their modules, this line is
+# required for the build to succeed. Remove it after vendoring.
 do_compile[network] = "1"
 
 # Override do_compile to inject version ldflags directly
