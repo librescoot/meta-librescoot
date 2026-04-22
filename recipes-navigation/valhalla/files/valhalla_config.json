@@ -280,10 +280,10 @@
       "long_request": 110.0,
       "type": "std_out"
     },
-    "max_reserved_labels_count_astar": 2000000,
-    "max_reserved_labels_count_bidir_astar": 1000000,
-    "max_reserved_labels_count_bidir_dijkstras": 2000000,
-    "max_reserved_labels_count_dijkstras": 4000000,
+    "max_reserved_labels_count_astar": 200000,
+    "max_reserved_labels_count_bidir_astar": 100000,
+    "max_reserved_labels_count_bidir_dijkstras": 200000,
+    "max_reserved_labels_count_dijkstras": 400000,
     "max_reserved_locations_costmatrix": 25,
     "service": {
       "proxy": "ipc:///tmp/thor"
