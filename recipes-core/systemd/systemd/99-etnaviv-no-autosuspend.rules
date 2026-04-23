@@ -1,3 +1,8 @@
 # Disable runtime PM autosuspend for etnaviv GPU to prevent intermittent
 # display dropouts caused by GPU suspend/resume latency exceeding vblank.
-ACTION=="add", SUBSYSTEM=="drm", DRIVERS=="etnaviv", ATTR{power/control}="on"
+#
+# The etnaviv GPUs live on the platform bus (imx6sx-gpu-subsystem), not the
+# drm bus — drm devices are the /dev/dri/cardN character devices, which
+# don't have their own power/control knob. The kernel's PM core tracks
+# autosuspend at the platform-device level, so that's what we match.
+ACTION=="add", SUBSYSTEM=="platform", DRIVER=="etnaviv-gpu", ATTR{power/control}="on"
