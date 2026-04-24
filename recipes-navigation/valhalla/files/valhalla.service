@@ -6,17 +6,21 @@ ConditionPathExists=/data/valhalla/tiles.tar
 [Service]
 Type=simple
 WorkingDirectory=/data/valhalla
-ExecStart=/usr/bin/valhalla_service /etc/valhalla/valhalla_config.json
+# Concurrency=1 caps each stage's worker threadpool at 1, overriding the
+# default std::thread::hardware_concurrency() (which yields 2 on the
+# DBC's 2-core armv7). Each worker thread mmaps tile_extract separately
+# (valhalla/valhalla#4736), so on 32-bit ARM the bayern tile (672 MB)
+# times N stages blows the ~3 GB per-process virtual address space
+# ceiling under concurrent load and throws std::bad_alloc (user field
+# report 2026-04-19, reproduced on deep-blue: VmPeak hits 3.04 GB). One
+# worker per stage caps VmPeak around 1.6 GB with no measurable impact
+# on single-request latency, which is the vast majority of scootui's
+# traffic. The concurrency argument is the second positional arg to
+# valhalla_service; undocumented except in the binary's usage string
+# and src/valhalla_service.cc.
+ExecStart=/usr/bin/valhalla_service /etc/valhalla/valhalla_config.json 1
 Restart=always
 RestartSec=5
-
-# Memory containment for the 1 GB DBC. Valhalla's upstream defaults are
-# tuned for cloud servers; on the DBC we want it killed cleanly under a
-# hard cap rather than dragging scootui-qt down with page thrashing.
-MemoryAccounting=yes
-MemoryHigh=250M
-MemoryMax=300M
-OOMScoreAdjust=500
 
 [Install]
 WantedBy=multi-user.target
