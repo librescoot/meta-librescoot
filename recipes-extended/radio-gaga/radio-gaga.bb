@@ -12,6 +12,8 @@ S = "${WORKDIR}/git"
 
 inherit librescoot-go systemd
 
+DEPENDS += "systemd"
+
 GO_IMPORT = "radio-gaga"
 
 GO_LINKSHARED = ""
