@@ -9,5 +9,13 @@ ExecStart=/usr/sbin/pppd call uart-link nodetach
 Restart=on-failure
 RestartSec=5
 
+# pppd logs to syslog AND to its standard streams. Without this, every
+# line lands in the journal twice: once via the syslog forwarder, once
+# via systemd's capture of the foreground process. Discard both stdout
+# and stderr to dedupe — pppd's own messages still reach the journal via
+# syslog (journald associates them with this unit via cgroup).
+StandardOutput=null
+StandardError=null
+
 [Install]
 WantedBy=multi-user.target
