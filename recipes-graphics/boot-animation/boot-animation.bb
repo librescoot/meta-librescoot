@@ -7,6 +7,7 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=3c4054a8416ddbc5debdf26a5359d962"
 SRC_URI = "git://github.com/librescoot/boot-animation.git;protocol=https;branch=main"
 SRC_URI += " \
     file://boot-animation.service \
+    file://boot-animation-launch.sh \
     file://dbc-dispatcher-after-boot-animation.conf \
     file://00-shutdown-timeout.conf \
     file://librescoot.json \
@@ -37,6 +38,9 @@ do_install() {
     install -d ${D}${bindir}
     install -m 0755 ${B}/boot-animation ${D}${bindir}/boot-animation
 
+    install -d ${D}${libexecdir}/librescoot
+    install -m 0755 ${WORKDIR}/boot-animation-launch.sh ${D}${libexecdir}/librescoot/boot-animation-launch.sh
+
     install -d ${D}${datadir}/boot-animation
     install -m 0644 ${WORKDIR}/librescoot.json ${D}${datadir}/boot-animation/
     install -m 0644 ${WORKDIR}/windowsxp.json ${D}${datadir}/boot-animation/
@@ -60,6 +64,7 @@ do_install() {
 
 FILES:${PN} += " \
     ${datadir}/boot-animation \
+    ${libexecdir}/librescoot \
     ${sysconfdir}/systemd/system/dbc-dispatcher.service.d \
     ${sysconfdir}/systemd/system/getty@tty1.service \
     ${sysconfdir}/systemd/system.conf.d \
