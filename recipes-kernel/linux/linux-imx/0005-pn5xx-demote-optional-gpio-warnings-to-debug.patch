@@ -1,0 +1,41 @@
+From: Teal Bauer <teal@starsong.eu>
+Date: Sat, 25 Apr 2026 00:00:00 +0200
+Subject: [PATCH] nfc: pn5xx: demote optional FIRM/CLKREQ GPIO warnings to debug
+
+The PN7150 NFC controllers used on this board do not wire up the
+firmware-download or clock-request GPIOs. The driver correctly treats
+both as optional and falls back to GPIO_UNUSED, but it still logs a
+dev_warn for each missing pin on every probe. With three NFC chips
+that's six warning lines on every boot — pure noise.
+
+Drop them to dev_dbg so they only appear when explicitly debugging.
+
+Upstream-Status: Inappropriate [embedded-specific log noise reduction]
+
+Signed-off-by: Teal Bauer <teal@starsong.eu>
+---
+ drivers/nfc/pn5xx/pn5xx_i2c.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/nfc/pn5xx/pn5xx_i2c.c b/drivers/nfc/pn5xx/pn5xx_i2c.c
+index 4cc510f73a99..26cb3dc5cd18 100755
+--- a/drivers/nfc/pn5xx/pn5xx_i2c.c
++++ b/drivers/nfc/pn5xx/pn5xx_i2c.c
+@@ -506,7 +506,7 @@ static int pn54x_get_pdata(struct device *dev,
+ 	}
+ 	else {
+ 		pdata->firm_gpio = GPIO_UNUSED;
+-		dev_warn(dev, "FIRM GPIO <OPTIONAL> error getting from OF node\n");
++		dev_dbg(dev, "FIRM GPIO <OPTIONAL> error getting from OF node\n");
+ 	}
+ 
+ 	/* irq pin - data available irq - REQUIRED */
+@@ -529,7 +529,7 @@ static int pn54x_get_pdata(struct device *dev,
+ 	}
+ 	else {
+ 		pdata->clkreq_gpio = GPIO_UNUSED;
+-		dev_warn(dev, "CLKREQ GPIO <OPTIONAL> error getting from OF node\n");
++		dev_dbg(dev, "CLKREQ GPIO <OPTIONAL> error getting from OF node\n");
+ 	}
+ 
+ 	/* handle the regulator lines - these are optional
