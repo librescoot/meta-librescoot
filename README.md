@@ -1,8 +1,9 @@
-[![CC BY-NC-SA 4.0][cc-by-nc-sa-shield]][cc-by-nc-sa]
 
 # meta-librescoot
 
-Yocto BSP layer for [LibreScoot](https://github.com/librescoot), providing machine configurations, distro settings, and service recipes for iMX6-based electric scooter computers. Compatible with **Yocto Scarthgap**.
+Yocto BSP layer for [Librescoot](https://github.com/librescoot), providing machine configurations, distro settings, and service recipes for iMX6-based electric scooter computers. Compatible with **Yocto Scarthgap**.
+
+Part of the [Librescoot](https://librescoot.org/) open-source platform.
 
 ## What This Layer Provides
 
@@ -32,7 +33,7 @@ Both are based on `fsl-imx-base` with systemd, PAM, and usrmerge enabled.
 
 | Directory | Contents |
 |-----------|----------|
-| `recipes-core` | LibreScoot Go services, systemd units, Plymouth themes |
+| `recipes-core` | Librescoot Go services, systemd units, Plymouth themes |
 | `recipes-graphics` | Flutter engine, DRM/FBDEV backends, Wayland protocols |
 | `recipes-connectivity` | NetworkManager configs, WiFi, cellular modem support |
 | `recipes-devtools` | Go 1.25.7 toolchain (cross-compiler + runtime) |
@@ -90,11 +91,11 @@ ACCEPT_FSL_EULA = "1"
 
 ## License
 
-This work is licensed under a
+This project is dual-licensed. The source code is available under the
 [Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License][cc-by-nc-sa].
+The maintainers reserve the right to grant separate licenses for commercial distribution; please contact the maintainers to discuss commercial licensing.
 
 [![CC BY-NC-SA 4.0][cc-by-nc-sa-image]][cc-by-nc-sa]
 
 [cc-by-nc-sa]: http://creativecommons.org/licenses/by-nc-sa/4.0/
 [cc-by-nc-sa-image]: https://licensebuttons.net/l/by-nc-sa/4.0/88x31.png
-[cc-by-nc-sa-shield]: https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-lightgrey.svg
