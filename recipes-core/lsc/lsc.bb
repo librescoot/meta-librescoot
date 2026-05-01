@@ -1,7 +1,7 @@
 SUMMARY = "LibreScoot Control CLI"
 HOMEPAGE = "https://github.com/librescoot/lsc"
 LICENSE = "CC-BY-NC-4.0"
-LIC_FILES_CHKSUM = "file://src/lsc/LICENSE;md5=f5a53c7ab38ba3772e879f1407d3d412"
+LIC_FILES_CHKSUM = "file://src/lsc/LICENSE;md5=fb5d051e53001fdff7fec0f368f47190"
 
 SRC_URI = "git://github.com/librescoot/lsc.git;protocol=https;branch=main \
            file://lsc-completion.sh \
