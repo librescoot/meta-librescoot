@@ -1,4 +1,4 @@
-SUMMARY = "LibreScoot Control CLI"
+SUMMARY = "Librescoot Control CLI"
 HOMEPAGE = "https://github.com/librescoot/lsc"
 LICENSE = "CC-BY-NC-4.0"
 LIC_FILES_CHKSUM = "file://src/lsc/LICENSE;md5=fb5d051e53001fdff7fec0f368f47190"

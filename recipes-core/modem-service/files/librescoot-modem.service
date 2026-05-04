@@ -1,5 +1,5 @@
 [Unit]
-Description=LibreScoot Modem Service
+Description=Librescoot Modem Service
 Requires=redis.service
 After=redis.service dbus.service ModemManager.service
 Wants=ModemManager.service

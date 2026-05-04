@@ -1,4 +1,4 @@
-SUMMARY = "Boot animation for LibreScoot DBC"
+SUMMARY = "Boot animation for Librescoot DBC"
 DESCRIPTION = "Renders Lottie JSON animations to /dev/fb0 using ThorVG"
 HOMEPAGE = "https://github.com/librescoot/boot-animation"
 LICENSE = "CC-BY-NC-4.0"

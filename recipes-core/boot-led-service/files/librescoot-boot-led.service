@@ -1,5 +1,5 @@
 [Unit]
-Description=LibreScoot Boot LED Service
+Description=Librescoot Boot LED Service
 DefaultDependencies=no
 After=systemd-modules-load.service
 Before=sysinit.target

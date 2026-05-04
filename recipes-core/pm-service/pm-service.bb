@@ -1,4 +1,4 @@
-SUMMARY = "LibreScoot Power Management Service"
+SUMMARY = "Librescoot Power Management Service"
 HOMEPAGE = "https://github.com/librescoot/pm-service"
 LICENSE = "AGPL-3.0"
 LIC_FILES_CHKSUM = "file://src/github.com/librescoot/pm-service/LICENSE;md5=eb1e647870add0502f8f010b19de32af"

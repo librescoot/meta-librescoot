@@ -1,4 +1,4 @@
-SUMMARY = "LibreScoot Keycard Service"
+SUMMARY = "Librescoot Keycard Service"
 HOMEPAGE = "https://github.com/librescoot/keycard-service"
 LICENSE = "CC-BY-NC-4.0"
 LIC_FILES_CHKSUM = "file://src/keycard-service/LICENSE;md5=fb5d051e53001fdff7fec0f368f47190"

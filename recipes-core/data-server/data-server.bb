@@ -1,4 +1,4 @@
-SUMMARY = "LibreScoot Data Server"
+SUMMARY = "Librescoot Data Server"
 HOMEPAGE = "https://github.com/librescoot/data-server"
 LICENSE = "AGPL-3.0-or-later"
 LIC_FILES_CHKSUM = "file://src/data-server/LICENSE;md5=eb1e647870add0502f8f010b19de32af"

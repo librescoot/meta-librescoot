@@ -1,4 +1,4 @@
-SUMMARY = "LibreScoot Modem Service"
+SUMMARY = "Librescoot Modem Service"
 HOMEPAGE = "https://github.com/librescoot/modem-service"
 LICENSE = "CC-BY-NC-SA-4.0"
 LIC_FILES_CHKSUM = "file://src/modem-service/LICENSE;md5=eb1e647870add0502f8f010b19de32af"

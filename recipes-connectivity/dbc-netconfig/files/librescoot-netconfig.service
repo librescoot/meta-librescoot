@@ -1,5 +1,5 @@
 [Unit]
-Description=LibreScoot network configuration script
+Description=Librescoot network configuration script
 Wants=local-fs.target
 After=local-fs.target
 

@@ -1,4 +1,4 @@
-SUMMARY = "LibreScoot Battery Service"
+SUMMARY = "Librescoot Battery Service"
 HOMEPAGE = "https://github.com/librescoot/battery-service"
 LICENSE = "CC-BY-NC-SA-4.0"
 LIC_FILES_CHKSUM = "file://src/battery-service/LICENSE;md5=fb5d051e53001fdff7fec0f368f47190"

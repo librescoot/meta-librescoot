@@ -1,4 +1,4 @@
-# Class for LibreScoot Go services - versioning from git tags
+# Class for Librescoot Go services - versioning from git tags
 #
 # This class injects version information from git tags into Go binaries
 # via ldflags, similar to what the Makefile does with:
