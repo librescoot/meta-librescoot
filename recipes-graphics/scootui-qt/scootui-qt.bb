@@ -1,6 +1,6 @@
 SUMMARY = "ScootUI (Qt)"
 DESCRIPTION = "ScootUI instrument cluster UI - Qt/QML port"
-AUTHOR = "LibreScoot Contributors"
+AUTHOR = "Librescoot Contributors"
 HOMEPAGE = "https://github.com/librescoot/scootui-qt"
 SECTION = "graphics"
 

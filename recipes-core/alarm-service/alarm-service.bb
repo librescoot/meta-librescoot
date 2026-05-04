@@ -1,4 +1,4 @@
-SUMMARY = "LibreScoot Alarm Service"
+SUMMARY = "Librescoot Alarm Service"
 HOMEPAGE = "https://github.com/librescoot/alarm-service"
 LICENSE = "CC-BY-NC-4.0"
 LIC_FILES_CHKSUM = "file://src/alarm-service/LICENSE;md5=fb5d051e53001fdff7fec0f368f47190"

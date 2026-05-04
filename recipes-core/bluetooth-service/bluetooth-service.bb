@@ -1,4 +1,4 @@
-SUMMARY = "LibreScoot Bluetooth Service"
+SUMMARY = "Librescoot Bluetooth Service"
 HOMEPAGE = "https://github.com/librescoot/bluetooth-service"
 LICENSE = "CC-BY-NC-SA-4.0"
 LIC_FILES_CHKSUM = "file://src/github.com/librescoot/bluetooth-service/LICENSE;md5=fb5d051e53001fdff7fec0f368f47190"

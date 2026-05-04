@@ -1,4 +1,4 @@
-DESCRIPTION = "LibreScoot MDB image"
+DESCRIPTION = "Librescoot MDB image"
 LICENSE = "MIT"
 
 inherit core-image

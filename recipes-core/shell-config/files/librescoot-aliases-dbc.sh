@@ -1,5 +1,5 @@
 #!/bin/sh
-# LibreScoot shell aliases for DBC
+# Librescoot shell aliases for DBC
 
 # Default redis-cli to connect to MDB
 alias redis-cli='redis-cli -h mdb'

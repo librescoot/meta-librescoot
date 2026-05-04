@@ -1,4 +1,4 @@
-SUMMARY = "LibreScoot Version Service"
+SUMMARY = "Librescoot Version Service"
 HOMEPAGE = "https://github.com/librescoot/version-service"
 LICENSE = "AGPL-3.0-or-later"
 LIC_FILES_CHKSUM = "file://src/github.com/librescoot/version-service/LICENSE;md5=eb1e647870add0502f8f010b19de32af"

@@ -1,4 +1,4 @@
-SUMMARY = "LibreScoot Dashboard Controller Backlight Service"
+SUMMARY = "Librescoot Dashboard Controller Backlight Service"
 HOMEPAGE = "https://github.com/librescoot/dbc-backlight-service"
 LICENSE = "CC-BY-NC-SA-4.0"
 LIC_FILES_CHKSUM = "file://src/github.com/librescoot/dbc-backlight-service/LICENSE;md5=136c671dba2d2f644b882e31c3e289e8"

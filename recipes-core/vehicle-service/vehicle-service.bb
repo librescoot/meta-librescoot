@@ -1,4 +1,4 @@
-SUMMARY = "LibreScoot Vehicle Service"
+SUMMARY = "Librescoot Vehicle Service"
 HOMEPAGE = "https://github.com/librescoot/vehicle-service"
 LICENSE = "CC-BY-NC-SA-4.0"
 LIC_FILES_CHKSUM = "file://src/vehicle-service/LICENSE;md5=fb5d051e53001fdff7fec0f368f47190"

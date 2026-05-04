@@ -1,5 +1,5 @@
 [Unit]
-Description=LibreScoot manual bootup script
+Description=Librescoot manual bootup script
 Wants=local-fs.target
 After=local-fs.target
 ConditionPathExists=/data/onboot.sh

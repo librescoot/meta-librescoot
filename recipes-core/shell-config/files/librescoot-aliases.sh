@@ -1,5 +1,5 @@
 #!/bin/sh
-# LibreScoot shell aliases
+# Librescoot shell aliases
 
 # Redis CLI shortcuts
 alias hgetall='redis-cli hgetall'

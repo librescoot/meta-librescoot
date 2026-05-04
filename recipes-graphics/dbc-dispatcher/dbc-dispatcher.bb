@@ -1,4 +1,4 @@
-SUMMARY = "LibreScoot DBC Display Dispatcher"
+SUMMARY = "Librescoot DBC Display Dispatcher"
 HOMEPAGE = "https://github.com/librescoot/dbc-dispatcher"
 LICENSE = "CC-BY-NC-SA-4.0"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=444cf8f9f11901e2fa0b24a5562ca5fc"

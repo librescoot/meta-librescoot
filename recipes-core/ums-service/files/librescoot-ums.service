@@ -1,5 +1,5 @@
 [Unit]
-Description=LibreScoot UMS Service
+Description=Librescoot UMS Service
 Requires=redis.service
 After=redis.service
 After=librescoot-vehicle.service
