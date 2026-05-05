@@ -68,6 +68,7 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     ums-service \
     settings-service \
     alarm-service \
+    motion-service \
     data-server \
     uplink-service \
     lsc \
