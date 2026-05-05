@@ -2,7 +2,7 @@ From: Teal Bauer <teal@starsong.eu>
 Date: Mon, 24 Mar 2026 00:00:00 +0100
 Subject: [PATCH] leds: lp5562: initialize LED to amber at boot
 
-The LP5662 was previously initialized to green during driver probe.
+The LP5562 was previously initialized to green during driver probe.
 Switch to amber so userland can set green to indicate boot completion.
 
 Upstream-Status: Inappropriate [device-specific]
