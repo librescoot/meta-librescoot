@@ -1,12 +1,11 @@
 [Unit]
 Description=LibreScoot Alarm Service
-After=redis.service librescoot-vehicle.service librescoot-settings.service
-Wants=redis.service
+After=redis.service librescoot-vehicle.service librescoot-settings.service librescoot-motion.service
+Wants=redis.service librescoot-motion.service
 
 [Service]
 Type=simple
 ExecStart=/usr/bin/alarm-service \
-    --i2c-bus=/dev/i2c-3 \
     --redis=localhost:6379 \
     --log-level=info
 Restart=always

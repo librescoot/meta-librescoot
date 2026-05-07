@@ -20,11 +20,7 @@ GOBUILDFLAGS:remove = "-buildmode=pie"
 FILES:${PN} += "/usr/lib/systemd/system/librescoot-motion.service"
 
 SYSTEMD_SERVICE:${PN} = "librescoot-motion.service"
-# Disabled by default — motion-service currently shares /dev/i2c-3 with
-# alarm-service. Enable explicitly (`systemctl enable librescoot-motion`)
-# after stopping alarm-service for testing. The Phase 4 alarm-service
-# slim will let both run concurrently, at which point this flips to enable.
-SYSTEMD_AUTO_ENABLE:${PN} = "disable"
+SYSTEMD_AUTO_ENABLE:${PN} = "enable"
 
 do_install() {
     install -d ${D}${bindir}
