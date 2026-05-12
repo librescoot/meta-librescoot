@@ -4,7 +4,7 @@ Requires=redis.service
 After=redis.service
 
 [Service]
-Type=idle
+Type=simple
 User=root
 Group=root
 Nice=-10

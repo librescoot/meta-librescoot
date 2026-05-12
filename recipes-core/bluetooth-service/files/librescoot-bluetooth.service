@@ -2,11 +2,9 @@
 Description=Librescoot Bluetooth Service
 Requires=redis.service
 After=redis.service
-After=librescoot-vehicle.service
-After=librescoot-alarm.service
 
 [Service]
-Type=idle
+Type=simple
 User=root
 Group=root
 ExecStart=/usr/bin/bluetooth-service

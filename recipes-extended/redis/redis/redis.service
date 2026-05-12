@@ -1,14 +1,11 @@
 [Unit]
 Description=Redis In-Memory Data Store
-After=network.target
-Wants=network.target
 
 [Service]
 User=redis
 Group=redis
 Nice=-10
 ExecStart=/usr/bin/redis-server /etc/redis/redis.conf
-ExecStartPost=sleep 1
 ExecStop=/usr/bin/redis-cli shutdown
 Restart=always
 LimitNOFILE=10032
