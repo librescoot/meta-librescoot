@@ -1,4 +1,4 @@
-SUMMARY = "LibreScoot Motion Service (BMX055 IMU)"
+SUMMARY = "Librescoot Motion Service (BMX055 IMU)"
 HOMEPAGE = "https://github.com/librescoot/motion-service"
 LICENSE = "CC-BY-NC-SA-4.0"
 LIC_FILES_CHKSUM = "file://src/github.com/librescoot/motion-service/LICENSE;md5=fb5d051e53001fdff7fec0f368f47190"
