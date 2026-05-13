@@ -2,6 +2,7 @@
 Description=LibreScoot Settings Service
 Requires=redis.service
 After=redis.service
+Wants=NetworkManager.service
 Before=librescoot-vehicle.service
 
 [Service]
