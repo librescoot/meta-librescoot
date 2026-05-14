@@ -1,0 +1,14 @@
+[Unit]
+Description=Apply fresh-flash gating
+ConditionPathExists=/data/.fresh-flash
+RequiresMountsFor=/data
+After=redis.service librescoot-settings.service librescoot-vehicle.service
+Before=librescoot-keycard.service librescoot-alarm.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/lib/librescoot-fresh-flash-init/librescoot-fresh-flash-init.sh
+
+[Install]
+WantedBy=multi-user.target

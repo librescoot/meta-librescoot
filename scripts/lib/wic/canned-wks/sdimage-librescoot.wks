@@ -2,4 +2,4 @@ part u-boot --source rawcopy --sourceparams="file=u-boot-dtb.imx" --ondisk mmcbl
 part /boot --source bootimg-partition --ondisk mmcblk --fstype=vfat --label boot --align 4096 --size 32M
 part / --source rootfs --ondisk mmcblk --fstype=ext4 --label rootfs-A --align 4096 --size 512M
 part --source rootfs --ondisk mmcblk --fstype=ext4 --label rootfs-B --align 4096 --size 512M
-part /data --ondisk mmcblk --fstype=ext4 --label data --align 4096 --size 256M
+part /data --source rootfs --rootfs-dir=${WORKDIR}/data-overlay --ondisk mmcblk --fstype=ext4 --label data --align 4096 --size 256M
