@@ -33,6 +33,8 @@ SRC_URI:append = " file://fades/fade7-brake-full-to-half"
 SRC_URI:append = " file://fades/fade8-drive-light-off"
 SRC_URI:append = " file://fades/fade9-brake-dim-off"
 SRC_URI:append = " file://fades/fade10-blink"
+SRC_URI:append = " file://fades/fade11-licence-on"
+SRC_URI:append = " file://fades/fade12-licence-off"
 
 SRCREV = "${AUTOREV}"
 
@@ -89,6 +91,8 @@ do_install() {
     install -m 0644 ${WORKDIR}/fades/fade8-drive-light-off ${D}${CURVE_DIR}/fades/
     install -m 0644 ${WORKDIR}/fades/fade9-brake-dim-off ${D}${CURVE_DIR}/fades/
     install -m 0644 ${WORKDIR}/fades/fade10-blink ${D}${CURVE_DIR}/fades/
+    install -m 0644 ${WORKDIR}/fades/fade11-licence-on ${D}${CURVE_DIR}/fades/
+    install -m 0644 ${WORKDIR}/fades/fade12-licence-off ${D}${CURVE_DIR}/fades/
 
     install -m 0644 ${WORKDIR}/librescoot-vehicle.service ${D}${systemd_system_unitdir}
 }
