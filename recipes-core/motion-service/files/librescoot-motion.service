@@ -1,6 +1,6 @@
 [Unit]
 Description=Librescoot Motion Service (BMX055 IMU)
-After=network.target redis.service
+After=redis.service
 Wants=redis.service
 
 [Service]
