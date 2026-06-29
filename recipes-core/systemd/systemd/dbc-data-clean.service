@@ -1,0 +1,24 @@
+[Unit]
+Description=Release journald from /data and sync before unmount
+# Runs unconditionally so the shutdown-time relinquish fires whenever journald
+# is using /data, regardless of how persistence got enabled (marker, a stray
+# /var/log/journal symlink, or Storage=persistent). journald is the one holder
+# that stays alive through the whole stop transaction and pins /data; without
+# releasing it the data.mount unmount fails and ext4 recovers the journal on
+# every boot. RequiresMountsFor=/data orders this unit's stop before the /data
+# unmount, so ExecStop runs while /data is still mounted.
+DefaultDependencies=no
+After=data.mount
+RequiresMountsFor=/data
+Before=umount.target shutdown.target
+Conflicts=shutdown.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/bin/true
+ExecStop=-/usr/bin/journalctl --relinquish-var
+ExecStop=-/bin/sync
+
+[Install]
+WantedBy=sysinit.target
