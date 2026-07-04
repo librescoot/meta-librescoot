@@ -3,7 +3,7 @@ Description=ScootUI Qt Application
 Documentation=https://github.com/librescoot/scootui-qt
 DefaultDependencies=no
 
-After=systemd-networkd.service systemd-journald.socket
+After=systemd-journald.socket
 Wants=systemd-networkd.service
 Conflicts=scootui.service shutdown.target
 Before=shutdown.target
