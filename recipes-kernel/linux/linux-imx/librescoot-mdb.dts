@@ -1321,6 +1321,10 @@
 				pinctrl-names = "default";
 				pinctrl-0 = <0x35>;
 				uart-has-rtscts;
+				/* SDMA RX/TX for the nRF52 link at 1 Mbaud (UART2 events 27/28,
+				   peripheral type 4 = UART, priority 0; matches imx6ul.dtsi) */
+				dmas = <0x0c 27 4 0>, <0x0c 28 4 0>;
+				dma-names = "rx", "tx";
 			};
 
 			serial@21ec000 {
