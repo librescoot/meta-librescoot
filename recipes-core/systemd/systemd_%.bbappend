@@ -68,7 +68,7 @@ do_install:append:unu-dbc() {
     # unmount fails and ext4 recovers the journal on every boot. This unit
     # relinquishes journald from /data on stop, before the unmount. Enabled via
     # a static sysinit.target.wants symlink so it runs unconditionally.
-    install -m 0644 ${WORKDIR}/dbc-data-clean.service \
+    install -m 0644 ${UNPACKDIR}/dbc-data-clean.service \
         ${D}${systemd_unitdir}/system/dbc-data-clean.service
     install -d ${D}${systemd_unitdir}/system/sysinit.target.wants
     ln -sf ../dbc-data-clean.service \
