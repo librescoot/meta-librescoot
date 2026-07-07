@@ -15,7 +15,10 @@ BAD_RECOMMENDATIONS += "busybox-syslog"
 # rootfs slot B.
 
 IMAGE_FEATURES += " \
-    debug-tweaks \
+    allow-empty-password \
+    allow-root-login \
+    empty-root-password \
+    post-install-logging \
     ssh-server-dropbear \
 "
 
