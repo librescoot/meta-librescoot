@@ -10,8 +10,6 @@ SRC_URI = " \
     file://scootui-drm-holder.service \
 "
 
-S = "${WORKDIR}"
-
 COMPATIBLE_MACHINE = "unu-dbc"
 
 inherit systemd
@@ -19,8 +17,10 @@ inherit systemd
 SYSTEMD_SERVICE:${PN} = "scootui-drm-holder.service"
 SYSTEMD_AUTO_ENABLE:${PN} = "disable"
 
+S = "${UNPACKDIR}"
+
 do_compile() {
-    ${CC} ${CFLAGS} ${LDFLAGS} -Os -o ${B}/drm-holder ${S}/drm-holder.c
+    ${CC} ${CFLAGS} ${LDFLAGS} -Os -o ${B}/drm-holder ${UNPACKDIR}/drm-holder.c
 }
 
 do_install() {
@@ -28,7 +28,7 @@ do_install() {
     install -m 0755 ${B}/drm-holder ${D}${bindir}/drm-holder
 
     install -d ${D}${systemd_system_unitdir}
-    install -m 0644 ${WORKDIR}/scootui-drm-holder.service ${D}${systemd_system_unitdir}/
+    install -m 0644 ${UNPACKDIR}/scootui-drm-holder.service ${D}${systemd_system_unitdir}/
 }
 
 FILES:${PN} += "${systemd_system_unitdir}/scootui-drm-holder.service"

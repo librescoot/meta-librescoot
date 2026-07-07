@@ -3,6 +3,7 @@ From: Danylo Storozhev <office@storozhev.net>
 Date: Sun, 9 Feb 2025 09:06:28 +0100
 Subject: [PATCH] hack out i2c error counter
 
+Upstream-Status: Pending
 ---
  src/halimpl/pn54x/tml/i2c/phTmlNfc.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)

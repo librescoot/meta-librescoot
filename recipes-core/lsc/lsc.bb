@@ -3,13 +3,12 @@ HOMEPAGE = "https://github.com/librescoot/lsc"
 LICENSE = "CC-BY-NC-4.0"
 LIC_FILES_CHKSUM = "file://src/lsc/LICENSE;md5=fb5d051e53001fdff7fec0f368f47190"
 
-SRC_URI = "git://github.com/librescoot/lsc.git;protocol=https;branch=main \
+SRC_URI = "git://github.com/librescoot/lsc.git;protocol=https;branch=main;destsuffix=${GO_SRCURI_DESTSUFFIX} \
            file://lsc-completion.sh \
 "
 
 SRCREV = "${AUTOREV}"
 
-S = "${WORKDIR}/git"
 
 inherit librescoot-go
 
@@ -29,5 +28,5 @@ do_install() {
     install -m 0755 ${B}/bin/linux_arm/lsc ${D}${bindir}/
 
     install -d ${D}${sysconfdir}/profile.d
-    install -m 0644 ${WORKDIR}/lsc-completion.sh ${D}${sysconfdir}/profile.d/lsc-completion.sh
+    install -m 0644 ${UNPACKDIR}/lsc-completion.sh ${D}${sysconfdir}/profile.d/lsc-completion.sh
 }

@@ -3,6 +3,7 @@ From: Danylo Storozhev <daniel@storozhev.net>
 Date: Tue, 7 Jan 2025 12:58:36 +0000
 Subject: [PATCH] add kernel_addr_r
 
+Upstream-Status: Pending
 ---
  include/configs/mx6sabre_common.h | 1 +
  1 file changed, 1 insertion(+)

@@ -24,6 +24,7 @@ Suggested-by: Fangrui Song <maskray@google.com>
 Suggested-by: Jian Cai <jiancai@google.com>
 Suggested-by: Peter Smith <peter.smith@linaro.org>
 Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
+Upstream-Status: Pending
 ---
  arch/arm/boot/bootp/init.S            | 2 +-
  arch/arm/boot/compressed/big-endian.S | 2 +-

@@ -4,11 +4,9 @@ LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda
 
 SRC_URI = " file://99-mdb-modem.rules"
 
-S = "${WORKDIR}"
-
 FILES:${PN} = "/etc/udev/rules.d/99-mdb-modem.rules"
 
 do_install () {
 	install -d ${D}${sysconfdir}/udev/rules.d
-	install -m 0644 ${WORKDIR}/99-mdb-modem.rules ${D}${sysconfdir}/udev/rules.d/
+	install -m 0644 ${UNPACKDIR}/99-mdb-modem.rules ${D}${sysconfdir}/udev/rules.d/
 }

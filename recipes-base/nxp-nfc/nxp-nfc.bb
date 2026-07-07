@@ -15,7 +15,6 @@ RDEPENDS:${PN} += "bash"
 
 inherit autotools pkgconfig
 
-S = "${WORKDIR}/git"
 
 FILES:${PN} = "/usr/lib/libnfc_nci_linux-1.so.0"
 FILES:${PN} += "/usr/lib/libnfc_nci_linux-1.so.0.0.0"

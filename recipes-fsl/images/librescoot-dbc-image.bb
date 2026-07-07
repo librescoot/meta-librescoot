@@ -10,7 +10,10 @@ PLATFORM_FLAVOR    = "mx6qsabresd"
 BAD_RECOMMENDATIONS += "busybox-syslog"
 
 IMAGE_FEATURES += " \
-    debug-tweaks \
+    allow-empty-password \
+    allow-root-login \
+    empty-root-password \
+    post-install-logging \
     ssh-server-dropbear \
     hwcodecs \
 "

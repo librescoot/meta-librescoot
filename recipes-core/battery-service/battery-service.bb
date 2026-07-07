@@ -3,12 +3,11 @@ HOMEPAGE = "https://github.com/librescoot/battery-service"
 LICENSE = "CC-BY-NC-SA-4.0"
 LIC_FILES_CHKSUM = "file://src/battery-service/LICENSE;md5=fb5d051e53001fdff7fec0f368f47190"
 
-SRC_URI = "git://github.com/librescoot/battery-service.git;protocol=https;branch=main"
+SRC_URI = "git://github.com/librescoot/battery-service.git;protocol=https;branch=main;destsuffix=${GO_SRCURI_DESTSUFFIX}"
 SRC_URI += " file://librescoot-battery.service"
 
 SRCREV = "${AUTOREV}"
 
-S = "${WORKDIR}/git"
 
 inherit librescoot-go systemd
 
@@ -27,6 +26,6 @@ do_install() {
     install -d ${D}${systemd_system_unitdir}
 
     install -m 0755 ${B}/bin/linux_arm/battery-service ${D}${bindir}/
-    install -m 0644 ${WORKDIR}/librescoot-battery.service ${D}${systemd_system_unitdir}
+    install -m 0644 ${UNPACKDIR}/librescoot-battery.service ${D}${systemd_system_unitdir}
 }
 

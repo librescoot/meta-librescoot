@@ -3,6 +3,7 @@ From: Danylo Storozhev <daniel@storozhev.net>
 Date: Tue, 7 Jan 2025 11:28:28 +0000
 Subject: [PATCH] add SPI and FIT compat to configs
 
+Upstream-Status: Pending
 ---
  configs/mx6solosabresd_defconfig | 4 +++-
  include/configs/mx6sabresd.h     | 5 +++++

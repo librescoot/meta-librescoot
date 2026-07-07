@@ -12,7 +12,7 @@ i.MX Family Reference Boards. It includes support for many IPs such as GPU, VPU 
 
 require recipes-kernel/linux/linux-imx.inc
 
-LICENSE = "GPLv2"
+LICENSE = "GPL-2.0-only"
 LIC_FILES_CHKSUM = "file://COPYING;md5=bbea815ee2795b2f4230826c0c6b8814"
 
 DEPENDS += "lzop-native bc-native"
@@ -52,13 +52,13 @@ DEFAULT_PREFERENCE = "1"
 COMPATIBLE_MACHINE = "(mx6|mx7|mx8)"
 
 KERNEL_CONFIG_FRAGMENTS:append:unu-mdb = " \
-    ${WORKDIR}/config-iotop.cfg \
-    ${WORKDIR}/config-bmx055.cfg \
-    ${WORKDIR}/config-ramoops.cfg \
-    ${WORKDIR}/config-random-seed.cfg \
+    ${UNPACKDIR}/config-iotop.cfg \
+    ${UNPACKDIR}/config-bmx055.cfg \
+    ${UNPACKDIR}/config-ramoops.cfg \
+    ${UNPACKDIR}/config-random-seed.cfg \
 "
 
 do_compile:prepend() {
     DTS=`basename ${KERNEL_DEVICETREE} .dtb`
-    cp ${WORKDIR}/${DTS}.dts ${S}/arch/${ARCH}/boot/dts/
+    cp ${UNPACKDIR}/${DTS}.dts ${S}/arch/${ARCH}/boot/dts/
 }

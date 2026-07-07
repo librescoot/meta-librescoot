@@ -7,12 +7,11 @@ LIC_FILES_CHKSUM = "file://src/github.com/librescoot/scootui-tui/LICENSE;md5=444
 SCOOTUI_TUI_BRANCH ??= "main"
 SCOOTUI_TUI_SRCREV ??= "${AUTOREV}"
 SRCREV = "${SCOOTUI_TUI_SRCREV}"
-SRC_URI = "git://github.com/librescoot/scootui-tui.git;branch=${SCOOTUI_TUI_BRANCH};protocol=https"
+SRC_URI = "git://github.com/librescoot/scootui-tui.git;branch=${SCOOTUI_TUI_BRANCH};protocol=https;destsuffix=${GO_SRCURI_DESTSUFFIX}"
 SRC_URI += " file://scootui-tui.service"
 
 PV = "1.0.0+git"
 
-S = "${WORKDIR}/git"
 
 inherit librescoot-go systemd
 
@@ -35,5 +34,5 @@ do_install() {
     install -d ${D}${systemd_system_unitdir}
 
     install -m 0755 ${B}/bin/linux_arm/scootui-tui ${D}${bindir}/scootui-tui
-    install -m 0644 ${WORKDIR}/scootui-tui.service ${D}${systemd_system_unitdir}
+    install -m 0644 ${UNPACKDIR}/scootui-tui.service ${D}${systemd_system_unitdir}
 }

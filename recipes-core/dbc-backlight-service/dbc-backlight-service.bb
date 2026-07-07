@@ -3,12 +3,11 @@ HOMEPAGE = "https://github.com/librescoot/dbc-backlight-service"
 LICENSE = "CC-BY-NC-SA-4.0"
 LIC_FILES_CHKSUM = "file://src/github.com/librescoot/dbc-backlight-service/LICENSE;md5=136c671dba2d2f644b882e31c3e289e8"
 
-SRC_URI = "git://github.com/librescoot/dbc-backlight-service.git;protocol=https;branch=main"
+SRC_URI = "git://github.com/librescoot/dbc-backlight-service.git;protocol=https;branch=main;destsuffix=${GO_SRCURI_DESTSUFFIX}"
 SRC_URI += " file://librescoot-backlight.service"
 
 SRCREV = "${AUTOREV}"
 
-S = "${WORKDIR}/git"
 
 inherit librescoot-go systemd
 
@@ -31,5 +30,5 @@ do_install() {
     install -d ${D}${systemd_system_unitdir}
 
     install -m 0755 ${B}/bin/linux_arm/backlight-service ${D}${bindir}/backlight-service
-    install -m 0644 ${WORKDIR}/librescoot-backlight.service ${D}${systemd_system_unitdir}
+    install -m 0644 ${UNPACKDIR}/librescoot-backlight.service ${D}${systemd_system_unitdir}
 }

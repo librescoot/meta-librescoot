@@ -17,7 +17,6 @@ SRC_URI += "file://scootui-qt-kms.json"
 
 PV = "1.0.0+git${SRCPV}"
 PE = "1"
-S = "${WORKDIR}/git"
 
 inherit cmake qt6-cmake pkgconfig systemd
 
@@ -57,14 +56,14 @@ SYSTEMD_AUTO_ENABLE:${PN} = "disable"
 
 do_install:append:unu-dbc() {
     install -d ${D}${systemd_system_unitdir}
-    install -m 0644 ${WORKDIR}/scootui-qt.service ${D}${systemd_system_unitdir}/
+    install -m 0644 ${UNPACKDIR}/scootui-qt.service ${D}${systemd_system_unitdir}/
     install -d ${D}${sysconfdir}
-    install -m 0644 ${WORKDIR}/scootui-qt-kms.json ${D}${sysconfdir}/
+    install -m 0644 ${UNPACKDIR}/scootui-qt-kms.json ${D}${sysconfdir}/
 }
 
 do_install:append:librescoot-dbc-rpi4() {
     install -d ${D}${systemd_system_unitdir}
-    install -m 0644 ${WORKDIR}/scootui-qt-rpi4.service ${D}${systemd_system_unitdir}/scootui-qt.service
+    install -m 0644 ${UNPACKDIR}/scootui-qt-rpi4.service ${D}${systemd_system_unitdir}/scootui-qt.service
 }
 
 FILES:${PN} = " \

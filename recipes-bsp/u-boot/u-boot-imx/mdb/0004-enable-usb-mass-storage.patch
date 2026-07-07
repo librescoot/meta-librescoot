@@ -3,6 +3,7 @@ From: Danylo Storozhev <office@storozhev.net>
 Date: Mon, 14 Oct 2024 08:52:34 +0000
 Subject: [PATCH] enable usb mass storage
 
+Upstream-Status: Pending
 ---
  configs/mx6ul_14x14_evk_defconfig | 19 ++++++++++---------
  1 file changed, 10 insertions(+), 9 deletions(-)

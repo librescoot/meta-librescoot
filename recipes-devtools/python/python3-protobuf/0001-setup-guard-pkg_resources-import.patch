@@ -1,0 +1,18 @@
+Upstream-Status: Inappropriate [pkg_resources was removed from setuptools >= 81;
+ this old protobuf only uses it inside a macOS-only branch, never hit on a Linux
+ cross-build, so guarding the import is sufficient.]
+
+--- a/setup.py
++++ b/setup.py
+@@ -5,7 +5,10 @@
+ import fnmatch
+ import glob
+ import os
+-import pkg_resources
++try:
++    import pkg_resources
++except ImportError:  # pkg_resources removed in setuptools >= 81
++    pkg_resources = None
+ import re
+ import subprocess
+ import sys

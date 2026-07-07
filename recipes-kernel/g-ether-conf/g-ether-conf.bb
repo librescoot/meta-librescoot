@@ -7,5 +7,5 @@ SRC_URI = "file://g_ether.conf"
 
 do_install() {
     install -d ${D}${sysconfdir}/modprobe.d
-    install -m 0644 ${WORKDIR}/g_ether.conf ${D}${sysconfdir}/modprobe.d/
+    install -m 0644 ${UNPACKDIR}/g_ether.conf ${D}${sysconfdir}/modprobe.d/
 }

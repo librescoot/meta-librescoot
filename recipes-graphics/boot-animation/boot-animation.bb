@@ -17,7 +17,6 @@ SRC_URI += " \
 SRCREV = "${AUTOREV}"
 PV = "0.1.0+git"
 
-S = "${WORKDIR}/git"
 
 DEPENDS = "thorvg"
 
@@ -39,18 +38,18 @@ do_install() {
     install -m 0755 ${B}/boot-animation ${D}${bindir}/boot-animation
 
     install -d ${D}${libexecdir}/librescoot
-    install -m 0755 ${WORKDIR}/boot-animation-launch.sh ${D}${libexecdir}/librescoot/boot-animation-launch.sh
+    install -m 0755 ${UNPACKDIR}/boot-animation-launch.sh ${D}${libexecdir}/librescoot/boot-animation-launch.sh
 
     install -d ${D}${datadir}/boot-animation
-    install -m 0644 ${WORKDIR}/librescoot.json ${D}${datadir}/boot-animation/
-    install -m 0644 ${WORKDIR}/windowsxp.json ${D}${datadir}/boot-animation/
+    install -m 0644 ${UNPACKDIR}/librescoot.json ${D}${datadir}/boot-animation/
+    install -m 0644 ${UNPACKDIR}/windowsxp.json ${D}${datadir}/boot-animation/
 
     install -d ${D}${systemd_system_unitdir}
-    install -m 0644 ${WORKDIR}/boot-animation.service ${D}${systemd_system_unitdir}/
+    install -m 0644 ${UNPACKDIR}/boot-animation.service ${D}${systemd_system_unitdir}/
 
     # dbc-dispatcher should wait for boot-animation to signal ready
     install -d ${D}${sysconfdir}/systemd/system/dbc-dispatcher.service.d
-    install -m 0644 ${WORKDIR}/dbc-dispatcher-after-boot-animation.conf \
+    install -m 0644 ${UNPACKDIR}/dbc-dispatcher-after-boot-animation.conf \
         ${D}${sysconfdir}/systemd/system/dbc-dispatcher.service.d/after-boot-animation.conf
 
     # Mask getty on tty1 to prevent console flash
@@ -58,7 +57,7 @@ do_install() {
 
     # Reduce shutdown timeout for cleaner poweroff
     install -d ${D}${sysconfdir}/systemd/system.conf.d
-    install -m 0644 ${WORKDIR}/00-shutdown-timeout.conf \
+    install -m 0644 ${UNPACKDIR}/00-shutdown-timeout.conf \
         ${D}${sysconfdir}/systemd/system.conf.d/00-shutdown-timeout.conf
 }
 

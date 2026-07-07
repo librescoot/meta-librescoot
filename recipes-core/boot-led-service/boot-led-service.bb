@@ -14,6 +14,6 @@ SYSTEMD_AUTO_ENABLE:${PN} = "enable"
 do_install() {
     install -d ${D}${bindir}
     install -d ${D}${systemd_system_unitdir}
-    install -m 0755 ${WORKDIR}/set-dbc-led ${D}${bindir}/
-    install -m 0644 ${WORKDIR}/librescoot-boot-led.service ${D}${systemd_system_unitdir}
+    install -m 0755 ${UNPACKDIR}/set-dbc-led ${D}${bindir}/
+    install -m 0644 ${UNPACKDIR}/librescoot-boot-led.service ${D}${systemd_system_unitdir}
 }

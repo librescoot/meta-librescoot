@@ -9,9 +9,9 @@ do_install:append() {
     install -d ${D}${sysconfdir}/sysctl.d/
     install -d ${D}${systemd_system_unitdir}
 
-    install -m 0644 ${WORKDIR}/redis.conf ${D}${sysconfdir}/redis/redis.conf
-    install -m 0644 ${WORKDIR}/redis-sysctl.conf ${D}${sysconfdir}/sysctl.d/redis-sysctl.conf
-    install -m 0644 ${WORKDIR}/redis.service ${D}${systemd_system_unitdir}
+    install -m 0644 ${UNPACKDIR}/redis.conf ${D}${sysconfdir}/redis/redis.conf
+    install -m 0644 ${UNPACKDIR}/redis-sysctl.conf ${D}${sysconfdir}/sysctl.d/redis-sysctl.conf
+    install -m 0644 ${UNPACKDIR}/redis.service ${D}${systemd_system_unitdir}
 }
 
 SYSTEMD_AUTO_ENABLE:${PN}:unu-dbc = "disable"

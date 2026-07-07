@@ -7,6 +7,7 @@ LIC_FILES_CHKSUM = "file://PKG-INFO;beginline=8;endline=8;md5=19e8f490f9526b1de8
 
 inherit pypi setuptools3
 
+SRC_URI += "file://0001-setup-guard-pkg_resources-import.patch"
 SRC_URI[sha256sum] = "72804ea5eaa9c22a090d2803813e280fb273b62d5ae497aaf3553d141c4fdd7b"
 
 # http://errors.yoctoproject.org/Errors/Details/184715/

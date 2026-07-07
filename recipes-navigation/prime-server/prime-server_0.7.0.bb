@@ -8,7 +8,6 @@ SRC_URI = "gitsm://github.com/kevinkreiser/prime_server.git;protocol=https;branc
 SRC_URI += "file://m4.patch"
 SRCREV = "4508553b2dd29fadfafcc7c766aa6e9b94455fcb"
 
-S = "${WORKDIR}/git"
 
 DEPENDS = " \
     cmake-native \

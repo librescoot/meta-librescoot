@@ -7,7 +7,7 @@ SRC_URI[sha256sum] = "1544c0110bf0a697d875d4f29dc40d7079f9d4d402a9317383f55f90ca
 
 inherit pypi setuptools3
 
-S = "${WORKDIR}/crccheck-${PV}"
+S = "${UNPACKDIR}/crccheck-${PV}"
 
 do_configure:prepend() {
 cat > ${S}/setup.py <<-EOF

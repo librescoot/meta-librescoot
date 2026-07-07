@@ -1,13 +1,12 @@
 SUMMARY = "Librescoot Power Management Service"
 HOMEPAGE = "https://github.com/librescoot/pm-service"
-LICENSE = "AGPL-3.0"
+LICENSE = "AGPL-3.0-only"
 LIC_FILES_CHKSUM = "file://src/github.com/librescoot/pm-service/LICENSE;md5=eb1e647870add0502f8f010b19de32af"
 
-SRC_URI = "git://github.com/librescoot/pm-service.git;protocol=https;branch=main"
+SRC_URI = "git://github.com/librescoot/pm-service.git;protocol=https;branch=main;destsuffix=${GO_SRCURI_DESTSUFFIX}"
 
 SRCREV = "${AUTOREV}"
 
-S = "${WORKDIR}/git"
 
 inherit librescoot-go systemd
 

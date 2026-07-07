@@ -3,6 +3,7 @@ From: Danylo Storozhev <office@storozhev.net>
 Date: Fri, 23 May 2025 16:50:46 +0200
 Subject: [PATCH 1/2] remove redundant target
 
+Upstream-Status: Pending
 ---
  src/CMakeLists.txt | 6 ------
  1 file changed, 6 deletions(-)

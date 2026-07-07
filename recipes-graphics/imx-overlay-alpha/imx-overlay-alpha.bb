@@ -6,10 +6,10 @@ LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda
 
 SRC_URI = "file://imx-overlay-alpha.c"
 
-S = "${WORKDIR}"
+S = "${UNPACKDIR}"
 
 do_compile() {
-    ${CC} ${CFLAGS} ${LDFLAGS} -o ${B}/imx-overlay-alpha ${S}/imx-overlay-alpha.c
+    ${CC} ${CFLAGS} ${LDFLAGS} -o ${B}/imx-overlay-alpha ${UNPACKDIR}/imx-overlay-alpha.c
 }
 
 do_install() {

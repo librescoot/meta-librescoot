@@ -3,14 +3,13 @@ HOMEPAGE = "https://github.com/librescoot/carplay-service"
 LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://src/github.com/mzyy94/gocarplay/LICENSE;md5=6560d1f6d5f413db4997dffd12eed3ce"
 
-SRC_URI = "git://github.com/librescoot/carplay-service.git;protocol=https;branch=master"
+SRC_URI = "git://github.com/librescoot/carplay-service.git;protocol=https;branch=master;destsuffix=${GO_SRCURI_DESTSUFFIX}"
 SRC_URI += "file://librescoot-carplay.service"
 
 SRCREV = "${AUTOREV}"
 
 DEPENDS += "libusb"
 
-S = "${WORKDIR}/git"
 
 inherit librescoot-go systemd pkgconfig
 
@@ -34,5 +33,5 @@ do_install() {
 
 do_install:append:librescoot-dbc-rpi4() {
     install -d ${D}${systemd_system_unitdir}
-    install -m 0644 ${WORKDIR}/librescoot-carplay.service ${D}${systemd_system_unitdir}/librescoot-carplay.service
+    install -m 0644 ${UNPACKDIR}/librescoot-carplay.service ${D}${systemd_system_unitdir}/librescoot-carplay.service
 }

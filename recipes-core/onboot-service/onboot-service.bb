@@ -10,5 +10,5 @@ SYSTEMD_AUTO_ENABLE:${PN} = "enable"
 
 do_install() {
     install -d ${D}${systemd_system_unitdir}
-    install -m 0644 ${WORKDIR}/librescoot-onboot.service ${D}${systemd_system_unitdir}
+    install -m 0644 ${UNPACKDIR}/librescoot-onboot.service ${D}${systemd_system_unitdir}
 }

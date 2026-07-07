@@ -5,7 +5,7 @@ PACKAGECONFIG:remove:pn-systemd = "timesyncd"
 PACKAGECONFIG:remove:pn-systemd:unu-dbc = "logind"
 PACKAGECONFIG:remove:pn-systemd:librescoot-dbc-rpi4 = "logind"
 
-PACKAGECONFIG:append:pn-systemd = " journal-upload microhttpd gnutls pstore"
+PACKAGECONFIG:append:pn-systemd = " journal-upload microhttpd openssl pstore"
 
 FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 
@@ -22,35 +22,35 @@ SRC_URI:append:unu-dbc = " file://99-etnaviv-no-autosuspend.rules"
 
 do_install:append() {
     install -d ${D}${sysconfdir}/systemd
-    install -m 0644 ${WORKDIR}/journald.conf ${D}${sysconfdir}/systemd/journald.conf
-    install -m 0644 ${WORKDIR}/journal-upload.conf ${D}${sysconfdir}/systemd/journal-upload.conf
+    install -m 0644 ${UNPACKDIR}/journald.conf ${D}${sysconfdir}/systemd/journald.conf
+    install -m 0644 ${UNPACKDIR}/journal-upload.conf ${D}${sysconfdir}/systemd/journal-upload.conf
 
     # Override the default 00-create-volatile.conf to avoid duplicate /run/lock
-    install -m 0644 ${WORKDIR}/00-create-volatile.conf ${D}${libdir}/tmpfiles.d/00-create-volatile.conf
+    install -m 0644 ${UNPACKDIR}/00-create-volatile.conf ${D}${libdir}/tmpfiles.d/00-create-volatile.conf
 
     # Override stock /usr/lib/tmpfiles.d/{var,tmp}.conf via /etc so the 'd /var/log'
     # and 'q /var/tmp' entries don't error out on our volatile/ symlinks.
     install -d ${D}${sysconfdir}/tmpfiles.d
-    install -m 0644 ${WORKDIR}/var.conf ${D}${sysconfdir}/tmpfiles.d/var.conf
-    install -m 0644 ${WORKDIR}/tmp.conf ${D}${sysconfdir}/tmpfiles.d/tmp.conf
+    install -m 0644 ${UNPACKDIR}/var.conf ${D}${sysconfdir}/tmpfiles.d/var.conf
+    install -m 0644 ${UNPACKDIR}/tmp.conf ${D}${sysconfdir}/tmpfiles.d/tmp.conf
 
     # Preset: auto-enable systemd-journal-upload.service at first boot
     install -d ${D}${systemd_unitdir}/system-preset
-    install -m 0644 ${WORKDIR}/90-journal-upload.preset ${D}${systemd_unitdir}/system-preset/90-journal-upload.preset
-    install -m 0644 ${WORKDIR}/90-journal-persistent.preset ${D}${systemd_unitdir}/system-preset/90-journal-persistent.preset
+    install -m 0644 ${UNPACKDIR}/90-journal-upload.preset ${D}${systemd_unitdir}/system-preset/90-journal-upload.preset
+    install -m 0644 ${UNPACKDIR}/90-journal-persistent.preset ${D}${systemd_unitdir}/system-preset/90-journal-persistent.preset
 
     # Drop-in: redirect journal-upload's state directory to tmpfs so the
     # cursor file doesn't wear out the eMMC. Lives under vendor
     # /usr/lib/systemd/system so admins can still override via /etc.
     install -d ${D}${systemd_unitdir}/system/systemd-journal-upload.service.d
-    install -m 0644 ${WORKDIR}/journal-upload-volatile-state.conf \
+    install -m 0644 ${UNPACKDIR}/journal-upload-volatile-state.conf \
         ${D}${systemd_unitdir}/system/systemd-journal-upload.service.d/volatile-state.conf
 
     # Opt-in persistent journal: when /data/settings/journald-persistent exists,
     # symlink /var/log/journal -> /data/journal so journald (Storage=auto)
     # persists logs to the data partition. No marker = volatile, no wear.
     install -d ${D}${systemd_unitdir}/system
-    install -m 0644 ${WORKDIR}/librescoot-journal-persistent.service \
+    install -m 0644 ${UNPACKDIR}/librescoot-journal-persistent.service \
         ${D}${systemd_unitdir}/system/librescoot-journal-persistent.service
 }
 
@@ -59,7 +59,7 @@ do_install:append() {
 # the same files the (unused) eudev bbappend was trying to clean up.
 do_install:append:unu-dbc() {
     install -d ${D}${sysconfdir}/udev/rules.d
-    install -m 0644 ${WORKDIR}/99-etnaviv-no-autosuspend.rules \
+    install -m 0644 ${UNPACKDIR}/99-etnaviv-no-autosuspend.rules \
         ${D}${sysconfdir}/udev/rules.d/
 
     # Power management (DBC is plugged into MDB, no battery)

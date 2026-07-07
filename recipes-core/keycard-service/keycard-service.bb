@@ -3,13 +3,12 @@ HOMEPAGE = "https://github.com/librescoot/keycard-service"
 LICENSE = "CC-BY-NC-4.0"
 LIC_FILES_CHKSUM = "file://src/keycard-service/LICENSE;md5=fb5d051e53001fdff7fec0f368f47190"
 
-SRC_URI = "git://github.com/librescoot/keycard-service.git;protocol=https;branch=main"
+SRC_URI = "git://github.com/librescoot/keycard-service.git;protocol=https;branch=main;destsuffix=${GO_SRCURI_DESTSUFFIX}"
 SRC_URI:append = " file://librescoot-keycard.service"
 SRC_URI:append = " file://ledcontrol.sh"
 
 SRCREV = "${AUTOREV}"
 
-S = "${WORKDIR}/git"
 
 inherit librescoot-go systemd
 
@@ -28,6 +27,6 @@ do_install() {
     install -d ${D}${systemd_system_unitdir}
 
     install -m 0755 ${B}/bin/linux_arm/keycard-service ${D}${bindir}/
-    install -m 0644 ${WORKDIR}/librescoot-keycard.service ${D}${systemd_system_unitdir}
-    install -m 0755 ${WORKDIR}/ledcontrol.sh ${D}${bindir}
+    install -m 0644 ${UNPACKDIR}/librescoot-keycard.service ${D}${systemd_system_unitdir}
+    install -m 0755 ${UNPACKDIR}/ledcontrol.sh ${D}${bindir}
 }

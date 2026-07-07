@@ -3,6 +3,7 @@ From: Danylo Storozhev <office@storozhev.net>
 Date: Mon, 14 Oct 2024 09:49:09 +0000
 Subject: [PATCH] mmc and usb
 
+Upstream-Status: Pending
 ---
  .../mx6ul_14x14_evk/mx6ul_14x14_evk.c         | 186 +-----------------
  include/configs/mx6ul_14x14_evk.h             |   2 +

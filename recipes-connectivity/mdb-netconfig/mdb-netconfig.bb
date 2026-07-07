@@ -20,12 +20,12 @@ do_install() {
     install -d ${D}${sbindir}
     install -d ${D}${systemd_system_unitdir}
 
-    install -m 0644 ${WORKDIR}/10-usb0.network ${D}/etc/systemd/network
-    install -m 0644 ${WORKDIR}/20-can0.network ${D}/etc/systemd/network
-    install -m 0644 ${WORKDIR}/30-end0.network ${D}/etc/systemd/network
-    install -m 0600 ${WORKDIR}/wwan.nmconnection ${D}/etc/NetworkManager/system-connections/
+    install -m 0644 ${UNPACKDIR}/10-usb0.network ${D}/etc/systemd/network
+    install -m 0644 ${UNPACKDIR}/20-can0.network ${D}/etc/systemd/network
+    install -m 0644 ${UNPACKDIR}/30-end0.network ${D}/etc/systemd/network
+    install -m 0600 ${UNPACKDIR}/wwan.nmconnection ${D}/etc/NetworkManager/system-connections/
     install -d ${D}/etc/NetworkManager/conf.d
-    install -m 0644 ${WORKDIR}/90-hostname.conf ${D}/etc/NetworkManager/conf.d/
-    install -m 0755 ${WORKDIR}/librescoot-netconfig.sh ${D}${sbindir}/librescoot-netconfig
-    install -m 0644 ${WORKDIR}/librescoot-netconfig.service ${D}${systemd_system_unitdir}
+    install -m 0644 ${UNPACKDIR}/90-hostname.conf ${D}/etc/NetworkManager/conf.d/
+    install -m 0755 ${UNPACKDIR}/librescoot-netconfig.sh ${D}${sbindir}/librescoot-netconfig
+    install -m 0644 ${UNPACKDIR}/librescoot-netconfig.service ${D}${systemd_system_unitdir}
 }

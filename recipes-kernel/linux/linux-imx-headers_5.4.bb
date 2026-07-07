@@ -4,7 +4,7 @@
 SUMMARY = "Installs i.MX-specific kernel headers"
 DESCRIPTION = "Installs i.MX-specific kernel headers to userspace. \
 New headers are installed in ${includedir}/imx."
-LICENSE = "GPLv2"
+LICENSE = "GPL-2.0-only"
 LIC_FILES_CHKSUM = "file://COPYING;md5=bbea815ee2795b2f4230826c0c6b8814"
 
 SRC_URI = "git://github.com/librescoot/linux-imx.git;protocol=https;branch=${SRCBRANCH}"
@@ -13,7 +13,6 @@ SRCBRANCH = "imx_5.4.24_2.1.0_unu"
 LOCALVERSION = "-2.1.0"
 SRCREV = "8115d570b280199956a10d5b8ce40ad1c880aa0b"
 
-S = "${WORKDIR}/git"
 
 do_configure[noexec] = "1"
 

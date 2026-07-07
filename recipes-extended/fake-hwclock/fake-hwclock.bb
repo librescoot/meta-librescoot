@@ -15,11 +15,11 @@ SYSTEMD_AUTO_ENABLE:${PN} = "enable"
 
 do_install() {
     install -d ${D}${sbindir}
-    install -m 0755 ${WORKDIR}/fake-hwclock ${D}${sbindir}/fake-hwclock
+    install -m 0755 ${UNPACKDIR}/fake-hwclock ${D}${sbindir}/fake-hwclock
 
     install -d ${D}${systemd_system_unitdir}
-    install -m 0644 ${WORKDIR}/fake-hwclock-load.service ${D}${systemd_system_unitdir}/
-    install -m 0644 ${WORKDIR}/fake-hwclock-save.service ${D}${systemd_system_unitdir}/
+    install -m 0644 ${UNPACKDIR}/fake-hwclock-load.service ${D}${systemd_system_unitdir}/
+    install -m 0644 ${UNPACKDIR}/fake-hwclock-save.service ${D}${systemd_system_unitdir}/
 }
 
 FILES:${PN} = " \

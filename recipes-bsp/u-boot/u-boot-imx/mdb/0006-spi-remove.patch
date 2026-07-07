@@ -3,6 +3,7 @@ From: Danylo Storozhev <office@storozhev.net>
 Date: Mon, 14 Oct 2024 09:01:32 +0000
 Subject: [PATCH] spi remove
 
+Upstream-Status: Pending
 ---
  include/configs/mx6ul_14x14_evk.h | 2 --
  1 file changed, 2 deletions(-)

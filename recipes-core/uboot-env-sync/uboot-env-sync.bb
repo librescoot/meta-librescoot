@@ -18,15 +18,15 @@ RDEPENDS:${PN} = "u-boot-fw-utils"
 
 do_install() {
     install -d ${D}${systemd_system_unitdir}
-    install -m 0644 ${WORKDIR}/uboot-env-sync.service ${D}${systemd_system_unitdir}
+    install -m 0644 ${UNPACKDIR}/uboot-env-sync.service ${D}${systemd_system_unitdir}
 
     install -d ${D}${libdir}/uboot-env-sync
-    install -m 0755 ${WORKDIR}/uboot-env-sync.sh ${D}${libdir}/uboot-env-sync/uboot-env-sync.sh
+    install -m 0755 ${UNPACKDIR}/uboot-env-sync.sh ${D}${libdir}/uboot-env-sync/uboot-env-sync.sh
 
     install -d ${D}${sysconfdir}/uboot-env.d
-    install -m 0644 ${WORKDIR}/identity.conf ${D}${sysconfdir}/uboot-env.d/identity.conf
-    if [ -f ${WORKDIR}/boot-animation.conf ]; then
-        install -m 0644 ${WORKDIR}/boot-animation.conf ${D}${sysconfdir}/uboot-env.d/boot-animation.conf
+    install -m 0644 ${UNPACKDIR}/identity.conf ${D}${sysconfdir}/uboot-env.d/identity.conf
+    if [ -f ${UNPACKDIR}/boot-animation.conf ]; then
+        install -m 0644 ${UNPACKDIR}/boot-animation.conf ${D}${sysconfdir}/uboot-env.d/boot-animation.conf
     fi
 }
 

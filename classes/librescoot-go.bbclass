@@ -8,6 +8,14 @@
 
 inherit go-mod
 
+# Lay out the go module under ${S}/src/${GO_IMPORT}. We must NOT let SRC_URI's
+# destsuffix depend on the git-derived PV: librescoot-go sets PV = "0.0+git${SRCPV}",
+# and the stock go.bbclass GO_SRCURI_DESTSUFFIX = basename(${S}) pulls S -> WORKDIR ->
+# PV -> SRCPV -> SRC_URI, a recursive loop. Anchor both S and the destsuffix on the
+# PV-free ${BPN} instead.
+S = "${UNPACKDIR}/${BPN}"
+GO_SRCURI_DESTSUFFIX = "${BPN}/src/${GO_IMPORT}/"
+
 # For PV, we use a git-based version from SRCPV
 SRCPV = "${@bb.fetch2.get_srcrev(d)}"
 

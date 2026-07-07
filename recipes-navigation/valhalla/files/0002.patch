@@ -3,6 +3,7 @@ From: Danylo Storozhev <office@storozhev.net>
 Date: Fri, 23 May 2025 17:59:31 +0200
 Subject: [PATCH 2/2] set protoc executable
 
+Upstream-Status: Pending
 ---
  proto/CMakeLists.txt | 26 +++++++++++++++++++++++++-
  1 file changed, 25 insertions(+), 1 deletion(-)

@@ -12,7 +12,6 @@ SRC_URI += "file://valhalla_config.json"
 
 SRCREV = "3.6.3"
 
-S = "${WORKDIR}/git"
 
 DEPENDS = " \
     cmake-native \
@@ -63,8 +62,8 @@ do_install:append() {
     install -d ${D}${sysconfdir}/valhalla
     install -d ${D}${systemd_system_unitdir}
 
-    install -m 0644 ${WORKDIR}/valhalla_config.json ${D}${sysconfdir}/valhalla/
-    install -m 0644 ${WORKDIR}/valhalla.service ${D}${systemd_system_unitdir}
+    install -m 0644 ${UNPACKDIR}/valhalla_config.json ${D}${sysconfdir}/valhalla/
+    install -m 0644 ${UNPACKDIR}/valhalla.service ${D}${systemd_system_unitdir}
 }
 
 # Package files
@@ -109,3 +108,7 @@ RDEPENDS:${PN}-python = " \
 CXXFLAGS:append = " -std=c++17"
 
 BBCLASSEXTEND = "native nativesdk"
+
+# valhalla (large CMake/submodule project) bakes a build path into the shipped
+# library; not worth source surgery for a routing lib. Skip the buildpaths check.
+INSANE_SKIP:${PN} += "buildpaths"

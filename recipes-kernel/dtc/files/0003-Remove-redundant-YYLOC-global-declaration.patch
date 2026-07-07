@@ -28,6 +28,7 @@ dropped.
 Signed-off-by: Dirk Mueller <dmueller@suse.com>
 Message-Id: <20200114175341.2994-1-dmueller@suse.com>
 Signed-off-by: David Gibson <david@gibson.dropbear.id.au>
+Upstream-Status: Pending
 ---
  dtc-lexer.l | 1 -
  1 file changed, 1 deletion(-)

@@ -15,8 +15,8 @@ do_install() {
     install -d ${D}${sbindir}
     install -d ${D}${systemd_system_unitdir}
 
-    install -m 0644 ${WORKDIR}/10-usb0.network ${D}/etc/systemd/network
-    install -m 0755 ${WORKDIR}/librescoot-netconfig.sh ${D}${sbindir}/librescoot-netconfig
-    install -m 0644 ${WORKDIR}/librescoot-netconfig.service ${D}${systemd_system_unitdir}
+    install -m 0644 ${UNPACKDIR}/10-usb0.network ${D}/etc/systemd/network
+    install -m 0755 ${UNPACKDIR}/librescoot-netconfig.sh ${D}${sbindir}/librescoot-netconfig
+    install -m 0644 ${UNPACKDIR}/librescoot-netconfig.service ${D}${systemd_system_unitdir}
 }
 

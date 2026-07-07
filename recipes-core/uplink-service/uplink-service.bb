@@ -5,12 +5,11 @@ LIC_FILES_CHKSUM = "file://src/${GO_IMPORT}/LICENSE;md5=eb1e647870add0502f8f010b
 
 inherit librescoot-go systemd
 
-SRC_URI = "git://github.com/librescoot/uplink-service.git;protocol=https;branch=main"
+SRC_URI = "git://github.com/librescoot/uplink-service.git;protocol=https;branch=main;destsuffix=${GO_SRCURI_DESTSUFFIX}"
 SRC_URI += " file://librescoot-uplink.service"
 SRC_URI += " file://uplink-service.tmpfiles.conf"
 
 SRCREV = "${AUTOREV}"
-S = "${WORKDIR}/git"
 
 GO_IMPORT = "github.com/librescoot/uplink-service"
 GO_LINKSHARED = ""
@@ -28,6 +27,6 @@ do_install() {
     install -d ${D}${sysconfdir}/tmpfiles.d
 
     install -m 0755 ${B}/bin/linux_arm/uplink-service ${D}${bindir}/
-    install -m 0644 ${WORKDIR}/librescoot-uplink.service ${D}${systemd_system_unitdir}
-    install -m 0644 ${WORKDIR}/uplink-service.tmpfiles.conf ${D}${sysconfdir}/tmpfiles.d/uplink-service.conf
+    install -m 0644 ${UNPACKDIR}/librescoot-uplink.service ${D}${systemd_system_unitdir}
+    install -m 0644 ${UNPACKDIR}/uplink-service.tmpfiles.conf ${D}${sysconfdir}/tmpfiles.d/uplink-service.conf
 }

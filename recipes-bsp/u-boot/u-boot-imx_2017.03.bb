@@ -41,7 +41,6 @@ SRC_URI:append:unu-dbc = " file://dbc/0004-add-console-and-boot-animation-args.p
 PR = "r1"
 SRCREV = "b76bb1bf9fd21e21006d79552e28855ac43ad43c"
 
-S = "${WORKDIR}/git"
 
 UBOOT_INITIAL_ENV = ""
 UBOOT_BINARY:unu-dbc = "u-boot-dtb.imx"
@@ -57,10 +56,35 @@ COMPATIBLE_MACHINE = "(mx6|mx7)"
 FILES:${PN} += "/uboot/*"
 
 do_compile:prepend() {
-    if [ -f ${WORKDIR}/dbc/mx6sabresd.bmp ]; then
-        cp ${WORKDIR}/dbc/mx6sabresd.bmp ${S}/tools/logos/freescale.bmp
+    if [ -f ${UNPACKDIR}/dbc/mx6sabresd.bmp ]; then
+        cp ${UNPACKDIR}/dbc/mx6sabresd.bmp ${S}/tools/logos/freescale.bmp
     fi
     cp ${S}/include/fdt.h ${S}/lib/libfdt/
     cp ${S}/include/libfdt.h ${S}/lib/libfdt/
     cp ${S}/include/libfdt_env.h ${S}/lib/libfdt/
 }
+
+# u-boot's check-config.sh rejects these legacy header-defined CONFIGs as "ad-hoc".
+# They are grandfathered the canonical way: by adding them to config_whitelist.txt.
+do_configure:append() {
+    for c in CONFIG_BOOTCOUNT_ALTBOOTCMD CONFIG_ENV_MMC_DEVICE_INDEX \
+             CONFIG_ENV_MMC_EMMC_HW_PARTITION CONFIG_ENV_REDUNDANT; do
+        grep -qx "$c" ${S}/scripts/config_whitelist.txt || echo "$c" >> ${S}/scripts/config_whitelist.txt
+    done
+    # check-config.sh runs under LC_ALL=C and feeds the whitelist to comm, which
+    # requires it sorted in that same collation. Re-sort after appending.
+    LC_ALL=C sort -u -o ${S}/scripts/config_whitelist.txt ${S}/scripts/config_whitelist.txt
+}
+
+# The librescoot DBC stores the U-Boot environment on eMMC device 2
+# (MENDER_UBOOT_STORAGE_DEVICE in unu-dbc.conf). The stock mx6sabresd header
+# defaults to device 1 (the NXP dev-board SD slot), which trips meta-mender's
+# "CONFIG_SYS_MMC_ENV_DEV must equal MENDER_UBOOT_STORAGE_DEVICE" check.
+do_configure:prepend:unu-dbc() {
+    sed -i 's/\(CONFIG_SYS_MMC_ENV_DEV[[:space:]]\+\)1/\12/' ${S}/include/configs/mx6sabresd.h
+}
+
+# u-boot 2017.03 is 8 years old; gcc 15 promotes incompatible-pointer-types,
+# int-conversion, implicit-function-declaration, etc. to hard DEFAULT errors
+# (permerrors that -Wno-error alone can't downgrade); -fpermissive relaxes them.
+export KCFLAGS = "-Wno-error -fpermissive"

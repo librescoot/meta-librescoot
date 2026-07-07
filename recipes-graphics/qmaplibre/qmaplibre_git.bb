@@ -35,7 +35,6 @@ SRCREV = "10c6d828bab661330cf9cb08d4d3bb9defb74582"
 do_configure[network] = "1"
 do_compile[network] = "1"
 
-S = "${WORKDIR}/git"
 
 inherit cmake qt6-cmake pkgconfig
 
@@ -43,6 +42,7 @@ inherit cmake qt6-cmake pkgconfig
 CXXFLAGS:append = " -Wno-error=shadow"
 
 EXTRA_OECMAKE = " \
+    -DQT_FIND_PRIVATE_MODULES=ON \
     -DMLN_QT_WITH_LOCATION=ON \
     -DMLN_QT_WITH_WIDGETS=OFF \
     -DMLN_WITH_OPENGL=ON \
@@ -72,4 +72,6 @@ FILES:${PN}-dev += " \
 "
 
 # maplibre-native contains pre-generated shaders; skip QA on these
-INSANE_SKIP:${PN} += "already-stripped"
+# qmaplibre installs its Qt geoservices/QML plugins under ${prefix}/plugins and
+# ${prefix}/qml (not ${libdir}), matching the existing/old build layout; allow it.
+INSANE_SKIP:${PN} += "already-stripped libdir"

@@ -3,6 +3,7 @@ From: Danylo Storozhev <office@storozhev.net>
 Date: Mon, 14 Oct 2024 08:44:28 +0000
 Subject: [PATCH] defconfig
 
+Upstream-Status: Pending
 ---
  Makefile | 5 ++---
  1 file changed, 2 insertions(+), 3 deletions(-)

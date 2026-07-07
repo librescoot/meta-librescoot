@@ -3,6 +3,7 @@ From: Danylo Storozhev <office@storozhev.net>
 Date: Mon, 14 Oct 2024 10:59:16 +0000
 Subject: [PATCH] add kernel_addr_r var
 
+Upstream-Status: Pending
 ---
  include/configs/mx6ul_14x14_evk.h | 1 +
  1 file changed, 1 insertion(+)

@@ -20,6 +20,7 @@ This patch removes the obsolete target.
 
 Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Signed-off-by: Alexander Graf <agraf@suse.de>
+Upstream-Status: Pending
 ---
  scripts/Makefile.lib | 2 --
  1 file changed, 2 deletions(-)

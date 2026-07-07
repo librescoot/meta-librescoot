@@ -3,6 +3,7 @@ From: Danylo Storozhev <office@storozhev.net>
 Date: Mon, 14 Oct 2024 10:19:50 +0000
 Subject: [PATCH] mender boot code integration
 
+Upstream-Status: Pending
 ---
  include/env_default.h     | 3 +++
  scripts/Makefile.autoconf | 3 ++-

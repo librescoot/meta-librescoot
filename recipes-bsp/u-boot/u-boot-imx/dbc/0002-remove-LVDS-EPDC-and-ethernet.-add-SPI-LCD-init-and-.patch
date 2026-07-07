@@ -3,6 +3,7 @@ From: Danylo Storozhev <daniel@storozhev.net>
 Date: Tue, 7 Jan 2025 10:23:42 +0000
 Subject: [PATCH 2/3] remove LVDS, EPDC and ethernet. add SPI LCD init and def
 
+Upstream-Status: Pending
 ---
  board/freescale/mx6sabresd/mx6sabresd.c | 1022 ++++++-----------------
  1 file changed, 243 insertions(+), 779 deletions(-)

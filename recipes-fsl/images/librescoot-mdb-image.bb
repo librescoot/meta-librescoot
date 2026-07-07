@@ -10,7 +10,10 @@ PLATFORM_FLAVOR    = "mx6ulevk"
 BAD_RECOMMENDATIONS += "busybox-syslog"
 
 IMAGE_FEATURES += " \
-    debug-tweaks \
+    allow-empty-password \
+    allow-root-login \
+    empty-root-password \
+    post-install-logging \
     ssh-server-dropbear \
 "
 
@@ -79,7 +82,6 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     iotop \
     lsof \
     screen \
-    vim-common \
     tzdata \
     xdelta3 \
     nrf-ble-driver \
@@ -91,6 +93,7 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     python3-protobuf \
     udev-rules-mdb \
     g-ether-conf \
+    vim-tiny \
     nano \
 "
 

@@ -10,7 +10,6 @@ SRC_URI += " file://dbc-dispatcher-rpi4.service"
 SRCREV = "${AUTOREV}"
 PV = "0.3.0+git"
 
-S = "${WORKDIR}/git"
 
 DEPENDS = "systemd hiredis"
 
@@ -40,9 +39,9 @@ do_install() {
     install -d ${D}${systemd_system_unitdir}
 
     install -m 0755 ${B}/dbc-dispatcher ${D}${bindir}/dbc-dispatcher
-    install -m 0644 ${WORKDIR}/dbc-dispatcher.service ${D}${systemd_system_unitdir}
+    install -m 0644 ${UNPACKDIR}/dbc-dispatcher.service ${D}${systemd_system_unitdir}
 }
 
 do_install:append:librescoot-dbc-rpi4() {
-    install -m 0644 ${WORKDIR}/dbc-dispatcher-rpi4.service ${D}${systemd_system_unitdir}/dbc-dispatcher.service
+    install -m 0644 ${UNPACKDIR}/dbc-dispatcher-rpi4.service ${D}${systemd_system_unitdir}/dbc-dispatcher.service
 }

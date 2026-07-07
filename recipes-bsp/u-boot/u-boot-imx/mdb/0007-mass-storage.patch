@@ -3,6 +3,7 @@ From: Danylo Storozhev <office@storozhev.net>
 Date: Mon, 14 Oct 2024 09:06:23 +0000
 Subject: [PATCH] mass storage
 
+Upstream-Status: Pending
 ---
  include/configs/mx6ul_14x14_evk.h | 4 ++++
  1 file changed, 4 insertions(+)

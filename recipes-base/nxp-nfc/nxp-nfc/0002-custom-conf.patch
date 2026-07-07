@@ -3,6 +3,7 @@ From: Danylo Storozhev <office@storozhev.net>
 Date: Sun, 9 Feb 2025 09:08:42 +0100
 Subject: [PATCH] custom conf
 
+Upstream-Status: Pending
 ---
  conf/libnfc-nxp-init.conf  | 2 +-
  conf/libnfc-nxp-pn547.conf | 4 ++--

@@ -6,8 +6,8 @@ SRC_URI += "file://dhcpcd-sysctl.conf"
 do_install:append() {
     install -d ${D}${sysconfdir}
     install -d ${D}${sysconfdir}/sysctl.d
-    install -m 0644 ${WORKDIR}/dhcpcd.conf ${D}${sysconfdir}/dhcpcd.conf
-    install -m 0644 ${WORKDIR}/dhcpcd-sysctl.conf ${D}${sysconfdir}/sysctl.d/dhcpcd-sysctl.conf
+    install -m 0644 ${UNPACKDIR}/dhcpcd.conf ${D}${sysconfdir}/dhcpcd.conf
+    install -m 0644 ${UNPACKDIR}/dhcpcd-sysctl.conf ${D}${sysconfdir}/sysctl.d/dhcpcd-sysctl.conf
 }
 
 # Disable dhcpcd service on DBC - using systemd-networkd with static IP instead
