@@ -19,6 +19,7 @@ SRC_URI += "file://90-journal-upload.preset"
 SRC_URI += "file://librescoot-journal-persistent.service"
 SRC_URI += "file://90-journal-persistent.preset"
 SRC_URI:append:unu-dbc = " file://99-etnaviv-no-autosuspend.rules"
+SRC_URI:append:unu-dbc = " file://dbc-data-clean.service"
 
 do_install:append() {
     install -d ${D}${sysconfdir}/systemd
@@ -61,6 +62,17 @@ do_install:append:unu-dbc() {
     install -d ${D}${sysconfdir}/udev/rules.d
     install -m 0644 ${UNPACKDIR}/99-etnaviv-no-autosuspend.rules \
         ${D}${sysconfdir}/udev/rules.d/
+
+    # Clean /data unmount at shutdown. journald (when persisting to /data) stays
+    # alive through the stop transaction and pins /data, so the data.mount
+    # unmount fails and ext4 recovers the journal on every boot. This unit
+    # relinquishes journald from /data on stop, before the unmount. Enabled via
+    # a static sysinit.target.wants symlink so it runs unconditionally.
+    install -m 0644 ${WORKDIR}/dbc-data-clean.service \
+        ${D}${systemd_unitdir}/system/dbc-data-clean.service
+    install -d ${D}${systemd_unitdir}/system/sysinit.target.wants
+    ln -sf ../dbc-data-clean.service \
+        ${D}${systemd_unitdir}/system/sysinit.target.wants/dbc-data-clean.service
 
     # Power management (DBC is plugged into MDB, no battery)
     rm -f ${D}${nonarch_base_libdir}/udev/rules.d/60-autosuspend.rules

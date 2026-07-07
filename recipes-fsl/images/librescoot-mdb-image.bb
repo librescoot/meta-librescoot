@@ -101,8 +101,6 @@ IMAGE_INSTALL:append = " libubootenv-bin"
 IMAGE_INSTALL:append = " bmap-writer"
 IMAGE_INSTALL:append = " linux-firmware-imx-sdma-imx6q"
 IMAGE_INSTALL:append = " systemd-journal-upload"
-## TODO: boot-assets adds ~5.5MB which exceeds MDB partition size.
-## Needs MENDER_STORAGE_TOTAL_SIZE_MB increase before enabling.
-#IMAGE_INSTALL:append:unu-mdb = " boot-assets"
+IMAGE_INSTALL:append:unu-mdb = " boot-assets"
 
 IMAGE_INSTALL:remove = "ofono"
