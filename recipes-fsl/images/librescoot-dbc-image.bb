@@ -81,3 +81,12 @@ IMAGE_INSTALL:append = " systemd-journal-upload"
 IMAGE_INSTALL:append:unu-dbc = " boot-assets"
 
 PACKAGE_EXCLUDE = "ofono neard"
+
+# Mask getty on tty1 to prevent a console flash during the boot animation.
+# Done as a rootfs postprocess (after package postinsts) rather than shipped in
+# a package, because systemd 259's offline `systemctl preset-all` errors out if
+# the unit is already masked when it runs, failing do_rootfs.
+mask_getty_tty1() {
+    ln -sf /dev/null ${IMAGE_ROOTFS}${sysconfdir}/systemd/system/getty@tty1.service
+}
+ROOTFS_POSTPROCESS_COMMAND += "mask_getty_tty1;"

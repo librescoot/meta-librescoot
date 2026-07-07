@@ -52,15 +52,6 @@ do_install() {
     install -m 0644 ${UNPACKDIR}/dbc-dispatcher-after-boot-animation.conf \
         ${D}${sysconfdir}/systemd/system/dbc-dispatcher.service.d/after-boot-animation.conf
 
-    # Mask getty on tty1 to prevent console flash
-    ln -sf /dev/null ${D}${sysconfdir}/systemd/system/getty@tty1.service
-
-    # ...and preset it to disabled so `systemctl preset-all` (run offline during
-    # do_rootfs) makes a "disable" decision for it. systemd 259 turns "preset
-    # wants to enable a masked unit" into a hard error, failing do_rootfs.
-    install -d ${D}${systemd_unitdir}/system-preset
-    echo "disable getty@tty1.service" > ${D}${systemd_unitdir}/system-preset/00-librescoot-getty.preset
-
     # Reduce shutdown timeout for cleaner poweroff
     install -d ${D}${sysconfdir}/systemd/system.conf.d
     install -m 0644 ${UNPACKDIR}/00-shutdown-timeout.conf \
@@ -71,7 +62,5 @@ FILES:${PN} += " \
     ${datadir}/boot-animation \
     ${libexecdir}/librescoot \
     ${sysconfdir}/systemd/system/dbc-dispatcher.service.d \
-    ${sysconfdir}/systemd/system/getty@tty1.service \
     ${sysconfdir}/systemd/system.conf.d \
-    ${systemd_unitdir}/system-preset/00-librescoot-getty.preset \
 "
