@@ -75,3 +75,5 @@ FILES:${PN}-dev += " \
 # qmaplibre installs its Qt geoservices/QML plugins under ${prefix}/plugins and
 # ${prefix}/qml (not ${libdir}), matching the existing/old build layout; allow it.
 INSANE_SKIP:${PN} += "already-stripped libdir"
+# the -dbg package mirrors the plugin layout (/usr/plugins/.debug, /usr/qml/.debug)
+INSANE_SKIP:${PN}-dbg += "libdir"
