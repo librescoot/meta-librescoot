@@ -89,4 +89,7 @@ PACKAGE_EXCLUDE = "ofono neard"
 mask_getty_tty1() {
     ln -sf /dev/null ${IMAGE_ROOTFS}${sysconfdir}/systemd/system/getty@tty1.service
 }
-ROOTFS_POSTPROCESS_COMMAND += "mask_getty_tty1;"
+# Run as a do_rootfs postfunc so it executes AFTER systemd_handle_machine_id
+# (which runs `systemctl preset-all`); preset-all errors on an already-masked
+# unit, so the mask must be applied only once preset-all has finished.
+do_rootfs[postfuncs] += "mask_getty_tty1"
