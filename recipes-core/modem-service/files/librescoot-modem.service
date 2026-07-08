@@ -8,7 +8,7 @@ Wants=ModemManager.service
 Type=simple
 User=root
 Group=root
-ExecStart=/usr/bin/modem-service -interface wwu1i5
+ExecStart=/usr/bin/modem-service -interface wwan0
 Restart=always
 KillMode=mixed
 
