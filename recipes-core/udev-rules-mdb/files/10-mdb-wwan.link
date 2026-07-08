@@ -1,0 +1,16 @@
+# Pin the SIM7100E QMI netdev to its kernel name. udev still computes
+# ID_NET_NAME_PATH=wwu1i5 for this device; the only reason it isn't
+# applied is that the image's 99-default.link ships an empty NamePolicy.
+# A future poky/systemd bump that re-populates NamePolicy would rename
+# the interface again — modem-service and the netconfig iptables rules
+# both address it as wwan0, so pin it here.
+#
+# Link files are first-match-wins, so this file replaces 99-default.link
+# for the modem entirely; MACAddressPolicy is carried over from there
+# (the qmi_wwan MAC is not permanent, so the policy is active).
+[Match]
+Driver=qmi_wwan
+
+[Link]
+Name=wwan0
+MACAddressPolicy=persistent
