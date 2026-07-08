@@ -8,7 +8,10 @@ Wants=NetworkManager.service
 Before=librescoot-vehicle.service
 
 [Service]
-Type=simple
+# Type=notify: READY=1 is sent only after the settings hash has been seeded
+# into Redis, so Before=librescoot-vehicle.service guarantees consumers see
+# the seeded hash (Redis is not persisted; it starts empty every boot).
+Type=notify
 User=root
 Group=root
 ExecStart=/usr/bin/settings-service
