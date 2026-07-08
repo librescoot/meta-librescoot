@@ -1177,33 +1177,49 @@
 					wakeup-source;
 				};
 
+				/* Kernel >= 6.9 lp55xx requires "reg" and "color" on every
+				 * child node; without them the probe fails with -EINVAL and
+				 * the amber-at-boot patch never runs. led-cur/max-cur are u8
+				 * properties (/bits/ 8); 0xaf = 17.5 mA, the chip reset
+				 * default and the value userland writes into the current
+				 * registers. Channel outputs: R=red, G=green, B=amber. */
 				lp5562@30 {
 					compatible = "ti,lp5562";
 					reg = <0x30>;
-					clock-mode = <0x00>;
+					clock-mode = /bits/ 8 <0x00>;
+					#address-cells = <0x01>;
+					#size-cells = <0x00>;
 
-					chan0 {
+					led@0 {
+						reg = <0x00>;
+						color = <0x01>; /* LED_COLOR_ID_RED */
 						chan-name = "R";
-						led-cur = <0x20>;
-						max-cur = <0x60>;
+						led-cur = /bits/ 8 <0xaf>;
+						max-cur = /bits/ 8 <0xaf>;
 					};
 
-					chan1 {
+					led@1 {
+						reg = <0x01>;
+						color = <0x02>; /* LED_COLOR_ID_GREEN */
 						chan-name = "G";
-						led-cur = <0x20>;
-						max-cur = <0x60>;
+						led-cur = /bits/ 8 <0xaf>;
+						max-cur = /bits/ 8 <0xaf>;
 					};
 
-					chan2 {
+					led@2 {
+						reg = <0x02>;
+						color = <0x04>; /* LED_COLOR_ID_AMBER (B output drives the amber LED) */
 						chan-name = "B";
-						led-cur = <0x20>;
-						max-cur = <0x60>;
+						led-cur = /bits/ 8 <0xaf>;
+						max-cur = /bits/ 8 <0xaf>;
 					};
 
-					chan3 {
+					led@3 {
+						reg = <0x03>;
+						color = <0x00>; /* LED_COLOR_ID_WHITE */
 						chan-name = "W";
-						led-cur = <0x20>;
-						max-cur = <0x60>;
+						led-cur = /bits/ 8 <0xaf>;
+						max-cur = /bits/ 8 <0xaf>;
 					};
 				};
 			};
