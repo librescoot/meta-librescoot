@@ -10,6 +10,8 @@ Ported from linux-imx 5.4.24. Adapted for 6.12: GPIOF_DIR_IN and
 GPIOF_ACTIVE_LOW are gone (request with GPIOF_IN and apply
 gpiod_toggle_active_low() to the descriptor), no_llseek was removed,
 pinctrl PM helpers need linux/pinctrl/consumer.h.
+
+Upstream-Status: Inappropriate [vendor driver; NXP never upstreamed pn5xx]
 ---
  drivers/nfc/Kconfig                     |   2 +
  drivers/nfc/Makefile                    |   1 +

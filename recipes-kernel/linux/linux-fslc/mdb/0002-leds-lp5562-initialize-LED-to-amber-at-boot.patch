@@ -8,6 +8,8 @@ progress; userland switches it to green when boot completes.
 
 Folds the original 5.4 green-at-boot hack and the later
 amber-at-boot revision (Teal Bauer) into one patch.
+
+Upstream-Status: Inappropriate [device-specific]
 ---
  drivers/leds/leds-lp5562.c | 4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)

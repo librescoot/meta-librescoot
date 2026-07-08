@@ -7,6 +7,8 @@ The MDB modem generates continuous EPIPE errors on the wdm device;
 demote them to debug to keep them out of the journal.
 
 Ported from linux-imx 5.4.24.
+
+Upstream-Status: Inappropriate [device-specific: silences the MDB modem's continuous EPIPE noise]
 ---
  drivers/usb/class/cdc-wdm.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)

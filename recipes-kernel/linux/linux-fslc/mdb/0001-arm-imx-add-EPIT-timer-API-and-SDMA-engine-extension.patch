@@ -14,6 +14,8 @@ Ported from linux-imx 5.4.24 (imx_5.4.24_2.1.0_unu). Adapted for
 _ext variant is a thin exported wrapper; struct definitions moved
 to include/linux/dma/imx-dma.h; MXC_USE_EPIT dropped (mainline has
 no epit.c clocksource).
+
+Upstream-Status: Inappropriate [device-specific: exports a private SDMA/EPIT API for the out-of-tree imx-pwm-led driver]
 ---
  arch/arm/mach-imx/Kconfig              |   7 +
  arch/arm/mach-imx/Makefile             |   2 +
