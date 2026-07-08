@@ -1220,7 +1220,8 @@
 				interrupts = <0x00 0x71 0x04>;
 				clocks = <0x01 0xd7>;
 				clock-names = "sim";
-				status = "okay";
+				/* no mainline driver; librescoot has no SIM-interface consumer */
+				status = "disabled";
 				pinctrl-names = "default";
 				pinctrl-0 = <0x34>;
 				assigned-clocks = <0x01 0x54>;
@@ -1321,6 +1322,10 @@
 				pinctrl-names = "default";
 				pinctrl-0 = <0x35>;
 				uart-has-rtscts;
+				/* SDMA RX/TX for the nRF52 link at 1 Mbaud (UART2 events 27/28,
+				   peripheral type 4 = UART, priority 0; matches imx6ul.dtsi) */
+				dmas = <0x0c 27 4 0>, <0x0c 28 4 0>;
+				dma-names = "rx", "tx";
 			};
 
 			serial@21ec000 {
@@ -1426,6 +1431,19 @@
 			reusable;
 			size = <0x2000000>;
 			linux,cma-default;
+		};
+
+		/* Placed 32 MB below end of DRAM (0xA0000000) to clear u-boot's
+		 * post-relocation region (text + 16 MB malloc + BSS + stack,
+		 * roughly top 18-20 MB) and well above kernel/FDT/TEE load
+		 * addresses (0x80800000 / 0x83000000 / 0x84000000). */
+		ramoops@9e000000 {
+			compatible = "ramoops";
+			reg = <0x9e000000 0x100000>;
+			record-size = <0x20000>;
+			console-size = <0x20000>;
+			pmsg-size = <0x10000>;
+			ecc-size = <16>;
 		};
 	};
 
@@ -1598,6 +1616,14 @@
 			linux,code = <0x14>;
 			gpios = <0x39 0x1c 0x00>;
 			debounce-interval = <0x1e>;
+		};
+
+		accel_int1 {
+			label = "GPIO Key ACC_INT1";
+			linux,code = <0x2b>;
+			gpios = <0x39 0x16 0x00>;
+			debounce-interval = <0x01>;
+			wakeup-source;
 		};
 	};
 };

@@ -1,0 +1,34 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Danylo Storozhev <daniel.storozhev@gmail.com>
+Date: Wed, 8 Jul 2026 12:54:18 +0200
+Subject: [PATCH 2/4] leds: lp5562: initialize LED to amber at boot
+
+Light the amber channel during driver probe so the rider sees boot
+progress; userland switches it to green when boot completes.
+
+Folds the original 5.4 green-at-boot hack and the later
+amber-at-boot revision (Teal Bauer) into one patch.
+---
+ drivers/leds/leds-lp5562.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/leds/leds-lp5562.c b/drivers/leds/leds-lp5562.c
+index b26bcc81d..9cee50032 100644
+--- a/drivers/leds/leds-lp5562.c
++++ b/drivers/leds/leds-lp5562.c
+@@ -149,10 +149,10 @@ static int lp5562_post_init_device(struct lp55xx_chip *chip)
+ 	if (ret)
+ 		return ret;
+ 
+-	/* Initialize all channels PWM to zero -> leds off */
++	/* Initialize LED to amber at boot; userland sets green when ready */
+ 	lp55xx_write(chip, LP5562_REG_R_PWM, 0);
+ 	lp55xx_write(chip, LP5562_REG_G_PWM, 0);
+-	lp55xx_write(chip, LP5562_REG_B_PWM, 0);
++	lp55xx_write(chip, LP5562_REG_B_PWM, 255);
+ 	lp55xx_write(chip, LP5562_REG_W_PWM, 0);
+ 
+ 	/* Set LED map as register PWM by default */
+-- 
+2.55.0
+

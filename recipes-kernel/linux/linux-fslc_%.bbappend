@@ -5,6 +5,49 @@ SRC_URI:append = " \
     file://logo/logo_linux_clut224.ppm \
 "
 
+SRC_URI:append:unu-mdb = " \
+    file://librescoot-mdb.dts \
+    file://mdb/0001-arm-imx-add-EPIT-timer-API-and-SDMA-engine-extension.patch \
+    file://mdb/0002-leds-lp5562-initialize-LED-to-amber-at-boot.patch \
+    file://mdb/0003-usb-cdc-wdm-demote-EPIPE-messages-to-debug-level.patch \
+    file://mdb/0004-nfc-add-pn5xx-NFC-driver-for-PN544-PN547-PN548.patch \
+    file://mdb/config-epit.cfg \
+    file://mdb/config-sdma.cfg \
+    file://mdb/config-nfc.cfg \
+    file://mdb/config-leds.cfg \
+    file://mdb/config-wireguard.cfg \
+    file://mdb/config-can.cfg \
+    file://mdb/config-modem.cfg \
+    file://mdb/config-bt-wifi.cfg \
+    file://mdb/config-netfilter.cfg \
+    file://mdb/config-bmx055.cfg \
+    file://mdb/config-ramoops.cfg \
+    file://mdb/config-cmdline.cfg \
+    file://config-iotop.cfg \
+    file://config-ppp.cfg \
+    file://config-panic.cfg \
+    file://config-namespaces.cfg \
+"
+
+KERNEL_CONFIG_FRAGMENTS:append:unu-mdb = " \
+    ${UNPACKDIR}/mdb/config-epit.cfg \
+    ${UNPACKDIR}/mdb/config-sdma.cfg \
+    ${UNPACKDIR}/mdb/config-nfc.cfg \
+    ${UNPACKDIR}/mdb/config-leds.cfg \
+    ${UNPACKDIR}/mdb/config-wireguard.cfg \
+    ${UNPACKDIR}/mdb/config-can.cfg \
+    ${UNPACKDIR}/mdb/config-modem.cfg \
+    ${UNPACKDIR}/mdb/config-bt-wifi.cfg \
+    ${UNPACKDIR}/mdb/config-netfilter.cfg \
+    ${UNPACKDIR}/mdb/config-bmx055.cfg \
+    ${UNPACKDIR}/mdb/config-ramoops.cfg \
+    ${UNPACKDIR}/mdb/config-cmdline.cfg \
+    ${UNPACKDIR}/config-iotop.cfg \
+    ${UNPACKDIR}/config-ppp.cfg \
+    ${UNPACKDIR}/config-panic.cfg \
+    ${UNPACKDIR}/config-namespaces.cfg \
+"
+
 SRC_URI:append:unu-dbc = " \
     file://0001-fbcon-show-boot-logo-regardless-of-loglevel.patch \
     file://config-logo.cfg \

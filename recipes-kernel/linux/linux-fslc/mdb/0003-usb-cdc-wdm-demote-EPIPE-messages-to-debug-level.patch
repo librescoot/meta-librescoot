@@ -1,0 +1,29 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Danylo Storozhev <daniel.storozhev@gmail.com>
+Date: Wed, 8 Jul 2026 12:54:18 +0200
+Subject: [PATCH 3/4] usb: cdc-wdm: demote EPIPE messages to debug level
+
+The MDB modem generates continuous EPIPE errors on the wdm device;
+demote them to debug to keep them out of the journal.
+
+Ported from linux-imx 5.4.24.
+---
+ drivers/usb/class/cdc-wdm.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/usb/class/cdc-wdm.c b/drivers/usb/class/cdc-wdm.c
+index 16e7fa4d4..c6e937109 100644
+--- a/drivers/usb/class/cdc-wdm.c
++++ b/drivers/usb/class/cdc-wdm.c
+@@ -190,7 +190,7 @@ static void wdm_in_callback(struct urb *urb)
+ 				"nonzero urb status received: -ESHUTDOWN\n");
+ 			goto skip_error;
+ 		case -EPIPE:
+-			dev_err(&desc->intf->dev,
++			dev_dbg(&desc->intf->dev,
+ 				"nonzero urb status received: -EPIPE\n");
+ 			break;
+ 		default:
+-- 
+2.55.0
+
