@@ -114,58 +114,26 @@ def apply_xdelta_patch(old_file, patch_file, output_file):
     if result.returncode != 0: raise Exception(f"xdelta3 failed: {result.stderr}")
 
 # --- Mender Artifact Manipulation ---
-def update_manifest_file(output_dir, progress_callback=None):
-    manifest_path = os.path.join(output_dir, 'manifest')
-    manifest_lines = []
-    files_to_manifest = sorted([p for p in Path(output_dir).rglob('*') if p.is_file() and p.name != 'manifest'])
-    total_files = len(files_to_manifest)
-    for i, filepath in enumerate(files_to_manifest):
-        rel_path = filepath.relative_to(output_dir).as_posix()
-        if progress_callback:
-            progress_callback(f"Hashing {rel_path} ({i+1}/{total_files})")
-        manifest_lines.append(f"{calculate_sha256(filepath)}  {rel_path}\n")
-    with open(manifest_path, 'w') as f: f.writelines(manifest_lines)
+def verify_payload_against_manifest(output_dir, actual_payload_checksum, expected_new_payload_checksum):
+    """Verify the reconstructed payload matches both the delta metadata and the
+    manifest shipped in the delta.
 
-def update_header_with_payload_checksum(output_dir, work_dir, actual_payload_checksum, expected_new_payload_checksum, progress_callback=None):
-    header_tar_path = os.path.join(output_dir, 'header.tar.gz')
-    if not os.path.exists(header_tar_path): return
-
+    The manifest and header.tar.gz come verbatim from the new artifact (the
+    delta ships them as 'new' files) and must NOT be regenerated here: mender
+    validates each file inside data/NNNN.tar.gz against a manifest entry named
+    data/NNNN/<filename> holding the checksum of the uncompressed content.
+    """
     if expected_new_payload_checksum and actual_payload_checksum != expected_new_payload_checksum:
         raise Exception("CRITICAL: Final filesystem checksum mismatch!")
 
-    if progress_callback: progress_callback("Updating header metadata")
-    with tempfile.TemporaryDirectory(dir=work_dir) as header_extract_dir:
-        extract_tar(header_tar_path, header_extract_dir)
-        type_info_path = next(Path(header_extract_dir).rglob('type-info'), None)
-        if type_info_path:
-            with open(type_info_path, 'r+') as f:
-                type_info = json.load(f)
-                type_info['artifact_provides']['rootfs-image.checksum'] = actual_payload_checksum
-                f.seek(0); json.dump(type_info, f, separators=(',', ':')); f.truncate()
-
-            if progress_callback: progress_callback("Recreating header.tar.gz")
-            with tarfile.open(header_tar_path, 'w:gz') as tar:
-                all_files = []
-                for root, _, files in os.walk(header_extract_dir):
-                    for file in files:
-                        full_path = os.path.join(root, file)
-                        relative_path = os.path.relpath(full_path, header_extract_dir)
-                        all_files.append((full_path, relative_path))
-
-                def mender_header_sort_key(item):
-                    """A multi-level sort key to enforce Mender's strict header order."""
-                    arcname = item[1].replace('\\', '/') # Normalize path separator
-                    basename = os.path.basename(arcname)
-
-                    if basename == 'header-info': return (0, arcname)
-                    if basename == 'type-info': return (1, arcname)
-                    if basename == 'meta-data': return (2, arcname)
-                    return (9, arcname)
-
-                all_files.sort(key=mender_header_sort_key)
-
-                for full_path, arcname in all_files:
-                    tar.add(full_path, arcname=arcname)
+    manifest_path = os.path.join(output_dir, 'manifest')
+    if not os.path.exists(manifest_path):
+        raise Exception("CRITICAL: delta did not ship a manifest file!")
+    with open(manifest_path, 'r') as f:
+        payload_checksums = [line.split()[0] for line in f
+                             if line.strip() and line.split()[1].startswith('data/')]
+    if actual_payload_checksum not in payload_checksums:
+        raise Exception("CRITICAL: reconstructed payload checksum is not listed in the shipped manifest!")
 
 def format_size(size_bytes):
     """Format bytes as human-readable size."""
@@ -321,33 +289,13 @@ def apply_delta_patch(old_mender, delta_patch, output_mender, temp_base_dir):
 
         report_progress(80, "Finalizing artifact")
         # Progress breakdown for finalization (80-100%):
-        # 80-81: Update header metadata
-        # 81-82: Recreate header.tar.gz
-        # 82-95: Generate manifest (SHA256 of each output file)
+        # 80-82: Verify payload against shipped manifest
         # 95-100: Create output mender file
 
-        header_progress_map = {
-            "Updating header metadata": 80,
-            "Recreating header.tar.gz": 81,
-        }
-
-        def header_progress_callback(msg):
-            # Find matching progress by prefix
-            for prefix, pct in header_progress_map.items():
-                if msg.startswith(prefix):
-                    report_progress(pct, msg)
-                    return
-            report_progress(80, msg)
-
         if newly_created_payload_checksum is not None:
-            update_header_with_payload_checksum(output_dir, work_dir, newly_created_payload_checksum,
-                metadata.get('new_payload_checksum'), progress_callback=header_progress_callback)
-
-        report_progress(82, "Generating manifest")
-        def manifest_progress_callback(msg):
-            report_progress(82, msg)
-
-        update_manifest_file(output_dir, progress_callback=manifest_progress_callback)
+            report_progress(80, "Verifying payload against manifest")
+            verify_payload_against_manifest(output_dir, newly_created_payload_checksum,
+                metadata.get('new_payload_checksum'))
 
         report_progress(95, "Creating output mender file")
         with tarfile.open(output_mender, 'w') as tar:
