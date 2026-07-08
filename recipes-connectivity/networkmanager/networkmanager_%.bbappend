@@ -1,9 +1,5 @@
 FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
-PACKAGECONFIG:append = " ppp"
-# Modem support only on the MDB — the DBC has no modem, and the modemmanager
-# packageconfig RDEPENDS would drag ModemManager into any image that ships
-# NetworkManager.
-PACKAGECONFIG:append:librescoot-mdb = " modemmanager wwan"
+PACKAGECONFIG:append = " modemmanager ppp"
 
 SRC_URI += "file://20-modemmanager-ordering.conf"
 
