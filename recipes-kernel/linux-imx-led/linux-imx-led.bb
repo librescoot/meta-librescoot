@@ -5,7 +5,9 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=b234ee4d69f5fce4486a80fdaf4a4263"
 
 inherit module
 
-SRC_URI = "git://github.com/librescoot/kernel-module-imx-pwm-led.git;protocol=https;branch=master \
+# NOTE: kernel-6.12 branch carries the 6.12 API adaptation; point back at
+# master once that branch is merged.
+SRC_URI = "git://github.com/librescoot/kernel-module-imx-pwm-led.git;protocol=https;branch=kernel-6.12 \
            file://imx_pwm_led.conf"
 
 SRCREV = "${AUTOREV}"
