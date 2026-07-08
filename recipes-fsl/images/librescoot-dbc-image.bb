@@ -80,7 +80,7 @@ IMAGE_INSTALL:append:unu-dbc = " drm-holder"
 IMAGE_INSTALL:append = " systemd-journal-upload"
 IMAGE_INSTALL:append:unu-dbc = " boot-assets"
 
-PACKAGE_EXCLUDE = "ofono neard"
+PACKAGE_EXCLUDE = "ofono neard modemmanager"
 
 # Mask getty on tty1 to prevent a console flash during the boot animation.
 # Done as a rootfs postprocess (after package postinsts) rather than shipped in
