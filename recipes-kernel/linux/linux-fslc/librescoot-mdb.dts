@@ -1039,7 +1039,9 @@
 				stop-mode = <0x14 0x10 0x03>;
 				fsl,magic-packet;
 				fsl,wakeup_irq = <0x00>;
-				status = "okay";
+				/* no PHY populated on the MDB; a probed FEC only yields
+				   "Unable to connect to phy" noise and a dead eth0 */
+				status = "disabled";
 				pinctrl-names = "default";
 				pinctrl-0 = <0x26>;
 				phy-mode = "rmii";
