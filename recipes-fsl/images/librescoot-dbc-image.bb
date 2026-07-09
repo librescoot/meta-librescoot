@@ -24,6 +24,7 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     rpm \
     python3 \
     i2c-tools \
+    mmc-utils \
     python3-pyserial \
     python3-systemd \
     python3-dateutil \
