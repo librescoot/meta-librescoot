@@ -17,6 +17,13 @@ inherit systemd
 SYSTEMD_SERVICE:${PN} = "ppp-link.service"
 SYSTEMD_AUTO_ENABLE:${PN} = "enable"
 
+# On the MDB the link is slaved to DBC power: vehicle-service starts/stops
+# this unit alongside the dashboard_power GPIO. Auto-starting it at boot
+# would leave pppd holding ttymxc2 open while the DBC is unpowered, whose
+# dead TX line reads as a permanent break and triggers periodic imx-uart
+# "RX flood" soft resets.
+SYSTEMD_AUTO_ENABLE:${PN}:unu-mdb = "disable"
+
 do_install() {
     install -d ${D}${sysconfdir}/ppp/peers
     install -d ${D}${systemd_system_unitdir}
