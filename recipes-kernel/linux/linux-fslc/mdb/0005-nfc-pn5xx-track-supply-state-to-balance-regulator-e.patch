@@ -13,6 +13,8 @@ devicetree defines no pn54x supplies, so all four are dummies).
 
 Track whether the supplies are currently enabled and make the enable
 and disable paths idempotent.
+
+Upstream-Status: Inappropriate [fix for the vendor pn5xx driver, which was never upstreamed]
 ---
  drivers/nfc/pn5xx/pn5xx_i2c.c | 81 ++++++++++++++++++-----------------
  1 file changed, 43 insertions(+), 38 deletions(-)
