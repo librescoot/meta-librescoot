@@ -1126,6 +1126,10 @@
 					clock-frequency = <0x186a0>;
 					interrupt-gpios = <0x2e 0x10 0x00>;
 					enable-gpios = <0x2d 0x0a 0x01>;
+					nxp,pn54x-vbat-supply = <0x3e>;
+					nxp,pn54x-sevdd-supply = <0x3e>;
+					nxp,pn54x-pvdd-supply = <0x3e>;
+					nxp,pn54x-pmuvcc-supply = <0x3e>;
 				};
 			};
 
@@ -1150,6 +1154,10 @@
 					clock-frequency = <0x186a0>;
 					interrupt-gpios = <0x2e 0x11 0x00>;
 					enable-gpios = <0x31 0x00 0x01>;
+					nxp,pn54x-vbat-supply = <0x3e>;
+					nxp,pn54x-sevdd-supply = <0x3e>;
+					nxp,pn54x-pvdd-supply = <0x3e>;
+					nxp,pn54x-pmuvcc-supply = <0x3e>;
 				};
 			};
 
@@ -1175,6 +1183,10 @@
 					interrupt-gpios = <0x2d 0x02 0x00>;
 					enable-gpios = <0x31 0x01 0x01>;
 					wakeup-source;
+					nxp,pn54x-vbat-supply = <0x3e>;
+					nxp,pn54x-sevdd-supply = <0x3e>;
+					nxp,pn54x-pvdd-supply = <0x3e>;
+					nxp,pn54x-pmuvcc-supply = <0x3e>;
 				};
 
 				lp5562@30 {
@@ -1467,6 +1479,13 @@
 			regulator-min-microvolt = <0x325aa0>;
 			regulator-max-microvolt = <0x325aa0>;
 			phandle = <0x2a>;
+		};
+
+		regulator@2 {
+			compatible = "regulator-fixed";
+			regulator-name = "pn547-supply";
+			regulator-always-on;
+			phandle = <0x3e>;
 		};
 	};
 
