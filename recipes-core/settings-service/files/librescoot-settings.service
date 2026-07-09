@@ -1,7 +1,7 @@
 [Unit]
 Description=Librescoot Settings Service
-Requires=redis.service
-After=redis.service
+Requires=valkey.service
+After=valkey.service
 # Always ensure /data is mounted (persisted settings live in /data/settings.toml)
 RequiresMountsFor=/data
 Wants=NetworkManager.service

@@ -41,7 +41,7 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     python3-crccheck \
     python3-typing-extensions \
     python3-click \
-    redis \
+    valkey \
     dropbear \
     ioctl \
     bash \

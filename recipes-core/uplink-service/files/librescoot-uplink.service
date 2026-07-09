@@ -1,7 +1,7 @@
 [Unit]
 Description=Librescoot Uplink Service (Redis-IPC)
-After=network.target redis.service
-Requires=redis.service
+After=network.target valkey.service
+Requires=valkey.service
 ConditionPathExists=/data/uplink-service/uplink.yaml
 
 [Service]

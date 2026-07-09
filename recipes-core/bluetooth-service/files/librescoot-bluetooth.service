@@ -1,7 +1,7 @@
 [Unit]
 Description=Librescoot Bluetooth Service
-Requires=redis.service
-After=redis.service
+Requires=valkey.service
+After=valkey.service
 
 [Service]
 Type=simple

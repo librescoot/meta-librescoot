@@ -1,7 +1,7 @@
 [Unit]
 Description=Rescoot Uplink Service (Radio Gaga)
-After=network.target redis.service
-Requires=redis.service
+After=network.target valkey.service
+Requires=valkey.service
 ConditionPathExists=/data/radio-gaga/config.yaml
 
 [Service]

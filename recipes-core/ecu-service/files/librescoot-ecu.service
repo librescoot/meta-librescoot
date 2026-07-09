@@ -1,7 +1,7 @@
 [Unit]
 Description=Librescoot ECU Service
-Requires=redis.service
-After=redis.service
+Requires=valkey.service
+After=valkey.service
 After=librescoot-vehicle.service
 After=librescoot-battery.service
 

@@ -30,4 +30,4 @@ do_install:append:librescoot-dbc-rpi4 () {
     install -m 0755 ${UNPACKDIR}/librescoot-aliases-dbc.sh ${D}${sysconfdir}/profile.d/librescoot-aliases.sh
 }
 
-RDEPENDS:${PN} += "redis"
+RDEPENDS:${PN} += "valkey"

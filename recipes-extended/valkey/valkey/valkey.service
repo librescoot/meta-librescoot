@@ -1,0 +1,17 @@
+[Unit]
+Description=Valkey In-Memory Data Store
+After=network.target
+
+[Service]
+User=valkey
+Group=valkey
+Nice=-10
+ExecStart=/usr/bin/valkey-server /etc/valkey/valkey.conf
+ExecStop=/usr/bin/valkey-cli shutdown
+Restart=always
+LimitNOFILE=10032
+Type=notify
+StateDirectory=valkey
+
+[Install]
+WantedBy=multi-user.target
