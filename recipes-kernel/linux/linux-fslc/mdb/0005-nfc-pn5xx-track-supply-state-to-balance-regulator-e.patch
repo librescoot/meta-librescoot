@@ -1,0 +1,122 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Danylo Storozhev <daniel.storozhev@gmail.com>
+Date: Thu, 09 Jul 2026 10:51:07 +0200
+Subject: [PATCH] nfc: pn5xx: track supply state to balance regulator
+ enable/disable
+
+pn54x_dev_open() powers the chip off via pn544_disable() to reach a
+known state. That path calls regulator_disable() on all four supplies
+unconditionally, even when they were never enabled, so every open of
+/dev/pn544* triggers three "unbalanced disables for regulator-dummy"
+WARN backtraces from the regulator core and taints the kernel (the MDB
+devicetree defines no pn54x supplies, so all four are dummies).
+
+Track whether the supplies are currently enabled and make the enable
+and disable paths idempotent.
+---
+ drivers/nfc/pn5xx/pn5xx_i2c.c | 81 ++++++++++++++++++-----------------
+ 1 file changed, 43 insertions(+), 38 deletions(-)
+
+diff --git a/drivers/nfc/pn5xx/pn5xx_i2c.c b/drivers/nfc/pn5xx/pn5xx_i2c.c
+--- a/drivers/nfc/pn5xx/pn5xx_i2c.c
++++ b/drivers/nfc/pn5xx/pn5xx_i2c.c
+@@ -76,6 +76,7 @@
+ 	bool irq_enabled;
+ 	spinlock_t irq_enabled_lock;
+ 	bool opened;
++	bool regulators_enabled;
+ 	struct mutex opened_mutex;
+ 	char *dev_name;
+ };
+@@ -133,39 +134,42 @@
+ {
+ 	int r;
+ 
+-	/* turn on the regulators */
++	/* turn on the regulators unless they are already on */
+ 	/* -- if the regulators were specified, they're required */
+-	if(dev->pvdd_reg != NULL)
+-	{
+-		r = regulator_enable(dev->pvdd_reg);
+-		if (r < 0){
+-			pr_err("%s: not able to enable pvdd\n", __func__);
+-			return r;
+-		}
+-	}
+-	if(dev->vbat_reg != NULL)
+-	{
+-		r = regulator_enable(dev->vbat_reg);
+-		if (r < 0){
+-			pr_err("%s: not able to enable vbat\n", __func__);
+-			goto enable_exit0;
+-		}
+-	}
+-	if(dev->pmuvcc_reg != NULL)
+-	{
+-		r = regulator_enable(dev->pmuvcc_reg);
+-		if (r < 0){
+-			pr_err("%s: not able to enable pmuvcc\n", __func__);
+-			goto enable_exit1;
+-		}
+-	}
+-	if(dev->sevdd_reg != NULL)
+-	{
+-		r = regulator_enable(dev->sevdd_reg);
+-		if (r < 0){
+-			pr_err("%s: not able to enable sevdd\n", __func__);
+-			goto enable_exit2;
++	if (!dev->regulators_enabled) {
++		if(dev->pvdd_reg != NULL)
++		{
++			r = regulator_enable(dev->pvdd_reg);
++			if (r < 0){
++				pr_err("%s: not able to enable pvdd\n", __func__);
++				return r;
++			}
++		}
++		if(dev->vbat_reg != NULL)
++		{
++			r = regulator_enable(dev->vbat_reg);
++			if (r < 0){
++				pr_err("%s: not able to enable vbat\n", __func__);
++				goto enable_exit0;
++			}
++		}
++		if(dev->pmuvcc_reg != NULL)
++		{
++			r = regulator_enable(dev->pmuvcc_reg);
++			if (r < 0){
++				pr_err("%s: not able to enable pmuvcc\n", __func__);
++				goto enable_exit1;
++			}
++		}
++		if(dev->sevdd_reg != NULL)
++		{
++			r = regulator_enable(dev->sevdd_reg);
++			if (r < 0){
++				pr_err("%s: not able to enable sevdd\n", __func__);
++				goto enable_exit2;
++			}
+ 		}
++		dev->regulators_enabled = true;
+ 	}
+ 
+ 	if (MODE_RUN == mode) {
+@@ -220,10 +224,13 @@
+ 	gpiod_set_value_cansleep(dev->ven_gpio, 0);
+ 	msleep(100);
+ 
+-	if(dev->sevdd_reg) regulator_disable(dev->sevdd_reg);
+-	if(dev->pmuvcc_reg) regulator_disable(dev->pmuvcc_reg);
+-	if(dev->vbat_reg) regulator_disable(dev->vbat_reg);
+-	if(dev->pvdd_reg) regulator_disable(dev->pvdd_reg);
++	if (dev->regulators_enabled) {
++		if(dev->sevdd_reg) regulator_disable(dev->sevdd_reg);
++		if(dev->pmuvcc_reg) regulator_disable(dev->pmuvcc_reg);
++		if(dev->vbat_reg) regulator_disable(dev->vbat_reg);
++		if(dev->pvdd_reg) regulator_disable(dev->pvdd_reg);
++		dev->regulators_enabled = false;
++	}
+ 
+ }
+ 
