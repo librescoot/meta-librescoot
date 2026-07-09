@@ -68,7 +68,7 @@ do_compile() {
     VERSION_LDFLAGS="-X main.version=$VERSION -X main.gitRevision=$REVISION"
 
     # Build complete ldflags string matching go.bbclass format
-    GO_LDFLAGS_FULL="${GO_RPATH} ${GO_LINKMODE} ${GO_LINUXLOADER} $VERSION_LDFLAGS -extldflags '${GO_EXTLDFLAGS}'"
+    GO_LDFLAGS_FULL="${GO_RPATH} ${GO_LINKMODE} ${GO_LINUXLOADER} ${GO_EXTRA_LDFLAGS} $VERSION_LDFLAGS -extldflags '${GO_EXTLDFLAGS}'"
 
     bbnote "librescoot-go: VERSION_LDFLAGS=$VERSION_LDFLAGS"
 
