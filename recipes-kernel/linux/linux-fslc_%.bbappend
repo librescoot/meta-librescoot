@@ -23,6 +23,7 @@ SRC_URI:append:unu-mdb = " \
     file://mdb/config-bmx055.cfg \
     file://mdb/config-ramoops.cfg \
     file://mdb/config-cmdline.cfg \
+    file://mdb/config-headless.cfg \
     file://config-iotop.cfg \
     file://config-ppp.cfg \
     file://config-panic.cfg \
@@ -42,6 +43,7 @@ KERNEL_CONFIG_FRAGMENTS:append:unu-mdb = " \
     ${UNPACKDIR}/mdb/config-bmx055.cfg \
     ${UNPACKDIR}/mdb/config-ramoops.cfg \
     ${UNPACKDIR}/mdb/config-cmdline.cfg \
+    ${UNPACKDIR}/mdb/config-headless.cfg \
     ${UNPACKDIR}/config-iotop.cfg \
     ${UNPACKDIR}/config-ppp.cfg \
     ${UNPACKDIR}/config-panic.cfg \
