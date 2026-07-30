@@ -7,8 +7,7 @@
 # meta-mender builds the data partition (dataimg, embedded into the sdimg)
 # from a copy of ${IMAGE_ROOTFS}/data set up by the do_copy_rootfs prefunc;
 # this hooks in after it, mirroring meta-mender's own
-# do_install_bootstrap_artifact. Appending here is safe because the mender
-# classes come in via INHERIT and register their prefuncs first.
+# do_install_bootstrap_artifact.
 #
 # The seeded file name must follow the release asset convention
 # librescoot-<variant>-<version>.mender that update-service parses.
@@ -28,4 +27,11 @@ fakeroot librescoot_seed_ota_artifact() {
         "${_MENDER_ROOTFS_COPY}/ota/${LIBRESCOOT_OTA_COMPONENT}/librescoot-${MACHINE}-${LIBRESCOOT_VERSION}.mender"
 }
 
-do_image_dataimg[prefuncs] += " librescoot_seed_ota_artifact"
+# mender-dataimg.bbclass comes in via IMAGE_CLASSES (inherit_defer), so it
+# parses AFTER this file: a parse-time += here would land our prefunc before
+# do_copy_rootfs and _MENDER_ROOTFS_COPY would still be unset when it runs.
+# Anonymous python executes at finalise, after all deferred class parsing,
+# so this reliably appends after meta-mender's own prefuncs.
+python () {
+    d.appendVarFlag('do_image_dataimg', 'prefuncs', ' librescoot_seed_ota_artifact')
+}
