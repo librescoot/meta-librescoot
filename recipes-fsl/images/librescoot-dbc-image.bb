@@ -5,6 +5,9 @@ inherit core-image
 
 require librescoot-hwclock-seed.inc
 
+LIBRESCOOT_OTA_COMPONENT = "dbc"
+require librescoot-ota-seed.inc
+
 PLATFORM_FLAVOR    = "mx6qsabresd"
 
 BAD_RECOMMENDATIONS += "busybox-syslog"
