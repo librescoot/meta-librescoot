@@ -3,6 +3,13 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
 SRC_URI:append = " file://dropbear.socket"
 SRC_URI:append = " file://authorized"
 SRC_URI:append = " file://id"
+SRC_URI:append = " file://localoptions.h"
+
+# Dropbear picks up localoptions.h from the build dir, overriding
+# default_options.h.
+do_configure:append() {
+    install -m 0644 ${UNPACKDIR}/localoptions.h ${B}/localoptions.h
+}
 
 SRC_URI:append:unu-mdb = " file://knownhosts-mdb"
 SRC_URI:append:unu-mdb = " file://hostkey-mdb"
