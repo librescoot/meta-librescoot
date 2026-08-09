@@ -30,6 +30,7 @@ DEPENDS = " \
     qttools \
     qmaplibre \
     zlib \
+    zstd \
 "
 
 RDEPENDS:${PN} = " \
