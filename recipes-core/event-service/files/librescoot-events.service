@@ -1,0 +1,24 @@
+[Unit]
+Description=Librescoot Event Service
+After=valkey.service
+Wants=valkey.service
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/event-service \
+    --redis=localhost:6379 \
+    --log-level=info
+Restart=always
+RestartSec=5
+User=root
+
+Nice=5
+CPUWeight=20
+MemoryMax=48M
+TasksMax=64
+
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
