@@ -65,6 +65,7 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     vim-tiny \
     tzdata \
     xdelta3 \
+    zstd \
     valhalla \
     prime-server \
     libspatialite \
