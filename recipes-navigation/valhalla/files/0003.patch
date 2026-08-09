@@ -1,0 +1,104 @@
+From: Teal Bauer <teal@starsong.eu>
+Date: Sun, 9 Aug 2026 13:00:00 +0200
+Subject: [PATCH 3/3] motor_scooter: weigh rough surfaces via avoid_bad_surfaces
+
+Surface only reaches motor_scooter costing as a speed factor, so a cobbled
+street costs about 10% more time than asphalt and the router never trades a
+short detour for a smoother ride. Add a surface term to the cost factor,
+following the pattern motorcycle costing already uses, driven by the existing
+avoid_bad_surfaces costing option (the same protobuf field bicycle costing
+reads, so no proto change).
+
+The scale is a detour budget: the weight is how much extra travel time the
+router may spend to skip a rough stretch, as a multiple of the time it would
+take to ride it. Linear from 0 to 8 across the option's 0..1 range, defaulting
+to 4. Cost only, never a hard exclusion, so an address on a cobbled street
+stays reachable.
+
+Weights are per surface class rather than a single factor: irregular stone
+punishes a small wheel harder than a smooth unpaved surface does, so
+kPavedRough outweighs kCompacted.
+
+Upstream-Status: Pending
+---
+--- a/src/sif/motorscootercost.cc
++++ b/src/sif/motorscootercost.cc
+@@ -37,6 +37,33 @@
+ constexpr uint32_t kMaximumTopSpeed = 120; // Kilometers per hour
+ constexpr Surface kMinimumScooterSurface = Surface::kDirt;
+ 
++// Preference for avoiding rough surfaces, 0 (ignore surface) to 1 (avoid as
++// much as the alternatives allow). Only scales cost, never forbids an edge, so
++// a destination on a cobbled street stays reachable.
++//
++// The scale is a detour budget: the weight is how much extra travel time the
++// router may spend to skip a stretch of rough surface, as a multiple of the
++// time it would take to ride it. Linear over the range, so 0.125 buys a detour
++// as long as the rough stretch itself, 0.5 buys four times that and 1.0 eight
++// times. The default sits at 0.5, which avoids a third of the cobbles in Berlin
++// for around 1 m of detour per metre avoided.
++constexpr float kDefaultAvoidBadSurfaces = 0.5f;
++constexpr float kMaxSurfaceBiasFactor = 8.0f;
++
++// Cost weight per surface class. Small wheels are punished more by irregular
++// stone than by a smooth unpaved surface, so kPavedRough (which the tile build
++// reserves for sett/cobblestone) outweighs kCompacted.
++constexpr float kSurfaceFactor[] = {
++    0.0f, // kPavedSmooth
++    0.0f, // kPaved
++    1.0f, // kPavedRough
++    0.5f, // kCompacted
++    1.0f, // kDirt
++    0.0f, // kGravel (not allowed)
++    0.0f, // kPath (not allowed)
++    0.0f  // kImpassable (not allowed)
++};
++
+ // Default turn costs
+ constexpr float kTCStraight = 0.5f;
+ constexpr float kTCSlight = 0.75f;
+@@ -62,6 +89,7 @@
+ constexpr ranged_default_t<float> kUsePrimaryRange{0, kDefaultUsePrimary, 1.0f};
+ constexpr ranged_default_t<uint32_t> kTopSpeedRange{kMinimumTopSpeed, kDefaultTopSpeed,
+                                                     kMaximumTopSpeed};
++constexpr ranged_default_t<float> kAvoidBadSurfacesRange{0, kDefaultAvoidBadSurfaces, 1.0f};
+ 
+ // Additional penalty to avoid destination only
+ constexpr float kDestinationOnlyFactor = 0.2f;
+@@ -339,7 +367,8 @@
+   // Hidden in source file so we don't need it to be protected
+   // We expose it within the source file for testing purposes
+ public:
+-  float road_factor_; // Road factor based on use_primary
++  float road_factor_;    // Road factor based on use_primary
++  float surface_factor_; // Surface factor based on avoid_bad_surfaces
+ 
+   // Elevation/grade penalty (weighting applied based on the edge's weighted
+   // grade (relative value from 0-15)
+@@ -368,6 +397,9 @@
+   // start to increase the differences.
+   float use_primary = costing_options.use_primary();
+   road_factor_ = (use_primary >= 0.5f) ? 1.5f - use_primary : 3.0f - use_primary * 5.0f;
++
++  float avoid_bad_surfaces = costing_options.avoid_bad_surfaces();
++  surface_factor_ = kMaxSurfaceBiasFactor * avoid_bad_surfaces;
+ }
+ 
+ // Check if access is allowed on the specified edge.
+@@ -452,6 +484,7 @@
+   float factor = 1.0f + (kDensityFactor[edge->density()] - 0.85f) +
+                  (road_factor_ * kRoadClassFactor[static_cast<uint32_t>(edge->classification())]) +
+                  grade_penalty_[static_cast<uint32_t>(edge->weighted_grade())] +
++                 (surface_factor_ * kSurfaceFactor[static_cast<uint32_t>(edge->surface())]) +
+                  SpeedPenalty(edge, tile, time_info, flow_sources, speed);
+ 
+   if (edge->destonly()) {
+@@ -623,6 +656,8 @@
+   JSON_PBF_RANGED_DEFAULT(co, kTopSpeedRange, json, "/top_speed", top_speed);
+   JSON_PBF_RANGED_DEFAULT(co, kUseHillsRange, json, "/use_hills", use_hills);
+   JSON_PBF_RANGED_DEFAULT(co, kUsePrimaryRange, json, "/use_primary", use_primary);
++  JSON_PBF_RANGED_DEFAULT(co, kAvoidBadSurfacesRange, json, "/avoid_bad_surfaces",
++                          avoid_bad_surfaces);
+ }
+ 
+ cost_ptr_t CreateMotorScooterCost(const Costing& costing_options) {
