@@ -10,7 +10,7 @@
 # entries; pruning after compile is the precise, robust route and was verified
 # against tzdata with the native zic.
 
-ZONEINFO_KEEP = "Europe Etc CET EET MET WET GB GB-Eire W-SU Eire \
+ZONEINFO_KEEP = "Europe Etc CET EET MET WET GB W-SU \
                  GMT GMT+0 GMT-0 GMT0 Greenwich UCT UTC Universal Zulu \
                  zone.tab zone1970.tab iso3166.tab leapseconds \
                  leap-seconds.list tzdata.zi"
