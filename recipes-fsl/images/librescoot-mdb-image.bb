@@ -30,7 +30,6 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     networkmanager-nmcli \
     packagegroup-core-base-utils \
     firmwared \
-    rpm \
     python3 \
     canutils \
     i2c-tools \

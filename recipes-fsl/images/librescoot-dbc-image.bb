@@ -27,7 +27,6 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     u-boot-default-env \
     packagegroup-core-base-utils \
     firmwared \
-    rpm \
     python3 \
     i2c-tools \
     python3-pyserial \
