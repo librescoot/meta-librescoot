@@ -15,22 +15,30 @@ ZONEINFO_KEEP = "Europe Etc CET EET MET WET GB W-SU \
                  zone.tab zone1970.tab iso3166.tab leapseconds \
                  leap-seconds.list tzdata.zi"
 
+# Drop the redundant posix and right trees entirely (behind the scenes for
+# DST-aware zic variants and leap-second-aware variants respectively); the
+# default tree above is what the C library consumes at runtime.
 do_install:append() {
-    for tree in "" posix right; do
-        for entry in ${D}${datadir}/zoneinfo/$tree/*; do
-            [ -e "$entry" ] || continue
-            base=$(basename "$entry")
-            case " ${ZONEINFO_KEEP} " in
-                *" $base "*) ;;
-                *) rm -rf "$entry" ;;
-            esac
-        done
+    for entry in ${D}${datadir}/zoneinfo/*; do
+        [ -e "$entry" ] || continue
+        case "$(basename "$entry")" in
+            posix|right)
+                rm -rf "$entry"
+                ;;
+            *)
+                base=$(basename "$entry")
+                case " ${ZONEINFO_KEEP} " in
+                    *" $base "*) ;;
+                    *) rm -rf "$entry" ;;
+                esac
+                ;;
+        esac
     done
 }
 
-# The dropped zone-group packages are now empty and dropped from the build; the
-# tzdata metapackage must depend ONLY on packages that still exist.
-TZ_PACKAGES = "tzdata-core tzdata-posix tzdata-right tzdata-europe"
+# The dropped zone-group packages and the posix/right trees are removed from the
+# build; the tzdata metapackage must depend ONLY on packages that still exist.
+TZ_PACKAGES = "tzdata-core tzdata-europe"
 PACKAGES = "${TZ_PACKAGES} ${PN}"
 RDEPENDS:${PN} = "${TZ_PACKAGES}"
 ALLOW_EMPTY:${PN} = "1"
