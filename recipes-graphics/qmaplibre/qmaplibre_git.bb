@@ -24,6 +24,7 @@ DEPENDS = " \
 # Use gitsm:// to recursively fetch all submodules during do_fetch.
 SRC_URI = "gitsm://github.com/maplibre/maplibre-native-qt.git;protocol=https;branch=main \
     file://0001-disable-tests.patch \
+    file://0002-fill-extrusion-skip-depth-prepass.patch \
 "
 
 # Pin to 10c6d828: last commit before the "Drawables Renderer" switch to OpenGL ES 3.0+.

@@ -1,0 +1,59 @@
+From: Librescoot
+Subject: [PATCH] fill-extrusion: skip the depth prepass on translucent buildings
+
+When fill-extrusion-opacity is below 1, maplibre-native draws the layer
+twice: once into the depth buffer only, with the colour mask off, and
+then again for colour with a stencil test. The prepass exists so that on
+a building whose own footprint self-overlaps in projection only the
+nearest surface is blended.
+
+That prepass runs the full lighting vertex shader on every vertex and
+keeps nothing but depth. Measured on the DBC (i.MX6DL, Vivante GC880:
+one shader core, one pixel pipe) the buildings layer is vertex-shader
+bound, so submitting the geometry a second time is very close to half
+the layer's cost:
+
+  stock                 12.7 fps, 60.6 ms in swap
+  without the prepass   18.4 fps, 33.6 ms in swap
+
+That is +45% on the map screen. Confirmed vertex-bound rather than fill
+bound by scaling fill-extrusion-height to 5%, which leaves the vertex
+count untouched and cuts fill area roughly twentyfold: no change (13.6
+fps). The same win is available by setting opacity to 1.0, which takes
+the identical single-pass branch, but that loses the translucency.
+
+What is given up: back-face culling plus depth write already leaves one
+surface per pixel for convex volumes, so ordinary blocks are unaffected.
+Only footprints that self-overlap in projection (L-shapes, courtyards,
+wings) can now blend a far and a near wall at the same pixel, which at
+45% alpha reads as slightly denser rather than as an artifact. Compared
+side by side at matched camera positions in Berlin Mitte, no visible
+difference.
+
+Upstream still does this on main (render_fill_extrusion_layer.cpp:282,
+`const auto doDepthPass = (!opaque || hasPattern);`), so this is not
+fixed by moving off the opengl-2 pin. The cleaner fix would be a
+depth-only shader variant for the prepass, which would keep correctness
+and cost ~10 instructions instead of ~42, but that is a much larger
+change for a slightly smaller win.
+
+--- a/vendor/maplibre-native/src/mbgl/renderer/layers/render_fill_extrusion_layer.cpp
++++ b/vendor/maplibre-native/src/mbgl/renderer/layers/render_fill_extrusion_layer.cpp
+@@ -153,13 +153,10 @@ void RenderFillExtrusionLayer::render(PaintParameters& parameters) {
+             // Draw opaque extrusions
+             drawTiles(gfx::StencilMode::disabled(), parameters.colorModeForRenderPass(), "color");
+         } else {
+-            // Draw transparent buildings in two passes so that only the closest surface is drawn.
+-            // First draw all the extrusions into only the depth buffer. No colors are drawn.
+-            drawTiles(gfx::StencilMode::disabled(), gfx::ColorMode::disabled(), "depth");
+-
+-            // Then draw all the extrusions a second time, only coloring fragments if they have the
+-            // same depth value as the closest fragment in the previous pass. Use the stencil buffer
+-            // to prevent the second draw in cases where we have coincident polygons.
++            // Single pass. The depth prepass upstream runs here submits every
++            // building vertex a second time to fill depth only, which is about
++            // half this layer's cost on the GC880. Back-face culling plus depth
++            // write already resolves convex volumes to one surface per pixel.
+             drawTiles(parameters.stencilModeFor3D(), parameters.colorModeForRenderPass(), "color");
+         }
+     } else {
