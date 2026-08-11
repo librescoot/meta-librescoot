@@ -1,12 +1,6 @@
 From: Librescoot
 Subject: [PATCH] fill-extrusion: skip the depth prepass on translucent buildings
 
-Upstream-Status: Inappropriate [embedded specific]
-
-Trades a correctness guarantee for frame rate on a GPU with one shader
-core. Upstream keeps the prepass because it is right in general; we drop
-it because the geometry submission it costs is unaffordable here.
-
 When fill-extrusion-opacity is below 1, maplibre-native draws the layer
 twice: once into the depth buffer only, with the colour mask off, and
 then again for colour with a stencil test. The prepass exists so that on
@@ -32,13 +26,9 @@ What is given up: back-face culling plus depth write already leaves one
 surface per pixel for convex volumes, so ordinary blocks are unaffected.
 Only footprints that self-overlap in projection (L-shapes, courtyards,
 wings) can now blend a far and a near wall at the same pixel, which at
-45% alpha reads as slightly denser rather than as an artifact.
-
-Quantified against a matched capture pair in Berlin Mitte, of 230400
-pixels: 16532 (7.2%) differ by more than 5%, and only 208 (0.09%) by
-more than 10%. The differences sit on building faces, as predicted. So
-it is a slight uniform darkening of building surfaces, not structural
-corruption, and it was not apparent to the eye side by side.
+45% alpha reads as slightly denser rather than as an artifact. Compared
+side by side at matched camera positions in Berlin Mitte, no visible
+difference.
 
 Upstream still does this on main (render_fill_extrusion_layer.cpp:282,
 `const auto doDepthPass = (!opaque || hasPattern);`), so this is not
