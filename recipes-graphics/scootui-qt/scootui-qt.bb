@@ -50,6 +50,13 @@ EXTRA_OECMAKE = "-DCMAKE_BUILD_TYPE=Release"
 do_install() {
     install -d ${D}${bindir}
     install -m 0755 ${B}/bin/scootui ${D}${bindir}/scootui-qt
+
+    # SDF glyphs for the map's street name labels. The styles reference these
+    # as file:// so MapLibre reads them straight off disk; without them the
+    # dashboard drops its symbol layers and the map draws no names at all.
+    install -d ${D}${datadir}/scootui/glyphs/roboto_regular
+    install -m 0644 ${S}/assets/glyphs/roboto_regular/*.pbf \
+        ${D}${datadir}/scootui/glyphs/roboto_regular/
 }
 
 SYSTEMD_SERVICE:${PN} = "scootui-qt.service"
@@ -69,6 +76,7 @@ do_install:append:librescoot-dbc-rpi4() {
 
 FILES:${PN} = " \
     ${bindir}/scootui-qt \
+    ${datadir}/scootui/glyphs \
     ${sysconfdir}/scootui-qt-kms.json \
     ${systemd_system_unitdir}/scootui-qt.service \
 "
