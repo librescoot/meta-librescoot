@@ -1,11 +1,19 @@
 [Unit]
-Description=Librescoot network configuration script
-Wants=local-fs.target
-After=local-fs.target
+Description=Librescoot early MDB link configuration
+Documentation=man:systemd.special(7)
+# Runs before the dashboard so Redis is reachable by the time it prewarms its
+# cache. Ordering after udev or networkd would defeat the point: waiting for
+# those is what made the link late in the first place.
+DefaultDependencies=no
+Before=scootui-qt.service
+Before=shutdown.target
+Conflicts=shutdown.target
+After=systemd-journald.socket
 
 [Service]
 Type=oneshot
+RemainAfterExit=yes
 ExecStart=/usr/sbin/librescoot-netconfig
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=sysinit.target
