@@ -18,6 +18,7 @@ SRC_URI += "file://journal-upload-volatile-state.conf"
 SRC_URI += "file://90-journal-upload.preset"
 SRC_URI += "file://librescoot-journal-persistent.service"
 SRC_URI += "file://90-journal-persistent.preset"
+SRC_URI += "file://networkd-wait-online-timeout.conf"
 SRC_URI:append:unu-dbc = " file://99-etnaviv-no-autosuspend.rules"
 SRC_URI:append:unu-dbc = " file://dbc-data-clean.service"
 
@@ -46,6 +47,14 @@ do_install:append() {
     install -d ${D}${systemd_unitdir}/system/systemd-journal-upload.service.d
     install -m 0644 ${UNPACKDIR}/journal-upload-volatile-state.conf \
         ${D}${systemd_unitdir}/system/systemd-journal-upload.service.d/volatile-state.conf
+
+    # Drop-in: bound systemd-networkd-wait-online so an absent inter-board link
+    # slows the boot instead of stopping it. Unbounded, the DBC never reaches
+    # multi-user.target when usb0 is missing — no dropbear, no update-service,
+    # so a pending mender update can never commit. See the file for detail.
+    install -d ${D}${systemd_unitdir}/system/systemd-networkd-wait-online.service.d
+    install -m 0644 ${UNPACKDIR}/networkd-wait-online-timeout.conf \
+        ${D}${systemd_unitdir}/system/systemd-networkd-wait-online.service.d/timeout.conf
 
     # Opt-in persistent journal: when /data/settings/journald-persistent exists,
     # symlink /var/log/journal -> /data/journal so journald (Storage=auto)
