@@ -1,6 +1,22 @@
 [Match]
 Name=can0
 
+# can0 is the vehicle bus to the ECU, not an uplink, so it has no business
+# answering "is the network online".
+#
+# systemd-networkd-wait-online runs --any: one online link satisfies it, and a
+# link opts out of that vote with RequiredForOnline=no. usb0 and end0 both opt
+# out, which left can0 as the only networkd link still voting. That makes
+# network-online.target true as soon as a CAN transceiver has a link, and the
+# only unit on the MDB that wants that target is update-service, which needs
+# actual internet.
+#
+# The uplink is wwan0, which NetworkManager owns. networkd cannot see it, so
+# networkd's wait-online cannot answer the question at all; the honest answer
+# comes from NetworkManager-wait-online, and mdb-netconfig disables networkd's.
+[Link]
+RequiredForOnline=no
+
 [CAN]
 BitRate=125000
 # Without this the controller latches bus-off and never comes back: the ECU is

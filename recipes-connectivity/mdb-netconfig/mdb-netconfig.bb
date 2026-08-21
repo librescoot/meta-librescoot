@@ -11,6 +11,7 @@ SRC_URI += "file://librescoot-usb0-failsafe.sh"
 SRC_URI += "file://librescoot-usb0-failsafe.service"
 SRC_URI += "file://librescoot-usb0-failsafe.timer"
 SRC_URI += "file://90-hostname.conf"
+SRC_URI += "file://89-mdb-netconfig.preset"
 
 inherit systemd
 
@@ -22,6 +23,7 @@ SYSTEMD_AUTO_ENABLE:${PN} = "enable"
 # units named in SYSTEMD_SERVICE get packaged, so name this one here or
 # do_package fails QA with "installed and not shipped".
 FILES:${PN} += "${systemd_system_unitdir}/librescoot-usb0-failsafe.service"
+FILES:${PN} += "${systemd_unitdir}/system-preset/89-mdb-netconfig.preset"
 
 do_install() {
     install -d ${D}/etc/systemd/network
@@ -43,4 +45,9 @@ do_install() {
     install -m 0755 ${UNPACKDIR}/librescoot-usb0-failsafe.sh ${D}${sbindir}/librescoot-usb0-failsafe
     install -m 0644 ${UNPACKDIR}/librescoot-usb0-failsafe.service ${D}${systemd_system_unitdir}
     install -m 0644 ${UNPACKDIR}/librescoot-usb0-failsafe.timer ${D}${systemd_system_unitdir}
+
+    # Preset: keep systemd-networkd-wait-online off. It cannot answer for this
+    # board and blocks forever if asked; see the file for why.
+    install -d ${D}${systemd_unitdir}/system-preset
+    install -m 0644 ${UNPACKDIR}/89-mdb-netconfig.preset ${D}${systemd_unitdir}/system-preset/89-mdb-netconfig.preset
 }

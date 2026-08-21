@@ -1,0 +1,19 @@
+# systemd-networkd cannot answer "is the network online" on the MDB, so it must
+# not be asked.
+#
+# The links networkd manages here are usb0, can0 and end0. None of them is an
+# uplink, and all three set RequiredForOnline=no. systemd-networkd-wait-online
+# runs --any, and with nothing left to vote it does not conclude "no wait
+# needed", it blocks forever: verified on a vehicle, the binary sat until it was
+# killed at 30s. network-online.target would then never be reached and
+# update-service, its only consumer on this board, would never start.
+#
+# The real uplink is wwan0, which NetworkManager owns and networkd cannot see.
+# NetworkManager-wait-online is the honest provider of network-online.target and
+# is already enabled, so leaving it as the sole provider costs nothing: measured
+# on a vehicle, the target is reached at 34.7s either way.
+#
+# Numbered 89 to beat the stock 90-systemd.preset, which enables this unit.
+# Preset rules are read in lexical order across every preset directory and the
+# first match for a unit wins.
+disable systemd-networkd-wait-online.service
