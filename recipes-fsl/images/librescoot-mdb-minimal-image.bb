@@ -33,6 +33,7 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     bmap-writer \
     valkey \
     bluetooth-service \
+    keycard-service \
 "
 
 # valkey and bluetooth-service are here for the nRF52, not for Bluetooth.
@@ -49,6 +50,14 @@ CORE_IMAGE_EXTRA_INSTALL += " \
 # of which are how the flow avoids asking the user to open the seatbox and
 # unbolt a battery. bluetooth-service exits with FATAL when it cannot reach a
 # datastore, before it ever opens the UART, so valkey is not optional here.
+#
+# keycard-service is here for a different reason: to let the installer get the
+# interactive work out of the way while it still has the user's attention.
+#
+# Cards land in /data and a BLE bond lives in the nRF52, so neither is touched
+# by a later mender install or the reboot after it. That means both can be done
+# against this image and survive into the full one, which is what lets the
+# artifact upload and install run underneath the human instead of after them.
 #
 # Around 10 MB on a 170 MB image, or about five seconds of flash time.
 
