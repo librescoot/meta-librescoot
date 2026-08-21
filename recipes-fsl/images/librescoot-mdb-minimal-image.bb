@@ -31,7 +31,26 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     data-server \
     dropbear \
     bmap-writer \
+    valkey \
+    bluetooth-service \
 "
+
+# valkey and bluetooth-service are here for the nRF52, not for Bluetooth.
+#
+# After any reboot the nRF52 initiates, it arms a second power cycle two
+# minutes later unless Linux checks in over USOCK, on the assumption that an
+# iMX6 which has not spoken by then never came back. bluetooth-service is what
+# speaks. Without it a board that lands on this image gets power-cycled every
+# two minutes, forever: observed on a vehicle, USB device number climbing once
+# per cycle until the AUX pole came off.
+#
+# That makes the pair load-bearing for the installer's brake-lever restart and
+# for the BLE hard-reboot, both of which go through the same nRF path and both
+# of which are how the flow avoids asking the user to open the seatbox and
+# unbolt a battery. bluetooth-service exits with FATAL when it cannot reach a
+# datastore, before it ever opens the UART, so valkey is not optional here.
+#
+# Around 10 MB on a 170 MB image, or about five seconds of flash time.
 
 IMAGE_INSTALL:append = " libubootenv-bin"
 IMAGE_INSTALL:append = " linux-firmware-imx-sdma-imx6q"
