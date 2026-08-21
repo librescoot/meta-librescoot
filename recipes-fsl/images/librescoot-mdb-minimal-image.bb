@@ -76,6 +76,41 @@ MENDER_ARTIFACT_NAME = "release-${LIBRESCOOT_VERSION}-minimal"
 # has no mender access there, so the artifact name alone never reaches it.
 # version-service mirrors every os-release line into redis with no allowlist, so
 # this also lands as version:mdb[image_id] at no extra cost.
+# meta-mender ships /data/mender/bootstrap.mender and expects mender-update
+# daemon to install and commit it at startup, which is how a board arrives at a
+# datastore that names its own artifact. This image runs no daemon, so the
+# first thing that ever touches mender is the installer's own `mender-update
+# install`, which does the bootstrap inline: it writes the bootstrap Artifact
+# instead of the payload, reports 100%, exits 0, and leaves the transaction
+# open. The board then reboots onto the same slot, still running this image,
+# and every retry dies with "Update already in progress".
+#
+# So do what the daemon would, once, before anything else can. commit falls
+# back to rollback because ArtifactCommit's state script exits 1 on this
+# rootfs; either outcome closes the transaction, which is all that is needed.
+ROOTFS_POSTPROCESS_COMMAND:append = " librescoot_seed_mender_bootstrap;"
+librescoot_seed_mender_bootstrap() {
+    install -d ${IMAGE_ROOTFS}${systemd_system_unitdir}
+    cat > ${IMAGE_ROOTFS}${systemd_system_unitdir}/mender-bootstrap-seed.service <<'EOF'
+[Unit]
+Description=Resolve the mender bootstrap Artifact before anything installs
+ConditionPathExists=/data/mender/bootstrap.mender
+After=local-fs.target
+Before=librescoot-update.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/bin/sh -c 'mender-update install /data/mender/bootstrap.mender; mender-update commit || mender-update rollback || true'
+
+[Install]
+WantedBy=multi-user.target
+EOF
+    install -d ${IMAGE_ROOTFS}${systemd_system_unitdir}/multi-user.target.wants
+    ln -sf ../mender-bootstrap-seed.service \
+        ${IMAGE_ROOTFS}${systemd_system_unitdir}/multi-user.target.wants/mender-bootstrap-seed.service
+}
+
 ROOTFS_POSTPROCESS_COMMAND:append = " librescoot_mark_bootstrap_image;"
 librescoot_mark_bootstrap_image() {
     echo "IMAGE_ID=librescoot-mdb-bootstrap" >> ${IMAGE_ROOTFS}/usr/lib/os-release
