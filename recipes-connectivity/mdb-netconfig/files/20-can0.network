@@ -3,3 +3,10 @@ Name=can0
 
 [CAN]
 BitRate=125000
+# Without this the controller latches bus-off and never comes back: the ECU is
+# only powered in parked and ready-to-drive, so anything the MDB sends while the
+# scooter is in stand-by goes unacknowledged, drives the TX error counter to 256
+# and takes the bus down for good. librescoot-netconfig.sh also sets restart-ms,
+# but networkd reconfigures can0 a second later and resets it, so the value has
+# to live here.
+RestartSec=100ms
