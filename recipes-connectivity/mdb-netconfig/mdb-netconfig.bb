@@ -17,6 +17,12 @@ inherit systemd
 SYSTEMD_SERVICE:${PN} = "librescoot-netconfig.service librescoot-usb0-failsafe.timer"
 SYSTEMD_AUTO_ENABLE:${PN} = "enable"
 
+# The failsafe service is started by its timer's Unit=, never enabled: it is a
+# oneshot with no [Install] section, so systemctl enable would fail on it. Only
+# units named in SYSTEMD_SERVICE get packaged, so name this one here or
+# do_package fails QA with "installed and not shipped".
+FILES:${PN} += "${systemd_system_unitdir}/librescoot-usb0-failsafe.service"
+
 do_install() {
     install -d ${D}/etc/systemd/network
     install -d ${D}/etc/NetworkManager/system-connections/
