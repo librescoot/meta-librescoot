@@ -1,0 +1,55 @@
+From: Teal Bauer <teal@starsong.eu>
+Date: Fri, 21 Aug 2026 23:10:00 +0200
+Subject: [PATCH] netlink: do not read completion_fn out of a freed transaction
+
+transaction_complete() removes the transaction from self->transactions before
+calling tr->completion_fn(). That hash table is created with transaction_free()
+as its GDestroyNotify, and transaction_free() ends in g_slice_free(), so the
+remove frees tr. The next statement reads tr->completion_fn out of the freed
+block and calls it.
+
+The same function already caches tr->sequence_id into a local precisely because
+tr is gone by the time the error branch formats its message. The success branch
+was missed. Cache completion_fn the same way.
+
+Observed on an armv7 board running 1.24.2: SIGSEGV with pc=0x00000018 about two
+seconds into "simple connect", repeating until the connection happened to
+succeed. The core showed the Transaction slab already recycled, with a glibc
+tcache next pointer at offset 0, the tcache key at offset 4, and 0x18 sitting
+where completion_fn belongs.
+
+Introduced in 0a94b0138 ("netlink: add RTM_GETLINK support to read MAC
+address"), which added the completion_fn indirection. Present in 1.24.0, 1.24.2
+and main.
+
+transaction_complete_with_error() does not need the same treatment: it touches
+nothing in tr after the remove.
+
+Upstream-Status: Pending
+Signed-off-by: Teal Bauer <teal@starsong.eu>
+---
+--- a/src/mm-netlink.c
++++ b/src/mm-netlink.c
+@@ -229,9 +229,11 @@
+ {
+     GTask *task;
+     guint32 sequence_id;
++    MsgFunc completion_fn;
+ 
+     task = g_steal_pointer (&tr->completion_task);
+     sequence_id = tr->sequence_id;
++    completion_fn = tr->completion_fn;
+ 
+     g_hash_table_remove (tr->self->transactions,
+                          GUINT_TO_POINTER (tr->sequence_id));
+@@ -239,7 +241,7 @@
+     if (!saved_errno) {
+         GError *error = NULL;
+ 
+-        if (!tr->completion_fn (task, hdr, &error))
++        if (!completion_fn (task, hdr, &error))
+             g_task_return_error (task, error);
+     } else {
+         g_task_return_new_error (task, G_IO_ERROR, g_io_error_from_errno (saved_errno),
+-- 
+
