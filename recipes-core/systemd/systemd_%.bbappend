@@ -9,7 +9,7 @@ PACKAGECONFIG:append:pn-systemd = " journal-upload microhttpd openssl pstore"
 
 FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 
-SRC_URI += "file://journald.conf"
+SRC_URI += "file://journald-librescoot.conf"
 SRC_URI += "file://00-create-volatile.conf"
 SRC_URI += "file://var.conf"
 SRC_URI += "file://tmp.conf"
@@ -24,8 +24,16 @@ SRC_URI:append:unu-dbc = " file://dbc-data-clean.service"
 
 do_install:append() {
     install -d ${D}${sysconfdir}/systemd
-    install -m 0644 ${UNPACKDIR}/journald.conf ${D}${sysconfdir}/systemd/journald.conf
     install -m 0644 ${UNPACKDIR}/journal-upload.conf ${D}${sysconfdir}/systemd/journal-upload.conf
+
+    # Drop-in: our journald settings cannot live in journald.conf. The
+    # systemd-conf package ships /usr/lib/systemd/journald.conf.d/00-systemd-conf.conf,
+    # and drop-ins beat the main file on every key they share. Drop-ins sort by
+    # filename across all directories, so 10- wins over 00-. See the file for why
+    # RuntimeMaxUse has to be repeated here.
+    install -d ${D}${sysconfdir}/systemd/journald.conf.d
+    install -m 0644 ${UNPACKDIR}/journald-librescoot.conf \
+        ${D}${sysconfdir}/systemd/journald.conf.d/10-librescoot.conf
 
     # Override the default 00-create-volatile.conf to avoid duplicate /run/lock
     install -m 0644 ${UNPACKDIR}/00-create-volatile.conf ${D}${libdir}/tmpfiles.d/00-create-volatile.conf
