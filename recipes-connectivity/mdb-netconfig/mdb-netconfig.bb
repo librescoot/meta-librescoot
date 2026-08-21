@@ -7,11 +7,14 @@ SRC_URI += "file://30-end0.network"
 SRC_URI += "file://wwan.nmconnection"
 SRC_URI += "file://librescoot-netconfig.sh"
 SRC_URI += "file://librescoot-netconfig.service"
+SRC_URI += "file://librescoot-usb0-failsafe.sh"
+SRC_URI += "file://librescoot-usb0-failsafe.service"
+SRC_URI += "file://librescoot-usb0-failsafe.timer"
 SRC_URI += "file://90-hostname.conf"
 
 inherit systemd
 
-SYSTEMD_SERVICE:${PN} = "librescoot-netconfig.service"
+SYSTEMD_SERVICE:${PN} = "librescoot-netconfig.service librescoot-usb0-failsafe.timer"
 SYSTEMD_AUTO_ENABLE:${PN} = "enable"
 
 do_install() {
@@ -28,4 +31,10 @@ do_install() {
     install -m 0644 ${UNPACKDIR}/90-hostname.conf ${D}/etc/NetworkManager/conf.d/
     install -m 0755 ${UNPACKDIR}/librescoot-netconfig.sh ${D}${sbindir}/librescoot-netconfig
     install -m 0644 ${UNPACKDIR}/librescoot-netconfig.service ${D}${systemd_system_unitdir}
+
+    # Raises usb0 when vehicle-service never recorded a gate decision, so a
+    # board that cannot boot far enough to own the link still has a USB way in.
+    install -m 0755 ${UNPACKDIR}/librescoot-usb0-failsafe.sh ${D}${sbindir}/librescoot-usb0-failsafe
+    install -m 0644 ${UNPACKDIR}/librescoot-usb0-failsafe.service ${D}${systemd_system_unitdir}
+    install -m 0644 ${UNPACKDIR}/librescoot-usb0-failsafe.timer ${D}${systemd_system_unitdir}
 }

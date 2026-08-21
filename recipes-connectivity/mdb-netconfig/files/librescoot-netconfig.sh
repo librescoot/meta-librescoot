@@ -1,6 +1,8 @@
 #!/bin/sh
 
-ifconfig usb0 192.168.7.1
+# usb0's address comes from 10-usb0.network. Nothing sets it here: an
+# `ifconfig usb0 <addr>` raises the link as a side effect, and vehicle-service
+# is the only thing that gets to decide whether usb0 is up.
 iptables --table nat --append POSTROUTING --out-interface eth0 -j MASQUERADE
 iptables --table nat --append POSTROUTING --out-interface wwan0 -j MASQUERADE
 iptables --append FORWARD --in-interface usb0 -j ACCEPT

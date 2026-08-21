@@ -1,0 +1,8 @@
+[Unit]
+Description=Raise usb0 if vehicle-service never claimed it
+After=valkey.service
+Wants=valkey.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/sbin/librescoot-usb0-failsafe

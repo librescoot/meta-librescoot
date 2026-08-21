@@ -1,0 +1,19 @@
+[Unit]
+Description=Deadline for vehicle-service to claim usb0
+
+[Timer]
+# Must land after every deadline vehicle-service itself can be waiting on,
+# or this fires on a healthy boot and raises usb0 behind its back.
+#
+# On a measured boot vehicle-service reaches its usb0 gate ~35s in, and waits
+# up to usb0GateWait (30s, internal/core/usb0.go) for keycard-service to
+# publish its pairing counts, so it has decided by ~65s. 120s leaves room for
+# a slower board and still gets a technician a usable port inside two minutes.
+#
+# Raising usb0GateWait means raising this too.
+OnBootSec=120s
+AccuracySec=1s
+Unit=librescoot-usb0-failsafe.service
+
+[Install]
+WantedBy=timers.target

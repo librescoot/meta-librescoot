@@ -1,6 +1,27 @@
 [Match]
 Name=usb0
 
+# vehicle-service owns whether this link is up, not networkd.
+#
+# usb0 is the USB gadget the DBC hosts. Whether it is up is a policy decision,
+# not a networking one: scooter.usb0-policy decides, and vehicle-service
+# applies it against the current dashboard power state and the keycard gate.
+#
+# ActivationPolicy=manual keeps networkd from raising the link when it
+# configures it, so the policy is what decides, from the first second of the
+# boot rather than from whenever vehicle-service catches up. librescoot-
+# netconfig leaves the link alone for the same reason.
+#
+# The address is still configured here; a down link holds it fine and it is
+# there the moment vehicle-service raises the link.
+#
+# RequiredForOnline=no because the link now spends most of its life
+# administratively down, and systemd-networkd-wait-online must not treat that
+# as a boot still in progress.
+[Link]
+ActivationPolicy=manual
+RequiredForOnline=no
+
 [Network]
 ConfigureWithoutCarrier=yes
 Address=192.168.7.1/24
