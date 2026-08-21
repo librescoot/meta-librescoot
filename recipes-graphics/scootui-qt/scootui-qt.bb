@@ -20,6 +20,12 @@ PE = "1"
 
 inherit cmake qt6-cmake pkgconfig systemd
 
+# qmltc writes the C++ it generates under .qmltc/ in the build tree, and that
+# code carries absolute build paths. The debug-source package ships those files
+# verbatim, which trips the buildpaths QA check. Only -src is affected; nothing
+# with an absolute path reaches the target image.
+INSANE_SKIP:${PN}-src += "buildpaths"
+
 DEPENDS = " \
     hiredis \
     qtbase \
