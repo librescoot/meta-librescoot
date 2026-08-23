@@ -29,7 +29,14 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     uboot-env-sync \
     data-server \
     dropbear \
+    zstd \
 "
+
+# zstd is here for the installer, not for this image's own use: routing tiles
+# ship as .tar.zst and are unpacked on the dashboard. Doing that while the
+# board still runs this image keeps it working regardless of which firmware
+# version is being installed on top; the full image only grew zstd in
+# 2026-08-09, so a target older than that cannot unpack them itself.
 
 IMAGE_INSTALL:append = " libubootenv-bin"
 
