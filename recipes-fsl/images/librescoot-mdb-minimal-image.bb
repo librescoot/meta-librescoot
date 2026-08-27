@@ -34,6 +34,7 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     valkey \
     bluetooth-service \
     keycard-service \
+    onboot-service \
 "
 
 # valkey and bluetooth-service are here for the nRF52, not for Bluetooth.
@@ -50,6 +51,11 @@ CORE_IMAGE_EXTRA_INSTALL += " \
 # of which are how the flow avoids asking the user to open the seatbox and
 # unbolt a battery. bluetooth-service exits with FATAL when it cannot reach a
 # datastore, before it ever opens the UART, so valkey is not optional here.
+#
+# onboot-service is the unit that runs /data/onboot.sh, the coordinator the
+# installer leaves behind to finish an install after the laptop is gone.
+# Without it nothing runs the queued phases on this image, so an aborted run's
+# rescue phase and any phase left by an unexpected reboot both sit inert.
 #
 # keycard-service is here for a different reason: to let the installer get the
 # interactive work out of the way while it still has the user's attention.
