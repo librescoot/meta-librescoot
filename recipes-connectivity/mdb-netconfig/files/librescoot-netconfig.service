@@ -1,10 +1,15 @@
 [Unit]
 Description=Librescoot network configuration script
-Wants=local-fs.target
-After=local-fs.target
+# Nothing here reads a filesystem, so local-fs.target only held the usb0 line
+# behind the /data mount and its first-boot resize, about fourteen seconds
+# after dropbear was already listening. What it actually needs is the gadget
+# to exist and networkd to have applied 10-usb0.network.
+Wants=systemd-networkd.service
+After=systemd-networkd.service usb-gadget.target
 
 [Service]
 Type=oneshot
+RemainAfterExit=yes
 ExecStart=/usr/sbin/librescoot-netconfig
 
 [Install]
