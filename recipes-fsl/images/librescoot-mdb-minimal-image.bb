@@ -37,6 +37,8 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     onboot-service \
     ioctl \
     i2c-tools \
+    led-curves \
+    led-curve-loader \
 "
 
 # valkey and bluetooth-service are here for the nRF52, not for Bluetooth.
@@ -74,6 +76,13 @@ CORE_IMAGE_EXTRA_INSTALL += " \
 # on but I see no visible progress otherwise".
 #
 # Together about 30 KB, plus libi2c.
+#
+# ioctl alone cannot make PLAY_FADE do anything: the driver's fade and cue
+# tables start empty and only get populated by an OPEN_FADE/OPEN_CUE ioctl
+# followed by a write on the same fd, which no CLI tool does. led-curves
+# ships the curve data (usually installed by vehicle-service, which isn't on
+# this image), and led-curve-loader is the few-KB C program that does the
+# OPEN_FADE/OPEN_CUE-then-write for it.
 
 # keycard-service is here for a different reason: to let the installer get the
 # interactive work out of the way while it still has the user's attention.
