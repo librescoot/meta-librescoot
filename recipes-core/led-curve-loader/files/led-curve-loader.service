@@ -1,0 +1,15 @@
+[Unit]
+Description=Load PWM-LED fade and cue curves
+DefaultDependencies=no
+After=systemd-modules-load.service
+Before=sysinit.target
+ConditionPathExists=/dev/pwm_led0
+ConditionPathExists=/usr/share/led-curves/fades
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/bin/led-curve-loader
+
+[Install]
+WantedBy=sysinit.target
