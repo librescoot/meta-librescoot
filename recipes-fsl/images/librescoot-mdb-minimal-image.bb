@@ -35,6 +35,8 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     bluetooth-service \
     keycard-service \
     onboot-service \
+    ioctl \
+    i2c-tools \
 "
 
 # valkey and bluetooth-service are here for the nRF52, not for Bluetooth.
@@ -57,6 +59,22 @@ CORE_IMAGE_EXTRA_INSTALL += " \
 # Without it nothing runs the queued phases on this image, so an aborted run's
 # rescue phase and any phase left by an unexpected reboot both sit inert.
 #
+# ioctl and i2c-tools are how the installer signals progress on the vehicle.
+# /dev/pwm_led* speaks custom ioctls and exposes no sysfs or led_classdev, so
+# ioctl is the only way to light a blinker; the LP5562 behind the dashboard LED
+# hangs off i2c-2 on the MDB, so i2cset is the only way to drive that. Both
+# ship in the full image and neither shipped here.
+#
+# That mattered from the moment the board stopped rebooting into the full image
+# before the dashboard work: it now stays on this image for the whole
+# autonomous half of an install, which is exactly the stretch where the user
+# has unplugged the laptop and the LEDs are the only thing left to look at.
+# Every LED call sends stderr to /dev/null, so the absence did not fail, it
+# just went dark. Reported from a real flash: "after the replug, the DBC turned
+# on but I see no visible progress otherwise".
+#
+# Together about 30 KB, plus libi2c.
+
 # keycard-service is here for a different reason: to let the installer get the
 # interactive work out of the way while it still has the user's attention.
 #
