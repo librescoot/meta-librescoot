@@ -148,3 +148,13 @@ ROOTFS_POSTPROCESS_COMMAND:append = " librescoot_mark_bootstrap_image;"
 librescoot_mark_bootstrap_image() {
     echo "IMAGE_ID=librescoot-mdb-bootstrap" >> ${IMAGE_ROOTFS}/usr/lib/os-release
 }
+
+# keycard-service drives the LP5562 the installer signals progress on, so an
+# autostart on this image stomps that LED on every boot the install performs.
+# It is here to be started deliberately by the installer's keycard phase, which
+# unmasks it first, so shipping it masked costs that phase nothing.
+ROOTFS_POSTPROCESS_COMMAND:append = " librescoot_mask_keycard_on_bootstrap;"
+librescoot_mask_keycard_on_bootstrap() {
+    install -d ${IMAGE_ROOTFS}${sysconfdir}/systemd/system
+    ln -sf /dev/null ${IMAGE_ROOTFS}${sysconfdir}/systemd/system/librescoot-keycard.service
+}
