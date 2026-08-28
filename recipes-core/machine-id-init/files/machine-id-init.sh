@@ -19,7 +19,9 @@ if [ ! -r "$NVMEM" ]; then
 fi
 
 # Read OCOTP_CFG0+CFG1 as 32-bit words (native endian, matches U-Boot's view).
-uid=$(od -A n -t x4 -j 4 -N 8 "$NVMEM" | tr -d ' \n')
+# busybox od takes none of -A, -j, -N or -t, and the nvmem file rejects the
+# unaligned reads a bs=1 dd would make, so seek in whole words.
+uid=$(dd if="$NVMEM" bs=4 skip=1 count=2 2>/dev/null | hexdump -v -e '1/4 "%08x"')
 
 if [ "${#uid}" -ne 16 ]; then
     echo "machine-id-init: unexpected UID length ${#uid}, expected 16" >&2
