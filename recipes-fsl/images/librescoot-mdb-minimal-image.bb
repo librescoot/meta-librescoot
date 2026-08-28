@@ -39,6 +39,7 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     i2c-tools \
     led-curves \
     led-curve-loader \
+    curl \
 "
 
 # valkey and bluetooth-service are here for the nRF52, not for Bluetooth.
@@ -83,6 +84,11 @@ CORE_IMAGE_EXTRA_INSTALL += " \
 # ships the curve data (usually installed by vehicle-service, which isn't on
 # this image), and led-curve-loader is the few-KB C program that does the
 # OPEN_FADE/OPEN_CUE-then-write for it.
+#
+# curl is how the trampoline reaches data-server on the DBC: it PUTs the
+# dashboard artifact and map tiles with `curl -f -T` and probes for
+# data-server with `curl -sSI`. Without it those uploads fail outright and
+# the probe reads as data-server being absent rather than curl being absent.
 
 # keycard-service is here for a different reason: to let the installer get the
 # interactive work out of the way while it still has the user's attention.
