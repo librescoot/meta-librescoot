@@ -22,9 +22,24 @@ fakeroot librescoot_seed_ota_artifact() {
     if [ -z "${LIBRESCOOT_OTA_COMPONENT}" ]; then
         bbfatal "LIBRESCOOT_OTA_COMPONENT must be set (dbc or mdb) before requiring librescoot-ota-seed.inc"
     fi
-    install -d "${_MENDER_ROOTFS_COPY}/ota/${LIBRESCOOT_OTA_COMPONENT}"
+    seed_dir="${_MENDER_ROOTFS_COPY}/ota/${LIBRESCOOT_OTA_COMPONENT}"
+    install -d "$seed_dir"
+
+    # do_delete_copy_rootfs is a postfunc, so an interrupted or failed build
+    # leaves the WORKDIR data.copy.* directory behind with its artifact in it. The
+    # next run's do_copy_rootfs uses copyhardlinktree, which merges the fresh
+    # /data on top instead of replacing it, so the stale artifact survives
+    # under its old version-stamped name. Two of them do not fit a 256 MB data
+    # partition and mkfs.ext4 fails with "Could not allocate block". Clear any
+    # artifact already here before seeding ours.
+    for stale in "$seed_dir"/*.mender; do
+        [ -e "$stale" ] || continue
+        bbwarn "Removing stale seeded artifact from an earlier build: $(basename "$stale")"
+        rm -f "$stale"
+    done
+
     install -m 0644 "${IMGDEPLOYDIR}/${IMAGE_LINK_NAME}.mender" \
-        "${_MENDER_ROOTFS_COPY}/ota/${LIBRESCOOT_OTA_COMPONENT}/librescoot-${MACHINE}-${LIBRESCOOT_VERSION}.mender"
+        "$seed_dir/librescoot-${MACHINE}-${LIBRESCOOT_VERSION}.mender"
 }
 
 # mender-dataimg.bbclass comes in via IMAGE_CLASSES (inherit_defer), so it
