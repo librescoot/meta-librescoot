@@ -7,7 +7,7 @@ Wants=systemd-logind.service
 After=systemd-logind.service dbus.socket
 
 [Service]
-Type=idle
+Type=simple
 User=root
 Group=root
 Nice=-10
