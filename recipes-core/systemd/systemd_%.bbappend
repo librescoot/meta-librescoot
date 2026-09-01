@@ -76,8 +76,17 @@ do_install:append() {
 # /dev/mmcblk1pN name. Nothing consumes /dev/disk/by-* links, so probing every
 # block device with blkid only delays /data and the services ordered after it.
 # A five-boot hardware trial reduced median /data readiness by 1.61 seconds.
+#
+# MDB runs a single root session with no desktop graphics, multiseat, or
+# non-root interactive user. 71-seat.rules tags input, sound, graphics,
+# backlight, and USB devices with seat/uaccess ACLs that are never consumed.
+# Removing it saves ~0.3s across valkey, Bluetooth, vehicle, battery, ECU,
+# and PM service startups. Five candidate boots passed with all services
+# healthy, GPIO input by-path still present, CAN up, modem active, and no
+# failed units. U-Boot rollback was exercised before landing.
 do_install:append:unu-mdb() {
     rm -f ${D}${nonarch_base_libdir}/udev/rules.d/60-persistent-storage.rules
+    rm -f ${D}${nonarch_base_libdir}/udev/rules.d/71-seat.rules
 }
 
 # Drop udev rules that don't match any hardware on unu-dbc. Systemd's udev
