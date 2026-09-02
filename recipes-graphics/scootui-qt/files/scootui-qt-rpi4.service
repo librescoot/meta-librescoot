@@ -19,6 +19,12 @@ Environment=QT_QPA_PLATFORM=eglfs
 Environment=QT_QPA_EGLFS_INTEGRATION=eglfs_kms
 Environment=SCOOTUI_RESOLUTION="1024x600"
 Environment=QT_PLUGIN_PATH=/usr/plugins:/usr/lib/plugins
+# The DBC has two cores and they are saturated for the first ~14s of boot
+# (udev coldplug, resolved, networkd, journald). At the default priority the
+# dashboard gets 20-30% of one core and its first frame lands at ~15.8s; at
+# nice -10 it gets the CPU when it is runnable and the first frame lands at
+# ~10.8s. CPUWeight alone measured no effect on this image.
+Nice=-10
 RuntimeDirectory=user/0
 ExecStart=/usr/bin/scootui-qt
 
