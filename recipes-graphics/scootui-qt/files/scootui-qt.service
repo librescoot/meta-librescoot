@@ -21,6 +21,9 @@ Environment=QT_QPA_EGLFS_KMS_ATOMIC=1
 Environment=QT_QPA_EGLFS_SWAPINTERVAL=1
 Environment=QSG_RENDER_LOOP=basic
 Environment=QT_PLUGIN_PATH=/usr/plugins:/usr/lib/plugins
+# No touch or key input on the DBC: buttons arrive through Redis. Skipping
+# the evdev/libinput setup saves ~0.1s in QGuiApplication's constructor.
+Environment=QT_QPA_EGLFS_DISABLE_INPUT=1
 # The DBC has two cores and they are saturated for the first ~14s of boot
 # (udev coldplug, resolved, networkd, journald). At the default priority the
 # dashboard gets 20-30% of one core and its first frame lands at ~15.8s; at
