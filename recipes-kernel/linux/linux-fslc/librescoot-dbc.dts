@@ -195,7 +195,38 @@ display@di0 {
         };
     };
 
-    /* Remove port@1 - no panel connection */
+    port@1 {
+        reg = <1>;
+        display0_out: endpoint {
+            remote-endpoint = <&panel_in>;
+        };
+    };
+};
+
+/* AUO A045FTN01, initialised by U-Boot over SPI. Referencing the backlight
+ * keeps pwm-backlight from switching it on at probe. */
+panel {
+    compatible = "panel-dpi";
+    backlight = <&backlight>;
+    power-supply = <&vdd_3v3_reg>;
+
+    panel-timing {
+        clock-frequency = <16600000>;
+        hactive = <480>;
+        vactive = <480>;
+        hfront-porch = <33>;
+        hback-porch = <37>;
+        hsync-len = <4>;
+        vfront-porch = <7>;
+        vback-porch = <18>;
+        vsync-len = <2>;
+    };
+
+    port {
+        panel_in: endpoint {
+            remote-endpoint = <&display0_out>;
+        };
+    };
 };
 
 		caam-sm@100000 {
@@ -1987,7 +2018,7 @@ display@di0 {
 		#address-cells = <0x01>;
 		#size-cells = <0x00>;
 
-		regulator@0 {
+		vdd_3v3_reg: regulator@0 {
 			compatible = "regulator-fixed";
 			reg = <0x00>;
 			regulator-name = "vdd_3v3_reg";
