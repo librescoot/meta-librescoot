@@ -1,0 +1,310 @@
+From c8ce51e5286387d96415d8a8f33d2d9bc6f36b22 Mon Sep 17 00:00:00 2001
+From: Teal Bauer <teal@librescoot.org>
+Date: Wed, 2 Sep 2026 20:15:14 +0200
+Subject: [PATCH] mx6sabresd: leave the DBC display to the kernel
+
+Any pixel clock U-Boot puts on the AUO A045FTN01 shows as a white flash
+at power-on, whatever the order of panel init, DI enable and Display
+On. The stock bootloader for this board never starts the DI: it
+initialises the panel over SPI and leaves it dark until the kernel
+starts scanning out, which never flashes. Do the same: drop
+CONFIG_VIDEO, undo the IPUV3 and splash defines mx6sabre_common.h sets
+unconditionally, keep the SPI bring-up in board_init() with the
+datasheet timings (reset 5/10/10 ms, 120 ms between Sleep Out and
+Display On) and the three 16-bit transfers per register.
+
+Upstream-Status: Inappropriate [board specific]
+---
+ board/freescale/mx6sabresd/mx6sabresd.c | 126 +++++++++++++-----------
+ configs/mx6solosabresd_defconfig        |   2 +-
+ drivers/video/ipu_common.c              |   8 +-
+ drivers/video/ipu_disp.c                |   4 +
+ drivers/video/mxc_ipuv3_fb.c            |   8 ++
+ include/configs/mx6sabresd.h            |  14 +++
+ 6 files changed, 97 insertions(+), 65 deletions(-)
+
+diff --git a/board/freescale/mx6sabresd/mx6sabresd.c b/board/freescale/mx6sabresd/mx6sabresd.c
+index 4518fcd..de4fd16 100644
+--- a/board/freescale/mx6sabresd/mx6sabresd.c
++++ b/board/freescale/mx6sabresd/mx6sabresd.c
+@@ -17,6 +17,7 @@
+ #include <asm/imx-common/iomux-v3.h>
+ #include <asm/imx-common/boot_mode.h>
+ #include <asm/imx-common/video.h>
++#include <video_fb.h>
+ #include <mmc.h>
+ #include <fsl_esdhc.h>
+ #include <miiphy.h>
+@@ -317,50 +318,53 @@ void setup_lcd_spi(void) {
+     imx_iomux_v3_setup_multiple_pads(ecspi1_pads, ARRAY_SIZE(ecspi1_pads));
+ }
+ 
++/* Three 16-bit transfers per register: 0x20 cmd high, 0x00 cmd low, 0x40 data. */
++/* Register setup only, up to and excluding Sleep Out. */
+ void lcd_init_spi(void) {
+-    // LCD initialization commands structure
+-    struct lcd_cmd {
+-        const char *addr;
+-        const char *data;
+-    };
+-    
+-    // Command sequence for LCD initialization
+-    static const struct lcd_cmd init_seq[] = {
+-        {"20FF", "0000"}, {"20FF", "4080"},
+-        {"20FF", "0001"}, {"20FF", "4019"},
+-        {"20FF", "0002"}, {"20FF", "4001"},
+-        {"20FF", "0080"}, {"20FF", "4080"},
+-        {"20FF", "0081"}, {"20FF", "4019"},
+-        {"20B2", "0090"}, {"20B2", "4000"},
+-        {"20B2", "0091"}, {"20B2", "4006"},
+-        {"20B2", "0092"}, {"20B2", "4000"},
+-        {"20B2", "0093"}, {"20B2", "4013"},
+-        {"20B2", "0094"}, {"20B2", "4000"},
+-        {"20B2", "0095"}, {"20B2", "402E"},
+-        {"20B2", "0096"}, {"20B2", "4000"},
+-        {"20B2", "0097"}, {"20B2", "402E"},
+-        {"20FF", "0080"}, {"20FF", "40FF"},
+-        {"20FF", "0081"}, {"20FF", "40FF"},
+-        {"20FF", "0000"}, {"20FF", "40FF"},
+-        {"20FF", "0001"}, {"20FF", "40FF"},
+-        {"20FF", "0002"}, {"20FF", "40FF"},
+-        {"2011", "0000"}, {"2011", "4000"},
+-        {"2029", "0000"}, {"2029", "4000"}
++    static const char *const cmds[] = {
++        "20FF", "0000", "4080",
++        "20FF", "0001", "4019",
++        "20FF", "0002", "4001",
++        "20FF", "0080", "4080",
++        "20FF", "0081", "4019",
++        "20B2", "0090", "4000",
++        "20B2", "0091", "4006",
++        "20B2", "0092", "4000",
++        "20B2", "0093", "4013",
++        "20B2", "0094", "4000",
++        "20B2", "0095", "402E",
++        "20B2", "0096", "4000",
++        "20B2", "0097", "402E",
++        "20FF", "0080", "40FF",
++        "20FF", "0081", "40FF",
++        "20FF", "0000", "40FF",
++        "20FF", "0001", "40FF",
++        "20FF", "0002", "40FF",
+     };
++    const int ncmds = sizeof(cmds) / sizeof(cmds[0]);
++    char *argv[4] = {"0", "0:0.0", "16", NULL};
++    int i;
+ 
++    for (i = 0; i < ncmds; i++) {
++        argv[3] = (char *)cmds[i];
++        do_spi_lcd(0, 4, argv);
++    }
++}
++
++/* Sleep Out and Display On, once the DI is running (datasheet T10 between). */
++void lcd_display_on(void) {
++    static const char *const cmds[] = {
++        "2011", "0000", "4000",
++        "2029", "0000", "4000",
++    };
+     char *argv[4] = {"0", "0:0.0", "16", NULL};
+-    const int argc = sizeof(argv)/sizeof(argv[0]);
+-    
+-    for (size_t i = 0; i < sizeof(init_seq)/sizeof(init_seq[0]); i++) {
+-        argv[3] = (char*)init_seq[i].addr;
+-        do_spi_lcd(0, argc, argv);
+-        argv[3] = (char*)init_seq[i].data;
+-        do_spi_lcd(0, argc, argv);
+-        
+-        // Special delay case
+-        if (i == sizeof(init_seq)/sizeof(init_seq[0]) - 4) {
+-            udelay(1000);
+-        }
++    int i;
++
++    for (i = 0; i < 6; i++) {
++        argv[3] = (char *)cmds[i];
++        do_spi_lcd(0, 4, argv);
++        if (i == 2)
++            mdelay(120);
+     }
+ }
+ 
+@@ -407,17 +411,20 @@ static void enable_backlight(void)
+ 	gpio_direction_output(DISP0_PWR_EN, 0);
+ }
+ 
++/* Panel bring-up over SPI. The DI is left to the kernel: any pixel clock the
++ * bootloader puts on the panel shows as a white flash. */
+ static void enable_rgb(void)
+ {
+ 	setup_lcd_spi();
+ 	gpio_request(IMX_GPIO_NR(4, 20), "lcd reset");
+-	gpio_direction_output(IMX_GPIO_NR(4, 20) , 1);
+-	udelay(1000);
+-	gpio_direction_output(IMX_GPIO_NR(4, 20) , 0);
+-	udelay(1000);
+-	gpio_direction_output(IMX_GPIO_NR(4, 20) , 1);
+-	udelay(1000);
++	gpio_direction_output(IMX_GPIO_NR(4, 20), 1);
++	mdelay(5);
++	gpio_direction_output(IMX_GPIO_NR(4, 20), 0);
++	mdelay(10);
++	gpio_direction_output(IMX_GPIO_NR(4, 20), 1);
++	mdelay(10);
+ 	lcd_init_spi();
++	lcd_display_on();
+ 
+ 	enable_backlight();
+ }
+@@ -582,18 +589,18 @@ struct display_info_t const displays[] = {{
+ 	.addr	= 0,
+ 	.pixfmt	= IPU_PIX_FMT_RGB24,
+ 	.detect	= NULL,
+-	.enable	= enable_rgb,
++	.enable	= NULL,
+ 	.mode	= {
+ 		.name		= "AUO",
+ 		.xres           = 480,
+ 		.yres           = 480,
+-		.pixclock       = 40000,
+-		.left_margin    = 89,
+-		.right_margin   = 164,
+-		.upper_margin   = 23,
+-		.lower_margin   = 10,
+-		.hsync_len      = 10,
+-		.vsync_len      = 10,
++		.pixclock       = 60241,
++		.left_margin    = 37,
++		.right_margin   = 33,
++		.upper_margin   = 18,
++		.lower_margin   = 7,
++		.hsync_len      = 4,
++		.vsync_len      = 2,
+ 		.vmode          = FB_VMODE_NONINTERLACED
+ } } };
+ 
+@@ -734,9 +741,6 @@ int board_ehci_power(int port, int on)
+ int board_early_init_f(void)
+ {
+ 	setup_iomux_uart();
+-#if defined(CONFIG_VIDEO_IPUV3)
+-	setup_display();
+-#endif
+ 	return 0;
+ }
+ 
+@@ -760,7 +764,13 @@ int board_init(void)
+ 	imx_iomux_set_gpr_register(1, 13, 1, 0);
+ #endif
+ #endif
+-        enable_rgb();
++
++	enable_rgb();
++#if defined(CONFIG_VIDEO_IPUV3)
++	setup_display();
++	ipuv3_fb_init(&displays[0].mode, 0, displays[0].pixfmt);
++	video_hw_init();
++#endif
+ 
+ 	return 0;
+ }
+diff --git a/configs/mx6solosabresd_defconfig b/configs/mx6solosabresd_defconfig
+index 5a6de4e..cd89703 100644
+--- a/configs/mx6solosabresd_defconfig
++++ b/configs/mx6solosabresd_defconfig
+@@ -1,7 +1,7 @@
+ CONFIG_ARM=y
+ CONFIG_ARCH_MX6=y
+ CONFIG_TARGET_MX6SABRESD=y
+-CONFIG_VIDEO=y
++# CONFIG_VIDEO is not set
+ CONFIG_SYS_EXTRA_OPTIONS="IMX_CONFIG=board/freescale/mx6sabresd/mx6solo_4x_mt41j128.cfg,MX6S"
+ CONFIG_BOOTDELAY=0
+ # CONFIG_CONSOLE_MUX is not set
+diff --git a/drivers/video/ipu_common.c b/drivers/video/ipu_common.c
+index 28b4bcf..800a3be 100644
+--- a/drivers/video/ipu_common.c
++++ b/drivers/video/ipu_common.c
+@@ -694,12 +694,8 @@ int32_t ipu_init_channel(ipu_channel_t channel, ipu_channel_params_t *params)
+ 		ipu_conf |= IPU_CONF_DP_EN;
+ 	if (ipu_dmfc_use_count == 1)
+ 		ipu_conf |= IPU_CONF_DMFC_EN;
+-	if (ipu_di_use_count[0] == 1) {
+-		ipu_conf |= IPU_CONF_DI0_EN;
+-	}
+-	if (ipu_di_use_count[1] == 1) {
+-		ipu_conf |= IPU_CONF_DI1_EN;
+-	}
++	/* DI0_EN/DI1_EN are set in ipu_dp_dc_enable(), once the sync counters
++	 * run; enabled here, the DI clocks the panel without sync until then. */
+ 
+ 	__raw_writel(ipu_conf, IPU_CONF);
+ 
+diff --git a/drivers/video/ipu_disp.c b/drivers/video/ipu_disp.c
+index 8b3b82d..28e5329 100644
+--- a/drivers/video/ipu_disp.c
++++ b/drivers/video/ipu_disp.c
+@@ -648,6 +648,10 @@ void ipu_dp_dc_enable(ipu_channel_t channel)
+ #if defined(CONFIG_MX6) || defined(CONFIG_MX53)
+ 	clk_enable(g_ldb_clk[di]);
+ #endif
++
++	reg = __raw_readl(IPU_CONF);
++	reg |= di ? IPU_CONF_DI1_EN : IPU_CONF_DI0_EN;
++	__raw_writel(reg, IPU_CONF);
+ }
+ 
+ static unsigned char dc_swap;
+diff --git a/drivers/video/mxc_ipuv3_fb.c b/drivers/video/mxc_ipuv3_fb.c
+index 0d0a0a9..7628093 100644
+--- a/drivers/video/mxc_ipuv3_fb.c
++++ b/drivers/video/mxc_ipuv3_fb.c
+@@ -411,6 +411,8 @@ static int mxcfb_map_video_memory(struct fb_info *fbi)
+ 		fbi->fix.smem_start = 0;
+ 		return -EBUSY;
+ 	}
++	/* the DI scans this before video_init() clears it */
++	memset(fbi->screen_base, 0, fbi->fix.smem_len);
+ 
+ 	debug("allocated fb @ paddr=0x%08X, size=%d.\n",
+ 		(uint32_t) fbi->fix.smem_start, fbi->fix.smem_len);
+@@ -587,8 +589,14 @@ void ipuv3_fb_shutdown(void)
+ 
+ void *video_hw_init(void)
+ {
++	static int probed;
+ 	int ret;
+ 
++	/* the board may start the display from board_init() already */
++	if (probed)
++		return (void *)&panel;
++	probed = 1;
++
+ 	ret = ipu_probe();
+ 	if (ret)
+ 		puts("Error initializing IPU\n");
+diff --git a/include/configs/mx6sabresd.h b/include/configs/mx6sabresd.h
+index f603740..15bfa33 100644
+--- a/include/configs/mx6sabresd.h
++++ b/include/configs/mx6sabresd.h
+@@ -31,6 +31,20 @@
+ 
+ #include "mx6sabre_common.h"
+ 
++/* mx6sabre_common.h enables the IPU video path unconditionally; the DBC
++ * leaves the display to the kernel. */
++#ifndef CONFIG_VIDEO
++#undef CONFIG_VIDEO_IPUV3
++#undef CONFIG_VIDEO_BMP_RLE8
++#undef CONFIG_SPLASH_SCREEN
++#undef CONFIG_SPLASH_SCREEN_ALIGN
++#undef CONFIG_BMP_16BPP
++#undef CONFIG_VIDEO_LOGO
++#undef CONFIG_VIDEO_BMP_LOGO
++#undef CONFIG_IMX_HDMI
++#undef CONFIG_IMX_VIDEO_SKIP
++#endif
++
+ /* Falcon Mode */
+ #define CONFIG_SPL_FS_LOAD_ARGS_NAME	"args"
+ #define CONFIG_SPL_FS_LOAD_KERNEL_NAME	"uImage"
