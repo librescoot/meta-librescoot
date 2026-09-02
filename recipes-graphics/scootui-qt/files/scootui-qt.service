@@ -12,6 +12,9 @@ ConditionPathExists=/dev/tty0
 [Service]
 Environment=LANG=C.UTF-8
 Environment=HOME="/data"
+# /data mounts several seconds after the dashboard starts; Qt's qml, pipeline
+# and shader caches must not land on the rootfs under the mountpoint.
+Environment=XDG_CACHE_HOME=/var/volatile/cache
 Environment=XDG_RUNTIME_DIR="/run/user/0"
 Environment=MESA_SHADER_CACHE_DIR=/var/volatile/mesa_shader_cache
 Environment=QT_QPA_PLATFORM=eglfs
