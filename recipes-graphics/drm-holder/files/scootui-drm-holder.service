@@ -2,8 +2,10 @@
 Description=Hold /dev/dri/card1 open to suppress imx-drm lastclose modeset flash
 DefaultDependencies=no
 After=systemd-journald.socket
-Before=scootui-qt.service shutdown.target
-Conflicts=shutdown.target
+Before=scootui-qt.service
+# Must outlive the shutdown transaction: the last close of card1 restores the
+# fbdev mode, which the panel shows as a white flash before VBUS is cut.
+IgnoreOnIsolate=yes
 ConditionPathExists=/dev/dri/card1
 
 [Service]

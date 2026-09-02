@@ -22,6 +22,11 @@
 
 int main(int argc, char **argv) {
     const char *path = (argc > 1) ? argv[1] : "/dev/dri/card1";
+    /* systemd-shutdown leaves processes whose argv[0] starts with '@' alone */
+    if (argv[0][0] != '@') {
+        char *av[] = { "@drm-holder", (char *)path, NULL };
+        execv("/proc/self/exe", av);
+    }
     int fd = open(path, O_RDWR | O_CLOEXEC);
     if (fd < 0) return 1;
     /* The first opener of a primary node becomes DRM master; give it up so
