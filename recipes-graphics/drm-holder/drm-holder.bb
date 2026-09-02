@@ -15,7 +15,7 @@ COMPATIBLE_MACHINE = "unu-dbc"
 inherit systemd
 
 SYSTEMD_SERVICE:${PN} = "scootui-drm-holder.service"
-SYSTEMD_AUTO_ENABLE:${PN} = "disable"
+SYSTEMD_AUTO_ENABLE:${PN} = "enable"
 
 S = "${UNPACKDIR}"
 
