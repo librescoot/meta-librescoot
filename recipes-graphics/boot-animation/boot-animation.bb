@@ -53,6 +53,7 @@ do_compile() {
         -lstdc++ -lm -lz
 
     # librescoot plays once and holds its last frame; the others loop.
+    # RGB565 streams serve a 32bpp fb0 too, the player widens them.
     ${B}/lottie2stream ${UNPACKDIR}/librescoot.json \
         ${BOOT_ANIMATION_WIDTH} ${BOOT_ANIMATION_HEIGHT} ${BOOT_ANIMATION_FPS} \
         ${B}/librescoot.lsba

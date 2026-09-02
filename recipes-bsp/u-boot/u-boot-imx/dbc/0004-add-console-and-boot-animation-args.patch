@@ -18,7 +18,7 @@ index fe1fbb142ac..df752bca617 100644
  	"kernel_addr_r=0x12000000\0" \
 +	"splashpos=m,395\0" \
 +	"boot_animation=librescoot\0" \
-+	"bootargs=console=ttymxc0,115200 loglevel=0 quiet systemd.show_status=false vt.global_cursor_default=0 boot.animation=${boot_animation}\0" \
++	"bootargs=console=ttymxc0,115200 loglevel=0 quiet systemd.show_status=false vt.global_cursor_default=0 boot.animation=${boot_animation} imxdrm.legacyfb_depth=32\0" \
  	"tee_addr=0x20000000\0" \
  	"tee_file=undefined\0" \
  	"boot_fdt=try\0" \
