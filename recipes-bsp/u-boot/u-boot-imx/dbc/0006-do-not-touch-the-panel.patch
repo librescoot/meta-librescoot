@@ -1,0 +1,365 @@
+From f0367addc1b2b09fd1a33f1e358889495ec5b4f4 Mon Sep 17 00:00:00 2001
+From: LibreScoot <librescoot@example.com>
+Date: Thu, 3 Sep 2026 10:55:54 +0200
+Subject: [PATCH] mx6sabresd: do not touch the panel
+
+The kernel's DRM panel driver brings up the AUO A045FTN01 itself: reset
+pulse, SPI register setup, Sleep Out and Display On, in datasheet order,
+after the pixel clock is running. Anything U-Boot does to the panel
+before that is a second init in the wrong order.
+
+Drop the whole bring-up from board_init(): the reset pulse on GPIO4_20,
+the ECSPI1 setup and the SPI command tables (lcd_init_spi,
+lcd_display_on, the cmd_spi duplicate behind do_spi_lcd), and the
+includes and SPI_PAD_CTRL that only served them. The ECSPI1 pads were
+muxed by setup_lcd_spi() alone and nothing else in this U-Boot uses
+ECSPI1 (no SPI flash, the environment lives on eMMC), so the sspi and sf
+commands stay compiled but the pads are left unmuxed and the ECSPI1
+clock gate is not touched. rgb_pads, which nothing referenced any more,
+goes too.
+
+Leave the panel in a defined, dark state instead: DI0_PIN4 is muxed as
+GPIO4_IO20 and driven low, holding the panel in reset until the kernel
+driver releases it, and enable_backlight() still drives DISP0_PWR_EN
+(GPIO1_IO21 on SD1_DAT3) low as before. On this board that pad is the
+backlight PWM input: the kernel muxes it as PWM1_OUT for the
+pwm-backlight, and low keeps the backlight off through the handoff.
+
+Video stays disabled as before; the IPU path, memory, environment and
+boot command are untouched.
+
+Upstream-Status: Inappropriate [board-specific]
+---
+ board/freescale/mx6sabresd/mx6sabresd.c | 291 +-----------------------
+ 1 file changed, 9 insertions(+), 282 deletions(-)
+
+diff --git a/board/freescale/mx6sabresd/mx6sabresd.c b/board/freescale/mx6sabresd/mx6sabresd.c
+index de4fd16..a20f910 100644
+--- a/board/freescale/mx6sabresd/mx6sabresd.c
++++ b/board/freescale/mx6sabresd/mx6sabresd.c
+@@ -59,9 +59,6 @@ DECLARE_GLOBAL_DATA_PTR;
+ #define ENET_PAD_CTRL  (PAD_CTL_PUS_100K_UP |			\
+ 	PAD_CTL_SPEED_MED | PAD_CTL_DSE_40ohm | PAD_CTL_HYS)
+ 
+-#define SPI_PAD_CTRL (PAD_CTL_HYS | PAD_CTL_SPEED_MED | \
+-		      PAD_CTL_DSE_40ohm | PAD_CTL_SRE_FAST)
+-
+ #define I2C_PAD_CTRL  (PAD_CTL_PUS_100K_UP |			\
+ 	PAD_CTL_SPEED_MED | PAD_CTL_DSE_40ohm | PAD_CTL_HYS |	\
+ 	PAD_CTL_ODE | PAD_CTL_SRE_FAST)
+@@ -130,274 +127,8 @@ static iomux_v3_cfg_t const usdhc4_pads[] = {
+ };
+ 
+ 
+-static iomux_v3_cfg_t const ecspi1_pads[] = {
+-	MX6_PAD_KEY_COL0__ECSPI1_SCLK | MUX_PAD_CTRL(SPI_PAD_CTRL),
+-	MX6_PAD_KEY_COL1__ECSPI1_MISO | MUX_PAD_CTRL(SPI_PAD_CTRL),
+-	MX6_PAD_KEY_ROW0__ECSPI1_MOSI | MUX_PAD_CTRL(SPI_PAD_CTRL),
+-	MX6_PAD_KEY_ROW1__ECSPI1_SS0 | MUX_PAD_CTRL(NO_PAD_CTRL),
+-};
+-
+-// customized duplicate from uboot/common/cmd_spi.c
+-
+-#include <common.h>
+-#include <command.h>
+-#include <dm.h>
+-#include <errno.h>
+-#include <spi.h>
+-
+-/*-----------------------------------------------------------------------
+- * Definitions
+- */
+-
+-#ifndef MAX_SPI_BYTES
+-#   define MAX_SPI_BYTES 32	/* Maximum number of bytes we can handle */
+-#endif
+-
+-#ifndef CONFIG_DEFAULT_SPI_BUS
+-#   define CONFIG_DEFAULT_SPI_BUS	0
+-#endif
+-#ifndef CONFIG_DEFAULT_SPI_MODE
+-#   define CONFIG_DEFAULT_SPI_MODE	SPI_MODE_0
+-#endif
+-
+-/*
+- * Values from last command.
+- */
+-static unsigned int	bus;
+-static unsigned int	cs;
+-static unsigned int	mode;
+-static int   		bitlen;
+-static uchar 		dout[MAX_SPI_BYTES];
+-static uchar 		din[MAX_SPI_BYTES];
+-
+-static int do_spi_xfer_lcd(int bus, int cs)
+-{
+-	struct spi_slave *slave;
+-	int ret = 0;
+-
+-#ifdef CONFIG_DM_SPI
+-	char name[30], *str;
+-	struct udevice *dev;
+-
+-	snprintf(name, sizeof(name), "generic_%d:%d", bus, cs);
+-	str = strdup(name);
+-	if (!str)
+-		return -ENOMEM;
+-	ret = spi_get_bus_and_cs(bus, cs, 1000000, mode, "spi_generic_drv",
+-				 str, &dev, &slave);
+-	if (ret)
+-		return ret;
+-#else
+-	slave = spi_setup_slave(bus, cs, 1000000, mode);
+-	if (!slave) {
+-		printf("Invalid device %d:%d\n", bus, cs);
+-		return -EINVAL;
+-	}
+-#endif
+-
+-	ret = spi_claim_bus(slave);
+-	if (ret)
+-		goto done;
+-	ret = spi_xfer(slave, bitlen, dout, din,
+-		       SPI_XFER_BEGIN | SPI_XFER_END);
+-#ifndef CONFIG_DM_SPI
+-	/* We don't get an error code in this case */
+-	if (ret)
+-		ret = -EIO;
+-#endif
+-	if (ret) {
+-		printf("Error %d during SPI transaction\n", ret);
+-	} else {
+-		int j;
+-
+-		/*for (j = 0; j < ((bitlen + 7) / 8); j++)
+-			printf("%02X", din[j]);
+-		printf("\n");*/
+-	}
+-done:
+-	spi_release_bus(slave);
+-#ifndef CONFIG_DM_SPI
+-	spi_free_slave(slave);
+-#endif
+-
+-	return ret;
+-}
+-
+-/*
+- * SPI read/write
+- *
+- * Syntax:
+- *   spi {dev} {num_bits} {dout}
+- *     {dev} is the device number for controlling chip select (see TBD)
+- *     {num_bits} is the number of bits to send & receive (base 10)
+- *     {dout} is a hexadecimal string of data to send
+- * The command prints out the hexadecimal string received via SPI.
+- */
+-
+-int do_spi_lcd (int flag, int argc, char * const argv[])
+-{
+-	char  *cp = 0;
+-	uchar tmp;
+-	int   j;
+-
+-	/*
+-	 * We use the last specified parameters, unless new ones are
+-	 * entered.
+-	 */
+-
+-	if ((flag & CMD_FLAG_REPEAT) == 0)
+-	{
+-		if (argc >= 2) {
+-			mode = CONFIG_DEFAULT_SPI_MODE;
+-			bus = simple_strtoul(argv[1], &cp, 10);
+-			if (*cp == ':') {
+-				cs = simple_strtoul(cp+1, &cp, 10);
+-			} else {
+-				cs = bus;
+-				bus = CONFIG_DEFAULT_SPI_BUS;
+-			}
+-			if (*cp == '.')
+-				mode = simple_strtoul(cp+1, NULL, 10);
+-		}
+-		if (argc >= 3){
+-			bitlen = simple_strtoul(argv[2], NULL, 10);}
+-		if (argc >= 4) {
+-			cp = argv[3];
+-			for(j = 0; *cp; j++, cp++) {
+-				tmp = *cp - '0';
+-				if(tmp > 9)
+-					tmp -= ('A' - '0') - 10;
+-				if(tmp > 15)
+-					tmp -= ('a' - 'A');
+-				if(tmp > 15) {
+-					printf("Hex conversion error on %c\n", *cp);
+-					return 1;
+-				}
+-				if((j % 2) == 0)
+-					dout[j / 2] = (tmp << 4);
+-				else
+-					dout[j / 2] |= tmp;
+-			}
+-		}
+-	}
+-
+-	if ((bitlen < 0) || (bitlen >  (MAX_SPI_BYTES * 8))) {
+-		printf("Invalid bitlen %d\n", bitlen);
+-		return 1;
+-	}
+-
+-	if (do_spi_xfer_lcd(bus, cs))
+-		return 1;
+-
+-	return 0;
+-}
+-
+-struct cspi_regs *ecspi1 = (struct cspi_regs *)ECSPI1_BASE_ADDR;
+-
+-void write_command(char x) {
+-    while (readl(&ecspi1->stat) & (1<<2))
+-        udelay(10);
+-    writel(x,&ecspi1->txdata);
+-}
+-
+-void write_data(char x) {
+-    while (readl(&ecspi1->stat) & (1<<2))
+-        udelay(10);
+-    writel((1<<8)|x,&ecspi1->txdata);
+-}
+-
+-void setup_lcd_spi(void) {
+-    struct mxc_ccm_reg *ccm = (struct mxc_ccm_reg *)CCM_BASE_ADDR;
+-    int reg;
+-    reg=readl(&ecspi1->ctrl);
+-    writel(reg&0xFFFFFFFE,&ecspi1->ctrl);
+-    reg=readl(&ccm->CCGR1);
+-    writel(reg|(3<<6),&ccm->CCGR1);
+-    reg=8<<20 | 0<<18 | 0<<16 | 2<<12 | 1<<8 | 1<<4 | 1<<3 | 0<<2 | 0<<1 | 1<<0;
+-    writel(reg,&ecspi1->ctrl);
+-    imx_iomux_v3_setup_multiple_pads(ecspi1_pads, ARRAY_SIZE(ecspi1_pads));
+-}
+-
+-/* Three 16-bit transfers per register: 0x20 cmd high, 0x00 cmd low, 0x40 data. */
+-/* Register setup only, up to and excluding Sleep Out. */
+-void lcd_init_spi(void) {
+-    static const char *const cmds[] = {
+-        "20FF", "0000", "4080",
+-        "20FF", "0001", "4019",
+-        "20FF", "0002", "4001",
+-        "20FF", "0080", "4080",
+-        "20FF", "0081", "4019",
+-        "20B2", "0090", "4000",
+-        "20B2", "0091", "4006",
+-        "20B2", "0092", "4000",
+-        "20B2", "0093", "4013",
+-        "20B2", "0094", "4000",
+-        "20B2", "0095", "402E",
+-        "20B2", "0096", "4000",
+-        "20B2", "0097", "402E",
+-        "20FF", "0080", "40FF",
+-        "20FF", "0081", "40FF",
+-        "20FF", "0000", "40FF",
+-        "20FF", "0001", "40FF",
+-        "20FF", "0002", "40FF",
+-    };
+-    const int ncmds = sizeof(cmds) / sizeof(cmds[0]);
+-    char *argv[4] = {"0", "0:0.0", "16", NULL};
+-    int i;
+-
+-    for (i = 0; i < ncmds; i++) {
+-        argv[3] = (char *)cmds[i];
+-        do_spi_lcd(0, 4, argv);
+-    }
+-}
+-
+-/* Sleep Out and Display On, once the DI is running (datasheet T10 between). */
+-void lcd_display_on(void) {
+-    static const char *const cmds[] = {
+-        "2011", "0000", "4000",
+-        "2029", "0000", "4000",
+-    };
+-    char *argv[4] = {"0", "0:0.0", "16", NULL};
+-    int i;
+-
+-    for (i = 0; i < 6; i++) {
+-        argv[3] = (char *)cmds[i];
+-        do_spi_lcd(0, 4, argv);
+-        if (i == 2)
+-            mdelay(120);
+-    }
+-}
+-
+-static iomux_v3_cfg_t const rgb_pads[] = {
+-	MX6_PAD_DI0_DISP_CLK__IPU1_DI0_DISP_CLK | MUX_PAD_CTRL(NO_PAD_CTRL),
+-	MX6_PAD_DI0_PIN15__IPU1_DI0_PIN15 | MUX_PAD_CTRL(NO_PAD_CTRL),
+-	MX6_PAD_DI0_PIN2__IPU1_DI0_PIN02 | MUX_PAD_CTRL(NO_PAD_CTRL),
+-	MX6_PAD_DI0_PIN3__IPU1_DI0_PIN03 | MUX_PAD_CTRL(NO_PAD_CTRL),
++static iomux_v3_cfg_t const lcd_reset_pads[] = {
+ 	MX6_PAD_DI0_PIN4__GPIO4_IO20 | MUX_PAD_CTRL(NO_PAD_CTRL),
+-	MX6_PAD_DISP0_DAT0__IPU1_DISP0_DATA00 | MUX_PAD_CTRL(NO_PAD_CTRL),
+-	MX6_PAD_DISP0_DAT1__IPU1_DISP0_DATA01 | MUX_PAD_CTRL(NO_PAD_CTRL),
+-	MX6_PAD_DISP0_DAT2__IPU1_DISP0_DATA02 | MUX_PAD_CTRL(NO_PAD_CTRL),
+-	MX6_PAD_DISP0_DAT3__IPU1_DISP0_DATA03 | MUX_PAD_CTRL(NO_PAD_CTRL),
+-	MX6_PAD_DISP0_DAT4__IPU1_DISP0_DATA04 | MUX_PAD_CTRL(NO_PAD_CTRL),
+-	MX6_PAD_DISP0_DAT5__IPU1_DISP0_DATA05 | MUX_PAD_CTRL(NO_PAD_CTRL),
+-	MX6_PAD_DISP0_DAT6__IPU1_DISP0_DATA06 | MUX_PAD_CTRL(NO_PAD_CTRL),
+-	MX6_PAD_DISP0_DAT7__IPU1_DISP0_DATA07 | MUX_PAD_CTRL(NO_PAD_CTRL),
+-	MX6_PAD_DISP0_DAT8__IPU1_DISP0_DATA08 | MUX_PAD_CTRL(NO_PAD_CTRL),
+-	MX6_PAD_DISP0_DAT9__IPU1_DISP0_DATA09 | MUX_PAD_CTRL(NO_PAD_CTRL),
+-	MX6_PAD_DISP0_DAT10__IPU1_DISP0_DATA10 | MUX_PAD_CTRL(NO_PAD_CTRL),
+-	MX6_PAD_DISP0_DAT11__IPU1_DISP0_DATA11 | MUX_PAD_CTRL(NO_PAD_CTRL),
+-	MX6_PAD_DISP0_DAT12__IPU1_DISP0_DATA12 | MUX_PAD_CTRL(NO_PAD_CTRL),
+-	MX6_PAD_DISP0_DAT13__IPU1_DISP0_DATA13 | MUX_PAD_CTRL(NO_PAD_CTRL),
+-	MX6_PAD_DISP0_DAT14__IPU1_DISP0_DATA14 | MUX_PAD_CTRL(NO_PAD_CTRL),
+-	MX6_PAD_DISP0_DAT15__IPU1_DISP0_DATA15 | MUX_PAD_CTRL(NO_PAD_CTRL),
+-	MX6_PAD_DISP0_DAT16__IPU1_DISP0_DATA16 | MUX_PAD_CTRL(NO_PAD_CTRL),
+-	MX6_PAD_DISP0_DAT17__IPU1_DISP0_DATA17 | MUX_PAD_CTRL(NO_PAD_CTRL),
+-	MX6_PAD_DISP0_DAT18__IPU1_DISP0_DATA18 | MUX_PAD_CTRL(NO_PAD_CTRL),
+-	MX6_PAD_DISP0_DAT19__IPU1_DISP0_DATA19 | MUX_PAD_CTRL(NO_PAD_CTRL),
+-	MX6_PAD_DISP0_DAT20__IPU1_DISP0_DATA20 | MUX_PAD_CTRL(NO_PAD_CTRL),
+-	MX6_PAD_DISP0_DAT21__IPU1_DISP0_DATA21 | MUX_PAD_CTRL(NO_PAD_CTRL),
+-	MX6_PAD_DISP0_DAT22__IPU1_DISP0_DATA22 | MUX_PAD_CTRL(NO_PAD_CTRL),
+-	MX6_PAD_DISP0_DAT23__IPU1_DISP0_DATA23 | MUX_PAD_CTRL(NO_PAD_CTRL),
+ };
+ 
+ static iomux_v3_cfg_t const bl_pads[] = {
+@@ -411,20 +142,16 @@ static void enable_backlight(void)
+ 	gpio_direction_output(DISP0_PWR_EN, 0);
+ }
+ 
+-/* Panel bring-up over SPI. The DI is left to the kernel: any pixel clock the
+- * bootloader puts on the panel shows as a white flash. */
+-static void enable_rgb(void)
++/* The panel is brought up by the kernel's DRM panel driver, which does the
++ * reset, the SPI register setup, Sleep Out and Display On in datasheet order
++ * once the pixel clock runs. Until then it is held in reset with the
++ * backlight off. */
++static void park_panel(void)
+ {
+-	setup_lcd_spi();
++	imx_iomux_v3_setup_multiple_pads(lcd_reset_pads,
++					 ARRAY_SIZE(lcd_reset_pads));
+ 	gpio_request(IMX_GPIO_NR(4, 20), "lcd reset");
+-	gpio_direction_output(IMX_GPIO_NR(4, 20), 1);
+-	mdelay(5);
+ 	gpio_direction_output(IMX_GPIO_NR(4, 20), 0);
+-	mdelay(10);
+-	gpio_direction_output(IMX_GPIO_NR(4, 20), 1);
+-	mdelay(10);
+-	lcd_init_spi();
+-	lcd_display_on();
+ 
+ 	enable_backlight();
+ }
+@@ -765,7 +492,7 @@ int board_init(void)
+ #endif
+ #endif
+ 
+-	enable_rgb();
++	park_panel();
+ #if defined(CONFIG_VIDEO_IPUV3)
+ 	setup_display();
+ 	ipuv3_fb_init(&displays[0].mode, 0, displays[0].pixfmt);
+-- 
+2.43.0
+
