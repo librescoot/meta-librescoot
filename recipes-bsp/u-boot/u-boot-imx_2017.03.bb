@@ -37,8 +37,9 @@ SRC_URI:append:unu-dbc = " file://dbc/0001-add-kernel_addr_r.patch"
 SRC_URI:append:unu-dbc = " file://dbc/0002-remove-LVDS-EPDC-and-ethernet.-add-SPI-LCD-init-and-.patch"
 SRC_URI:append:unu-dbc = " file://dbc/0003-add-SPI-and-FIT-compat-to-configs.patch"
 SRC_URI:append:unu-dbc = " file://dbc/0004-add-console-and-boot-animation-args.patch"
+SRC_URI:append:unu-dbc = " file://dbc/0005-apply-cortex-a9-mp-errata-on-the-dual-lite.patch"
 
-PR = "r1"
+PR = "r2"
 SRCREV = "b76bb1bf9fd21e21006d79552e28855ac43ad43c"
 
 

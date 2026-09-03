@@ -1,0 +1,29 @@
+From: Teal Bauer <teal@starsong.eu>
+Date: Tue, 2 Sep 2026 16:10:00 +0200
+Subject: [PATCH] apply the Cortex-A9 MP errata workarounds on the DualLite
+
+The DBC builds the Solo board config (MX6S) but the SoC on it is an
+i.MX6DL with two Cortex-A9 cores. The multi-core errata workarounds are
+gated on !MX6S here, so the board ran with only 743622 applied. They are
+secure-mode diagnostic register writes that only the bootloader can do.
+
+Upstream-Status: Inappropriate [board-specific configuration]
+---
+ include/configs/mx6_common.h | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/include/configs/mx6_common.h b/include/configs/mx6_common.h
+--- a/include/configs/mx6_common.h
++++ b/include/configs/mx6_common.h
+@@ -10,8 +10,9 @@
+ 
+ #ifndef CONFIG_MX6UL
+ #define CONFIG_ARM_ERRATA_743622
+-#if (defined(CONFIG_MX6QP) || defined(CONFIG_MX6Q) ||\
+-defined(CONFIG_MX6DL)) && !defined(CONFIG_MX6S)
++/* The DBC is an i.MX6DL built with the Solo config: keep the MP errata. */
++#if defined(CONFIG_MX6QP) || defined(CONFIG_MX6Q) ||\
++defined(CONFIG_MX6DL) || defined(CONFIG_MX6S)
+ #define CONFIG_ARM_ERRATA_751472
+ #define CONFIG_ARM_ERRATA_794072
+ #define CONFIG_ARM_ERRATA_761320
