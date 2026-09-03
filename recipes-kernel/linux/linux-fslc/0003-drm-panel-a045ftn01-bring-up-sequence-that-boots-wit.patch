@@ -1,0 +1,202 @@
+From f191ac078351bb20db4d60450f3ab62932b3318b Mon Sep 17 00:00:00 2001
+From: LibreScoot <librescoot@example.com>
+Date: Thu, 3 Sep 2026 12:10:45 +0200
+Subject: [PATCH] drm/panel: a045ftn01: bring-up sequence that boots without
+ the white flash
+
+Experiment on top of the datasheet-order driver, kept separate so the
+individual changes can be bisected later: 1 ms reset pulses, Display On
+1 ms after Sleep Out with no pixel clock yet and 200 ms before the CRTC
+starts, a 15.376 MHz 600x510 timing, data driven on the rising pixel
+clock edge, and the backlight owned by the driver and faded in from a
+delayed work 100 ms after enable(), 16 steps of 20 ms up to the
+configured level.
+
+With this the DBC boots with no white frame at the first display
+enable and no lit-black frame before the logo. Which of the changes is
+the one that matters has not been established yet.
+
+Upstream-Status: Inappropriate [experiment]
+---
+ drivers/gpu/drm/panel/panel-auo-a045ftn01.c | 93 +++++++++++++++------
+ 1 file changed, 67 insertions(+), 26 deletions(-)
+
+diff --git a/drivers/gpu/drm/panel/panel-auo-a045ftn01.c b/drivers/gpu/drm/panel/panel-auo-a045ftn01.c
+index 06c97ef..57961e7 100644
+--- a/drivers/gpu/drm/panel/panel-auo-a045ftn01.c
++++ b/drivers/gpu/drm/panel/panel-auo-a045ftn01.c
+@@ -17,6 +17,8 @@
+ #include <drm/drm_connector.h>
+ #include <drm/drm_device.h>
+ #include <drm/drm_modes.h>
++#include <linux/backlight.h>
++#include <linux/workqueue.h>
+ #include <drm/drm_panel.h>
+ 
+ /* AUO A045FTN01 datasheet, section 5.1: 16-bit word, bit 13 = command, bit 14 = data, 0 = param. */
+@@ -57,9 +59,36 @@ struct a045ftn01 {
+ 	struct spi_device *spi;
+ 	struct gpio_desc *reset;
+ 	struct regulator *power;
++	struct backlight_device *backlight;
++	struct delayed_work backlight_on;
+ 	u16 tx_word;
+ };
+ 
++/* Experiment: backlight only once the first frames with content are scanned, faded in. */
++#define A045_BACKLIGHT_DELAY_MS	100
++#define A045_BACKLIGHT_FADE_STEPS	16
++#define A045_BACKLIGHT_FADE_STEP_MS	20
++
++static void a045ftn01_backlight_on(struct work_struct *work)
++{
++	struct a045ftn01 *ctx = container_of(to_delayed_work(work),
++					     struct a045ftn01, backlight_on);
++	struct backlight_device *bd = ctx->backlight;
++	int target, i;
++
++	if (!bd)
++		return;
++
++	target = bd->props.brightness;
++	backlight_device_set_brightness(bd, 0);
++	backlight_enable(bd);
++	for (i = 1; i <= A045_BACKLIGHT_FADE_STEPS; i++) {
++		backlight_device_set_brightness(bd,
++				target * i / A045_BACKLIGHT_FADE_STEPS);
++		msleep(A045_BACKLIGHT_FADE_STEP_MS);
++	}
++}
++
+ static inline struct a045ftn01 *panel_to_a045ftn01(struct drm_panel *panel)
+ {
+ 	return container_of(panel, struct a045ftn01, panel);
+@@ -116,13 +145,13 @@ static int a045ftn01_prepare(struct drm_panel *panel)
+ 	if (ret)
+ 		return ret;
+ 
+-	/* AUO A045FTN01 datasheet, section 5.2.3, steps 1 to 6: RESX high 5 ms, low 10 ms, high 10 ms. */
++	/* Experiment: 1 ms reset pulses instead of the datasheet 5/10/10 ms. */
+ 	gpiod_set_value_cansleep(ctx->reset, 0);
+-	msleep(5);
++	msleep(1);
+ 	gpiod_set_value_cansleep(ctx->reset, 1);
+-	msleep(10);
++	msleep(1);
+ 	gpiod_set_value_cansleep(ctx->reset, 0);
+-	msleep(10);
++	msleep(1);
+ 
+ 	ret = a045ftn01_init_regs(ctx);
+ 	if (ret)
+@@ -132,6 +161,17 @@ static int a045ftn01_prepare(struct drm_panel *panel)
+ 	if (ret)
+ 		goto err_power_off;
+ 
++	/*
++	 * Experiment: Display On 1 ms after Sleep Out with no pixel clock yet,
++	 * then 200 ms before the CRTC starts. Violates datasheet 6.1 on
++	 * purpose; this is the sequence that boots without the white flash.
++	 */
++	msleep(1);
++	ret = a045ftn01_write_cmd(ctx, MIPI_DCS_SET_DISPLAY_ON);
++	if (ret)
++		goto err_power_off;
++	msleep(200);
++
+ 	return 0;
+ 
+ err_power_off:
+@@ -143,18 +183,10 @@ err_power_off:
+ static int a045ftn01_enable(struct drm_panel *panel)
+ {
+ 	struct a045ftn01 *ctx = panel_to_a045ftn01(panel);
+-	int ret;
+-
+-	/* AUO A045FTN01 datasheet, section 6.1, T10: 120 to 150 ms of RGB signals before Display On. */
+-	msleep(150);
+-
+-	ret = a045ftn01_write_cmd(ctx, MIPI_DCS_SET_DISPLAY_ON);
+-	if (ret)
+-		return ret;
+-
+-	/* AUO A045FTN01 datasheet, section 6.1, T11: 100 to 200 ms after Display On before backlight. */
+-	msleep(120);
+ 
++	/* Experiment: Display On was already sent in prepare(); the CRTC is running now. */
++	schedule_delayed_work(&ctx->backlight_on,
++			      msecs_to_jiffies(A045_BACKLIGHT_DELAY_MS));
+ 	return 0;
+ }
+ 
+@@ -163,6 +195,9 @@ static int a045ftn01_disable(struct drm_panel *panel)
+ 	struct a045ftn01 *ctx = panel_to_a045ftn01(panel);
+ 	int ret;
+ 
++	cancel_delayed_work_sync(&ctx->backlight_on);
++	backlight_disable(ctx->backlight);
++
+ 	/* AUO A045FTN01 datasheet, section 5.2.4, steps 1 to 3: Sleep In, 120 ms min, Display Off. */
+ 	ret = a045ftn01_write_cmd(ctx, MIPI_DCS_ENTER_SLEEP_MODE);
+ 	if (ret)
+@@ -185,15 +220,16 @@ static int a045ftn01_unprepare(struct drm_panel *panel)
+ }
+ 
+ static const struct drm_display_mode a045ftn01_mode = {
+-	.clock = 16600,
++	/* Experiment: 15.376 MHz, 600x510 total, 50 Hz timing instead of the datasheet mode. */
++	.clock = 15376,
+ 	.hdisplay = 480,
+-	.hsync_start = 480 + 33,
+-	.hsync_end = 480 + 33 + 4,
+-	.htotal = 480 + 33 + 4 + 37,
++	.hsync_start = 480 + 60,
++	.hsync_end = 480 + 60 + 20,
++	.htotal = 480 + 60 + 20 + 40,
+ 	.vdisplay = 480,
+-	.vsync_start = 480 + 7,
+-	.vsync_end = 480 + 7 + 2,
+-	.vtotal = 480 + 7 + 2 + 18,
++	.vsync_start = 480 + 10,
++	.vsync_end = 480 + 10 + 10,
++	.vtotal = 480 + 10 + 10 + 10,
+ 	.width_mm = 80,
+ 	.height_mm = 80,
+ 	.type = DRM_MODE_TYPE_DRIVER | DRM_MODE_TYPE_PREFERRED,
+@@ -219,7 +255,8 @@ static int a045ftn01_get_modes(struct drm_panel *panel,
+ 	connector->display_info.bpc = 8;
+ 	connector->display_info.width_mm = a045ftn01_mode.width_mm;
+ 	connector->display_info.height_mm = a045ftn01_mode.height_mm;
+-	connector->display_info.bus_flags = 0;
++	/* Experiment: drive data on the rising pixel clock edge (DI_GENERAL bit 17 set). */
++	connector->display_info.bus_flags = DRM_BUS_FLAG_PIXDATA_DRIVE_POSEDGE;
+ 	drm_display_info_set_bus_formats(&connector->display_info,
+ 					 &bus_format, 1);
+ 
+@@ -265,9 +302,12 @@ static int a045ftn01_probe(struct spi_device *spi)
+ 	drm_panel_init(&ctx->panel, dev, &a045ftn01_funcs,
+ 		       DRM_MODE_CONNECTOR_DPI);
+ 
+-	ret = drm_panel_of_backlight(&ctx->panel);
+-	if (ret)
+-		return dev_err_probe(dev, ret, "failed to get backlight\n");
++	/* Backlight handled here, not by the drm_panel core, so it can lag enable(). */
++	ctx->backlight = devm_of_find_backlight(dev);
++	if (IS_ERR(ctx->backlight))
++		return dev_err_probe(dev, PTR_ERR(ctx->backlight),
++				     "failed to get backlight\n");
++	INIT_DELAYED_WORK(&ctx->backlight_on, a045ftn01_backlight_on);
+ 
+ 	drm_panel_add(&ctx->panel);
+ 
+@@ -278,6 +318,7 @@ static void a045ftn01_remove(struct spi_device *spi)
+ {
+ 	struct a045ftn01 *ctx = spi_get_drvdata(spi);
+ 
++	cancel_delayed_work_sync(&ctx->backlight_on);
+ 	drm_panel_remove(&ctx->panel);
+ }
+ 
+-- 
+2.43.0
+

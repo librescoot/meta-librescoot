@@ -54,6 +54,7 @@ KERNEL_CONFIG_FRAGMENTS:append:unu-mdb = " \
 SRC_URI:append:unu-dbc = " \
     file://0001-fbcon-show-boot-logo-regardless-of-loglevel.patch \
     file://0002-drm-panel-add-AUO-A045FTN01-SPI-RGB-panel-driver.patch \
+    file://0003-drm-panel-a045ftn01-bring-up-sequence-that-boots-wit.patch \
     file://config-panel-a045.cfg \
     file://config-logo.cfg \
     file://config-opt3001.cfg \
