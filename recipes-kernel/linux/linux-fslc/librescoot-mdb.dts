@@ -1355,6 +1355,14 @@
 				status = "okay";
 				pinctrl-names = "default";
 				pinctrl-0 = <0x36>;
+				/* SDMA RX/TX for the PPP link to the DBC at 250 kbaud (UART3
+				   events 29/30, peripheral type 4 = UART, priority 0; matches
+				   imx6ul.dtsi). UART3's CTS/RTS pads are muxed to flexcan1, so
+				   the link is 2-wire with no hardware flow control: without DMA
+				   the PIO receiver overruns the 32-byte FIFO under load and
+				   drops ~1 PPP frame in 6. */
+				dmas = <0x0c 29 4 0>, <0x0c 30 4 0>;
+				dma-names = "rx", "tx";
 			};
 
 			serial@21f0000 {
