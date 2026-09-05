@@ -1,0 +1,29 @@
+#!/bin/sh
+
+PEER_CONFIG="${PEER_CONFIG:-/etc/ppp/peers/uart-link}"
+
+if grep -q '^192\.168\.8\.1:192\.168\.8\.2$' "$PEER_CONFIG"; then
+    SERVICE_PEER=192.168.7.2
+    USB_PEER=192.168.9.2
+elif grep -q '^192\.168\.8\.2:192\.168\.8\.1$' "$PEER_CONFIG"; then
+    SERVICE_PEER=192.168.7.1
+    USB_PEER=192.168.9.1
+else
+    echo "cannot determine link addresses" >&2
+    exit 1
+fi
+
+USB_PATH="${USB_PATH:-/sys/class/net/usb0}"
+
+while :; do
+    if [ -e "$USB_PATH" ] && ping -I usb0 -c 1 -W 1 "$USB_PEER" >/dev/null 2>&1; then
+        if ! ip route show "$SERVICE_PEER/32" | grep -q "via $USB_PEER dev usb0.*metric 50"; then
+            ip route replace "$SERVICE_PEER/32" via "$USB_PEER" dev usb0 metric 50
+        fi
+    else
+        ip route del "$SERVICE_PEER/32" via "$USB_PEER" dev usb0 metric 50 2>/dev/null || true
+    fi
+
+    [ "${LINK_ROUTE_ONCE:-0}" = 1 ] && exit 0
+    sleep 2
+done

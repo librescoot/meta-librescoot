@@ -1,0 +1,12 @@
+[Unit]
+Description=Select the MDB-DBC service route
+After=librescoot-netconfig.service
+
+[Service]
+Type=simple
+ExecStart=/usr/libexec/link-route-monitor
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target

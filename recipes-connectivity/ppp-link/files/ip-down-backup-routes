@@ -1,0 +1,19 @@
+#!/bin/sh
+
+IFACE="${PPP_IFACE:-$1}"
+LOCAL="${PPP_LOCAL:-$4}"
+PEER="${PPP_REMOTE:-$5}"
+
+[ -n "$IFACE" ] && [ -n "$LOCAL" ] && [ -n "$PEER" ] || exit 0
+
+case "$LOCAL" in
+    192.168.8.1) SERVICE_PEER=192.168.7.2 ;;
+    192.168.8.2) SERVICE_PEER=192.168.7.1 ;;
+    *) exit 0 ;;
+esac
+
+ip route del "$SERVICE_PEER/32" via "$PEER" dev "$IFACE" metric 200 2>/dev/null || true
+
+if [ "$LOCAL" = "192.168.8.2" ]; then
+    ip route del default via "$PEER" dev "$IFACE" metric 200 2>/dev/null || true
+fi

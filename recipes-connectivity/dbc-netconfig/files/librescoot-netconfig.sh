@@ -13,6 +13,9 @@
 # 10-usb0.network still describes the interface; networkd reconciles against
 # what we set here and finds it already correct.
 
+# Keep the stable service address while usb0 is absent.
+ip addr add 192.168.7.2/32 dev lo 2>/dev/null
+
 i=0
 while [ $i -lt 400 ]; do
     [ -e /sys/class/net/usb0 ] && break
@@ -27,6 +30,7 @@ fi
 
 ip link set usb0 up 2>/dev/null
 ip addr add 192.168.7.2/24 dev usb0 2>/dev/null
+ip addr add 192.168.9.2/24 dev usb0 2>/dev/null
 ip route replace default via 192.168.7.1 dev usb0 2>/dev/null
 
 exit 0
