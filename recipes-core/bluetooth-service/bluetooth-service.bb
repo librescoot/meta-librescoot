@@ -6,8 +6,8 @@ LIC_FILES_CHKSUM = "file://src/github.com/librescoot/bluetooth-service/LICENSE;m
 SRC_URI = "git://github.com/librescoot/bluetooth-service.git;protocol=https;branch=main;destsuffix=${GO_SRCURI_DESTSUFFIX}"
 SRC_URI:append = " file://librescoot-bluetooth.service"
 SRC_URI:append = " file://nrfupdate.py"
-SRC_URI:append = " file://mdb-nrf52-bl-v2.10.0-ls.zip;unpack=0"
-SRC_URI:append = " file://mdb-nrf52-app-v2.10.0-ls.zip;unpack=0"
+SRC_URI:append = " file://mdb-nrf52-bl-v2.11.0-ls.zip;unpack=0"
+SRC_URI:append = " file://mdb-nrf52-app-v2.11.0-ls.zip;unpack=0"
 
 SRCREV = "${AUTOREV}"
 
@@ -21,8 +21,8 @@ GOBUILDFLAGS:remove = "-buildmode=pie"
 
 FILES:${PN} += "/usr/lib/systemd/system/librescoot-bluetooth.service"
 FILES:${PN} += "/usr/share/nrf-fw/nrfupdate.py"
-FILES:${PN} += "/usr/share/nrf-fw/mdb-nrf52-bl-v2.10.0-ls.zip"
-FILES:${PN} += "/usr/share/nrf-fw/mdb-nrf52-app-v2.10.0-ls.zip"
+FILES:${PN} += "/usr/share/nrf-fw/mdb-nrf52-bl-v2.11.0-ls.zip"
+FILES:${PN} += "/usr/share/nrf-fw/mdb-nrf52-app-v2.11.0-ls.zip"
 
 SYSTEMD_SERVICE:${PN} = "librescoot-bluetooth.service"
 SYSTEMD_AUTO_ENABLE:${PN} = "enable"
@@ -35,7 +35,7 @@ do_install() {
     install -m 0755 ${B}/bin/linux_arm/bluetooth-service ${D}${bindir}/
     install -m 0644 ${UNPACKDIR}/librescoot-bluetooth.service ${D}${systemd_system_unitdir}
     install -m 0644 ${UNPACKDIR}/nrfupdate.py ${D}${datadir}/nrf-fw/nrfupdate.py
-    install -m 0644 ${UNPACKDIR}/mdb-nrf52-bl-v2.10.0-ls.zip ${D}${datadir}/nrf-fw/mdb-nrf52-bl-v2.10.0-ls.zip
-    install -m 0644 ${UNPACKDIR}/mdb-nrf52-app-v2.10.0-ls.zip ${D}${datadir}/nrf-fw/mdb-nrf52-app-v2.10.0-ls.zip
+    install -m 0644 ${UNPACKDIR}/mdb-nrf52-bl-v2.11.0-ls.zip ${D}${datadir}/nrf-fw/mdb-nrf52-bl-v2.11.0-ls.zip
+    install -m 0644 ${UNPACKDIR}/mdb-nrf52-app-v2.11.0-ls.zip ${D}${datadir}/nrf-fw/mdb-nrf52-app-v2.11.0-ls.zip
 }
 
