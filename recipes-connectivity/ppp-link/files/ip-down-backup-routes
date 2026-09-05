@@ -1,0 +1,20 @@
+#!/bin/sh
+#
+# Drop the routes installed by ip-up.d/50-backup-routes. The kernel removes
+# routes whose device disappears, but pppd can tear the session down while
+# ppp0 still exists, so remove them explicitly.
+#
+# See ip-up.d/50-backup-routes: run-parts passes no arguments, the values come
+# from the environment /etc/ppp/ip-down exports.
+IFACE="${PPP_IFACE:-$1}"
+LOCAL="${PPP_LOCAL:-$4}"
+
+[ -n "$IFACE" ] || exit 0
+
+ip route del 192.168.7.0/24 dev "$IFACE" metric 200 2>/dev/null
+
+if [ "$LOCAL" = "192.168.8.2" ]; then
+    ip route del default dev "$IFACE" metric 200 2>/dev/null
+fi
+
+exit 0

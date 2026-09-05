@@ -8,7 +8,10 @@ LIC_FILES_CHKSUM = ""
 # module in, so name it explicitly.
 RDEPENDS:${PN} = "ppp openssl-ossl-module-legacy"
 
-SRC_URI = "file://ppp-link.service"
+SRC_URI = "file://ppp-link.service \
+           file://ip-up-backup-routes \
+           file://ip-down-backup-routes \
+"
 SRC_URI:append:unu-mdb = " file://uart-link-mdb"
 SRC_URI:append:unu-dbc = " file://uart-link-dbc"
 
@@ -26,9 +29,16 @@ SYSTEMD_AUTO_ENABLE:${PN}:unu-mdb = "disable"
 
 do_install() {
     install -d ${D}${sysconfdir}/ppp/peers
+    install -d ${D}${sysconfdir}/ppp/ip-up.d
+    install -d ${D}${sysconfdir}/ppp/ip-down.d
     install -d ${D}${systemd_system_unitdir}
 
     install -m 0644 ${UNPACKDIR}/ppp-link.service ${D}${systemd_system_unitdir}
+
+    # run-parts dispatches these from /etc/ppp/ip-{up,down}; both boards get
+    # the same script and branch on their own PPP address.
+    install -m 0755 ${UNPACKDIR}/ip-up-backup-routes ${D}${sysconfdir}/ppp/ip-up.d/50-backup-routes
+    install -m 0755 ${UNPACKDIR}/ip-down-backup-routes ${D}${sysconfdir}/ppp/ip-down.d/50-backup-routes
 }
 
 do_install:append:unu-mdb() {
