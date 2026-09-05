@@ -1,0 +1,272 @@
+From: Librescoot <dev@librescoot.org>
+Date: Sat, 5 Sep 2026 00:00:00 +0200
+Subject: [PATCH] ASoC: fsl: add i.MX TAS5720 machine driver
+
+simple-audio-card cannot drive this board's audio: the SSI reaches the
+TAS5720 through AUDMUX, and nothing in a simple-audio-card device tree
+programs AUDMUX's internal-to-external port routing. Without it the codec
+never receives a bit clock and latches a clock error, which the codec
+driver does not log, so playback appears to succeed while the amplifier
+stays silent.
+
+The driver also sets 32-bit TDM slots, giving the 64*fs bit clock the
+codec expects; simple-audio-card produced 32*fs.
+
+Upstream-Status: Inappropriate [board-specific machine driver]
+---
+diff --git a/sound/soc/fsl/imx-tas5720.c b/sound/soc/fsl/imx-tas5720.c
+new file mode 100644
+index 0000000..1111111
+--- /dev/null
++++ b/sound/soc/fsl/imx-tas5720.c
+@@ -0,0 +1,211 @@
++// SPDX-License-Identifier: GPL-2.0-or-later
++/*
++ * ASoC machine driver for i.MX boards with a TAS5720 amplifier.
++ *
++ * simple-audio-card cannot drive this hardware: the SSI reaches the codec
++ * through AUDMUX, and nothing in a simple-audio-card device tree programs
++ * AUDMUX's internal-to-external port routing. Without it the codec never sees
++ * a bit clock and reports a permanent clock error (TAS5720_CLKE), which the
++ * codec driver does not log, so the failure is silent.
++ *
++ * Based on the Freescale/Linaro i.MX machine drivers.
++ */
++
++#include <linux/clk.h>
++#include <linux/i2c.h>
++#include <linux/module.h>
++#include <linux/of.h>
++#include <linux/of_platform.h>
++#include <linux/platform_device.h>
++#include <sound/soc.h>
++
++#include "imx-audmux.h"
++
++static const struct snd_soc_dapm_widget imx_tas5720_dapm_widgets[] = {
++	SND_SOC_DAPM_SPK("Output", NULL),
++};
++
++static int imx_audmux_config(int int_port, int ext_port)
++{
++	unsigned int ptcr, pdcr;
++
++	/* The reference manual numbers ports from 1, the API from 0. */
++	int_port--;
++	ext_port--;
++
++	ptcr = IMX_AUDMUX_V2_PTCR_SYN |
++	       IMX_AUDMUX_V2_PTCR_TFSDIR |
++	       IMX_AUDMUX_V2_PTCR_TFSEL(ext_port) |
++	       IMX_AUDMUX_V2_PTCR_TCLKDIR |
++	       IMX_AUDMUX_V2_PTCR_TCSEL(ext_port);
++	pdcr = IMX_AUDMUX_V2_PDCR_RXDSEL(ext_port);
++	imx_audmux_v2_configure_port(int_port, ptcr, pdcr);
++
++	/*
++	 * Per the reference manual RCLKDIR and SYN must not change in the same
++	 * write, so the internal port is configured in two steps.
++	 */
++	ptcr |= IMX_AUDMUX_V2_PTCR_RFSDIR |
++		IMX_AUDMUX_V2_PTCR_RFSEL(ext_port) |
++		IMX_AUDMUX_V2_PTCR_RCLKDIR |
++		IMX_AUDMUX_V2_PTCR_RCSEL(ext_port);
++	imx_audmux_v2_configure_port(int_port, ptcr, pdcr);
++
++	ptcr = IMX_AUDMUX_V2_PTCR_SYN;
++	pdcr = IMX_AUDMUX_V2_PDCR_RXDSEL(int_port);
++	imx_audmux_v2_configure_port(ext_port, ptcr, pdcr);
++
++	return 0;
++}
++
++static int imx_tas5720_hw_params(struct snd_pcm_substream *substream,
++				 struct snd_pcm_hw_params *params)
++{
++	struct snd_soc_pcm_runtime *rtd = snd_soc_substream_to_rtd(substream);
++	struct snd_soc_dai *cpu_dai = snd_soc_rtd_to_cpu(rtd, 0);
++	u32 channels = params_channels(params);
++	u32 rate = params_rate(params);
++	int ret;
++
++	/*
++	 * The codec wants 32-bit slots: two of them give a 64*fs bit clock.
++	 * A 32*fs clock is what simple-audio-card produced, and the codec
++	 * rejects it as a clock error.
++	 */
++	ret = snd_soc_dai_set_tdm_slot(cpu_dai,
++				       channels == 1 ? 1 : 0x3,
++				       channels == 1 ? 1 : 0x3,
++				       2, 32);
++	if (ret) {
++		dev_err(cpu_dai->dev, "failed to set dai tdm slot: %d\n", ret);
++		return ret;
++	}
++
++	ret = snd_soc_dai_set_sysclk(cpu_dai, 0, rate * channels * 32,
++				     SND_SOC_CLOCK_OUT);
++	if (ret)
++		dev_err(cpu_dai->dev, "failed to set sysclk: %d\n", ret);
++
++	return ret;
++}
++
++static const struct snd_soc_ops imx_tas5720_ops = {
++	.hw_params = imx_tas5720_hw_params,
++};
++
++SND_SOC_DAILINK_DEFS(hifi,
++	DAILINK_COMP_ARRAY(COMP_EMPTY()),
++	DAILINK_COMP_ARRAY(COMP_CODEC(NULL, "tas5720-amplifier")),
++	DAILINK_COMP_ARRAY(COMP_EMPTY()));
++
++static struct snd_soc_dai_link imx_tas5720_dai = {
++	.name = "imx-tas5720",
++	.stream_name = "imx-tas5720",
++	.dai_fmt = SND_SOC_DAIFMT_I2S | SND_SOC_DAIFMT_NB_NF |
++		   SND_SOC_DAIFMT_CBC_CFC,
++	.ops = &imx_tas5720_ops,
++	SND_SOC_DAILINK_REG(hifi),
++};
++
++static struct snd_soc_card imx_tas5720_card = {
++	.name = "imx-audio-tas5720",
++	.owner = THIS_MODULE,
++	.dai_link = &imx_tas5720_dai,
++	.num_links = 1,
++	.dapm_widgets = imx_tas5720_dapm_widgets,
++	.num_dapm_widgets = ARRAY_SIZE(imx_tas5720_dapm_widgets),
++};
++
++static int imx_tas5720_probe(struct platform_device *pdev)
++{
++	struct snd_soc_card *card = &imx_tas5720_card;
++	struct device_node *np = pdev->dev.of_node;
++	struct device_node *ssi_np = NULL, *codec_np = NULL;
++	struct platform_device *ssi_pdev;
++	struct i2c_client *codec_dev;
++	int int_port, ext_port;
++	int ret;
++
++	ret = of_property_read_u32(np, "mux-int-port", &int_port);
++	if (ret) {
++		dev_err(&pdev->dev, "mux-int-port missing or invalid\n");
++		return ret;
++	}
++
++	ret = of_property_read_u32(np, "mux-ext-port", &ext_port);
++	if (ret) {
++		dev_err(&pdev->dev, "mux-ext-port missing or invalid\n");
++		return ret;
++	}
++
++	imx_audmux_config(int_port, ext_port);
++
++	ssi_np = of_parse_phandle(np, "ssi-controller", 0);
++	codec_np = of_parse_phandle(np, "audio-codec", 0);
++	if (!ssi_np || !codec_np) {
++		dev_err(&pdev->dev, "phandle missing or invalid\n");
++		ret = -EINVAL;
++		goto fail;
++	}
++
++	ssi_pdev = of_find_device_by_node(ssi_np);
++	if (!ssi_pdev) {
++		ret = -EPROBE_DEFER;
++		goto fail;
++	}
++	put_device(&ssi_pdev->dev);
++
++	codec_dev = of_find_i2c_device_by_node(codec_np);
++	if (!codec_dev) {
++		ret = -EPROBE_DEFER;
++		goto fail;
++	}
++	put_device(&codec_dev->dev);
++
++	imx_tas5720_dai.cpus->of_node = ssi_np;
++	imx_tas5720_dai.platforms->of_node = ssi_np;
++	imx_tas5720_dai.codecs->of_node = codec_np;
++
++	card->dev = &pdev->dev;
++	ret = snd_soc_of_parse_audio_routing(card, "audio-routing");
++	if (ret)
++		goto fail;
++
++	platform_set_drvdata(pdev, card);
++
++	ret = devm_snd_soc_register_card(&pdev->dev, card);
++	if (ret) {
++		dev_err_probe(&pdev->dev, ret, "failed to register card\n");
++		goto fail;
++	}
++
++	of_node_put(ssi_np);
++	of_node_put(codec_np);
++
++	return 0;
++
++fail:
++	of_node_put(ssi_np);
++	of_node_put(codec_np);
++	return ret;
++}
++
++static const struct of_device_id imx_tas5720_dt_ids[] = {
++	{ .compatible = "librescoot,imx-audio-tas5720", },
++	{ /* sentinel */ }
++};
++MODULE_DEVICE_TABLE(of, imx_tas5720_dt_ids);
++
++static struct platform_driver imx_tas5720_driver = {
++	.driver = {
++		.name = "imx-tas5720",
++		.pm = &snd_soc_pm_ops,
++		.of_match_table = imx_tas5720_dt_ids,
++	},
++	.probe = imx_tas5720_probe,
++};
++module_platform_driver(imx_tas5720_driver);
++
++MODULE_DESCRIPTION("i.MX TAS5720 ASoC machine driver");
++MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:imx-tas5720");
+diff --git a/sound/soc/fsl/Kconfig b/sound/soc/fsl/Kconfig
+index 1111111..2222222 100644
+--- a/sound/soc/fsl/Kconfig
++++ b/sound/soc/fsl/Kconfig
+@@ -370,6 +370,17 @@
+ 	  with OF-graph DT bindings.
+ 	  It also support DPCM of single CPU multi Codec ststem.
+ 
++config SND_SOC_IMX_TAS5720
++	tristate "SoC Audio support for i.MX boards with a TAS5720"
++	depends on OF && I2C
++	select SND_SOC_TAS5720
++	select SND_SOC_IMX_PCM_DMA
++	select SND_SOC_IMX_AUDMUX
++	select SND_SOC_FSL_SSI
++	help
++	  Say Y if you want to add support for SoC audio on an i.MX board with
++	  a TAS5720 amplifier connected over AUDMUX.
++
+ endif # SND_IMX_SOC
+ 
+ endmenu
+diff --git a/sound/soc/fsl/Makefile b/sound/soc/fsl/Makefile
+index 1111111..2222222 100644
+--- a/sound/soc/fsl/Makefile
++++ b/sound/soc/fsl/Makefile
+@@ -71,6 +71,7 @@
+ snd-soc-imx-hdmi-y := imx-hdmi.o
+ snd-soc-imx-rpmsg-y := imx-rpmsg.o
+ snd-soc-imx-card-y := imx-card.o
++snd-soc-imx-tas5720-y := imx-tas5720.o
+ 
+ obj-$(CONFIG_SND_SOC_EUKREA_TLV320) += snd-soc-eukrea-tlv320.o
+ obj-$(CONFIG_SND_SOC_IMX_ES8328) += snd-soc-imx-es8328.o
+@@ -79,3 +80,4 @@
+ obj-$(CONFIG_SND_SOC_IMX_HDMI) += snd-soc-imx-hdmi.o
+ obj-$(CONFIG_SND_SOC_IMX_RPMSG) += snd-soc-imx-rpmsg.o
+ obj-$(CONFIG_SND_SOC_IMX_CARD) += snd-soc-imx-card.o
++obj-$(CONFIG_SND_SOC_IMX_TAS5720) += snd-soc-imx-tas5720.o

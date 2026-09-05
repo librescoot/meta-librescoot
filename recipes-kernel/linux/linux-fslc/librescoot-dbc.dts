@@ -2009,20 +2009,20 @@ display@di0 {
 	};
 
 	sound-tas5720 {
-		compatible = "simple-audio-card";
-		simple-audio-card,name = "imx-audio-tas5720";
-		simple-audio-card,format = "i2s";
-		simple-audio-card,frame-master = <&cpudai>;
-		simple-audio-card,bitclock-master = <&cpudai>;
-
-		cpudai: simple-audio-card,cpu {
-			sound-dai = <0x4c>;
-			clocks = <0x04 0x9d>;
-		};
-
-		codec: simple-audio-card,codec {
-			sound-dai = <0x4d>;
-			clocks = <0x04 0x9d>;
-		};
+		/*
+		 * Not simple-audio-card: the SSI reaches the codec through
+		 * AUDMUX, and simple-audio-card cannot program AUDMUX's
+		 * internal-to-external port routing under any DT. Without it
+		 * the codec gets no bit clock and latches a clock error that
+		 * the codec driver never logs, so playback silently does
+		 * nothing. mux-int-port is SSI1, mux-ext-port is AUD3.
+		 */
+		compatible = "librescoot,imx-audio-tas5720";
+		model = "imx-audio-tas5720";
+		ssi-controller = <0x4c>;
+		audio-codec = <0x4d>;
+		audio-routing = "Output", "OUT";
+		mux-int-port = <1>;
+		mux-ext-port = <3>;
 	};
 };
