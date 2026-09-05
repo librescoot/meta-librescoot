@@ -14,7 +14,7 @@ SRC_URI += " \
     file://windowsxp.json \
 "
 
-SRCREV = "62ac82e45ae35f3167720a1447a1916f38a40a25"
+SRCREV = "01f691360d68e66cea36619fd3df8ecd0f7142fa"
 PV = "0.1.0+git"
 
 
