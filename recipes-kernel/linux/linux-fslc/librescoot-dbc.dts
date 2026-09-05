@@ -2024,5 +2024,9 @@ display@di0 {
 		audio-routing = "Output", "OUT";
 		mux-int-port = <1>;
 		mux-ext-port = <3>;
+		clocks = <0x04 0xc9>;
+		clock-names = "mclk";
+		assigned-clocks = <0x04 0xc6 0x04 0xc9>;
+		assigned-clock-parents = <0x04 0x9d 0x04 0xc8>;
 	};
 };

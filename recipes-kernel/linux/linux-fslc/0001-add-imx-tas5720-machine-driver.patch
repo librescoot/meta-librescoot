@@ -3,14 +3,9 @@ Date: Sat, 5 Sep 2026 00:00:00 +0200
 Subject: [PATCH] ASoC: fsl: add i.MX TAS5720 machine driver
 
 simple-audio-card cannot drive this board's audio: the SSI reaches the
-TAS5720 through AUDMUX, and nothing in a simple-audio-card device tree
-programs AUDMUX's internal-to-external port routing. Without it the codec
-never receives a bit clock and latches a clock error, which the codec
-driver does not log, so playback appears to succeed while the amplifier
-stays silent.
-
-The driver also sets 32-bit TDM slots, giving the 64*fs bit clock the
-codec expects; simple-audio-card produced 32*fs.
+TAS5720 through AUDMUX, and the amplifier's master clock is supplied by
+the i.MX6 clock output. Without both, the codec latches a clock error and
+playback remains silent.
 
 Upstream-Status: Inappropriate [board-specific machine driver]
 ---
@@ -19,18 +14,13 @@ new file mode 100644
 index 0000000..1111111
 --- /dev/null
 +++ b/sound/soc/fsl/imx-tas5720.c
-@@ -0,0 +1,211 @@
+@@ -0,0 +1,205 @@
 +// SPDX-License-Identifier: GPL-2.0-or-later
 +/*
 + * ASoC machine driver for i.MX boards with a TAS5720 amplifier.
 + *
-+ * simple-audio-card cannot drive this hardware: the SSI reaches the codec
-+ * through AUDMUX, and nothing in a simple-audio-card device tree programs
-+ * AUDMUX's internal-to-external port routing. Without it the codec never sees
-+ * a bit clock and reports a permanent clock error (TAS5720_CLKE), which the
-+ * codec driver does not log, so the failure is silent.
-+ *
-+ * Based on the Freescale/Linaro i.MX machine drivers.
++ * The SSI reaches the codec through AUDMUX, and the codec master clock is
++ * supplied by the i.MX6 clock output.
 + */
 +
 +#include <linux/clk.h>
@@ -39,9 +29,14 @@ index 0000000..1111111
 +#include <linux/of.h>
 +#include <linux/of_platform.h>
 +#include <linux/platform_device.h>
++#include <linux/slab.h>
 +#include <sound/soc.h>
 +
 +#include "imx-audmux.h"
++
++struct imx_tas5720_data {
++	struct clk *mclk;
++};
 +
 +static const struct snd_soc_dapm_widget imx_tas5720_dapm_widgets[] = {
 +	SND_SOC_DAPM_SPK("Output", NULL),
@@ -57,62 +52,45 @@ index 0000000..1111111
 +
 +	ptcr = IMX_AUDMUX_V2_PTCR_SYN |
 +	       IMX_AUDMUX_V2_PTCR_TFSDIR |
-+	       IMX_AUDMUX_V2_PTCR_TFSEL(ext_port) |
++	       IMX_AUDMUX_V2_PTCR_TFSEL(int_port) |
 +	       IMX_AUDMUX_V2_PTCR_TCLKDIR |
-+	       IMX_AUDMUX_V2_PTCR_TCSEL(ext_port);
-+	pdcr = IMX_AUDMUX_V2_PDCR_RXDSEL(ext_port);
-+	imx_audmux_v2_configure_port(int_port, ptcr, pdcr);
-+
-+	/*
-+	 * Per the reference manual RCLKDIR and SYN must not change in the same
-+	 * write, so the internal port is configured in two steps.
-+	 */
-+	ptcr |= IMX_AUDMUX_V2_PTCR_RFSDIR |
-+		IMX_AUDMUX_V2_PTCR_RFSEL(ext_port) |
-+		IMX_AUDMUX_V2_PTCR_RCLKDIR |
-+		IMX_AUDMUX_V2_PTCR_RCSEL(ext_port);
-+	imx_audmux_v2_configure_port(int_port, ptcr, pdcr);
-+
-+	ptcr = IMX_AUDMUX_V2_PTCR_SYN;
++	       IMX_AUDMUX_V2_PTCR_TCSEL(int_port);
 +	pdcr = IMX_AUDMUX_V2_PDCR_RXDSEL(int_port);
 +	imx_audmux_v2_configure_port(ext_port, ptcr, pdcr);
++
++	/* RCLKDIR and SYN must not change in the same write. */
++	ptcr |= IMX_AUDMUX_V2_PTCR_RFSDIR |
++		IMX_AUDMUX_V2_PTCR_RFSEL(int_port) |
++		IMX_AUDMUX_V2_PTCR_RCLKDIR |
++		IMX_AUDMUX_V2_PTCR_RCSEL(int_port);
++	imx_audmux_v2_configure_port(ext_port, ptcr, pdcr);
++
++	ptcr = IMX_AUDMUX_V2_PTCR_SYN;
++	pdcr = IMX_AUDMUX_V2_PDCR_RXDSEL(ext_port);
++	imx_audmux_v2_configure_port(int_port, ptcr, pdcr);
 +
 +	return 0;
 +}
 +
-+static int imx_tas5720_hw_params(struct snd_pcm_substream *substream,
-+				 struct snd_pcm_hw_params *params)
++static int imx_tas5720_startup(struct snd_pcm_substream *substream)
 +{
 +	struct snd_soc_pcm_runtime *rtd = snd_soc_substream_to_rtd(substream);
-+	struct snd_soc_dai *cpu_dai = snd_soc_rtd_to_cpu(rtd, 0);
-+	u32 channels = params_channels(params);
-+	u32 rate = params_rate(params);
-+	int ret;
++	struct imx_tas5720_data *data = snd_soc_card_get_drvdata(rtd->card);
 +
-+	/*
-+	 * The codec wants 32-bit slots: two of them give a 64*fs bit clock.
-+	 * A 32*fs clock is what simple-audio-card produced, and the codec
-+	 * rejects it as a clock error.
-+	 */
-+	ret = snd_soc_dai_set_tdm_slot(cpu_dai,
-+				       channels == 1 ? 1 : 0x3,
-+				       channels == 1 ? 1 : 0x3,
-+				       2, 32);
-+	if (ret) {
-+		dev_err(cpu_dai->dev, "failed to set dai tdm slot: %d\n", ret);
-+		return ret;
-+	}
++	return clk_prepare_enable(data->mclk);
++}
 +
-+	ret = snd_soc_dai_set_sysclk(cpu_dai, 0, rate * channels * 32,
-+				     SND_SOC_CLOCK_OUT);
-+	if (ret)
-+		dev_err(cpu_dai->dev, "failed to set sysclk: %d\n", ret);
++static void imx_tas5720_shutdown(struct snd_pcm_substream *substream)
++{
++	struct snd_soc_pcm_runtime *rtd = snd_soc_substream_to_rtd(substream);
++	struct imx_tas5720_data *data = snd_soc_card_get_drvdata(rtd->card);
 +
-+	return ret;
++	clk_disable_unprepare(data->mclk);
 +}
 +
 +static const struct snd_soc_ops imx_tas5720_ops = {
-+	.hw_params = imx_tas5720_hw_params,
++	.startup = imx_tas5720_startup,
++	.shutdown = imx_tas5720_shutdown,
 +};
 +
 +SND_SOC_DAILINK_DEFS(hifi,
@@ -144,9 +122,19 @@ index 0000000..1111111
 +	struct device_node *np = pdev->dev.of_node;
 +	struct device_node *ssi_np = NULL, *codec_np = NULL;
 +	struct platform_device *ssi_pdev;
++	struct imx_tas5720_data *data;
 +	struct i2c_client *codec_dev;
 +	int int_port, ext_port;
 +	int ret;
++
++	data = devm_kzalloc(&pdev->dev, sizeof(*data), GFP_KERNEL);
++	if (!data)
++		return -ENOMEM;
++
++	data->mclk = devm_clk_get(&pdev->dev, "mclk");
++	if (IS_ERR(data->mclk))
++		return dev_err_probe(&pdev->dev, PTR_ERR(data->mclk),
++				     "failed to get master clock\n");
 +
 +	ret = of_property_read_u32(np, "mux-int-port", &int_port);
 +	if (ret) {
@@ -194,6 +182,7 @@ index 0000000..1111111
 +		goto fail;
 +
 +	platform_set_drvdata(pdev, card);
++	snd_soc_card_set_drvdata(card, data);
 +
 +	ret = devm_snd_soc_register_card(&pdev->dev, card);
 +	if (ret) {
