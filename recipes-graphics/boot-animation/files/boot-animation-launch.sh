@@ -5,5 +5,9 @@
 ANIM=$(sed -n 's/.*boot\.animation=\([^ ]*\).*/\1/p' /proc/cmdline)
 ANIM=${ANIM:-librescoot}
 ONCE=""
-[ "$ANIM" = "librescoot" ] && ONCE="--once"
-exec /usr/bin/boot-animation /usr/share/boot-animation/${ANIM}.json --fps 25 --fade-ms 1000 $ONCE
+SOUND=""
+if [ "$ANIM" = "librescoot" ]; then
+    ONCE="--once"
+    SOUND="--sound /usr/share/boot-animation/scooter-unlock.wav"
+fi
+exec /usr/bin/boot-animation /usr/share/boot-animation/${ANIM}.json --fps 25 --fade-ms 1000 $ONCE $SOUND
