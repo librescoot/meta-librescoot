@@ -13,11 +13,7 @@
 # 10-usb0.network still describes the interface; networkd reconciles against
 # what we set here and finds it already correct.
 
-# 192.168.7.2 also lives on lo so it survives usb0 disappearing. Without it
-# the address exists only while the USB link does, and the MDB cannot reach the
-# DBC over the PPP backup by any route -- the failover would be one-directional.
-# Linux accepts the same address on a second interface; usb0's connected route
-# still wins for outbound while it is up.
+# Keep the stable service address while usb0 is absent.
 ip addr add 192.168.7.2/32 dev lo 2>/dev/null
 
 i=0
@@ -34,6 +30,7 @@ fi
 
 ip link set usb0 up 2>/dev/null
 ip addr add 192.168.7.2/24 dev usb0 2>/dev/null
+ip addr add 192.168.9.2/24 dev usb0 2>/dev/null
 ip route replace default via 192.168.7.1 dev usb0 2>/dev/null
 
 exit 0

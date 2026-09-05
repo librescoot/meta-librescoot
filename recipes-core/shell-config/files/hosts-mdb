@@ -1,2 +1,3 @@
-# DBC hostname alias (for MDB)
 192.168.7.2	dbc
+192.168.8.2	dbc-ppp
+192.168.9.2	dbc-usb

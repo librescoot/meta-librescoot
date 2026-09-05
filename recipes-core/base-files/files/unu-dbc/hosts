@@ -7,5 +7,7 @@ ff00::0 ip6-mcastprefix
 ff02::1 ip6-allnodes
 ff02::2 ip6-allrouters
 
-# Librescoot hostname alias
+# Librescoot hostname aliases
 192.168.7.1	mdb
+192.168.8.1	mdb-ppp
+192.168.9.1	mdb-usb
