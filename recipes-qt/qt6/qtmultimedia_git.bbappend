@@ -1,1 +1,1 @@
-PACKAGECONFIG:append = " alsa"
+PACKAGECONFIG = "alsa"
