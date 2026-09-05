@@ -1,0 +1,31 @@
+#!/bin/sh
+#
+# Backup routes over the PPP link, so services keep using the usb0 addresses
+# (192.168.7.1 / 192.168.7.2) and the kernel picks whichever path is alive.
+#
+# usb0's connected route sits at metric 0 and wins whenever the USB link is up.
+# These sit at metric 200 and take over on their own when usb0 goes away, then
+# yield again when it returns. Nothing polls, nothing has to be told.
+#
+# The prefix length must match usb0's connected route. A more specific route
+# (a /32 for the peer) would win by longest-prefix-match regardless of metric
+# and pin every packet to the slow link even with USB healthy.
+#
+# /etc/ppp/ip-up dispatches these with run-parts, which passes no arguments,
+# so take the values from the environment it exports. The positional fallback
+# covers being run directly by pppd, or by hand.
+IFACE="${PPP_IFACE:-$1}"
+LOCAL="${PPP_LOCAL:-$4}"
+PEER="${PPP_REMOTE:-$5}"
+
+[ -n "$IFACE" ] && [ -n "$PEER" ] || exit 0
+
+ip route replace 192.168.7.0/24 via "$PEER" dev "$IFACE" metric 200
+
+# The DBC reaches the outside world through the MDB, so it also needs its
+# default route backed up. The MDB has its own uplinks and must not.
+if [ "$LOCAL" = "192.168.8.2" ]; then
+    ip route replace default via "$PEER" dev "$IFACE" metric 200
+fi
+
+exit 0
