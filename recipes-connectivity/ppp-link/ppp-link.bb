@@ -6,9 +6,14 @@ LIC_FILES_CHKSUM = ""
 # auth protocols) unconditionally at startup and exits when it's missing,
 # even for a noauth link like ours. oe-core's ppp recipe doesn't pull the
 # module in, so name it explicitly.
-RDEPENDS:${PN} = "ppp openssl-ossl-module-legacy"
+RDEPENDS:${PN} = "ppp openssl-ossl-module-legacy valkey"
 
 SRC_URI = "file://ppp-link.service \
+           file://ppp-link-rate-negotiator.service \
+           file://ppp-link-start \
+           file://ppp-link-stop \
+           file://ppp-link-set-rate \
+           file://ppp-link-rate-negotiator \
            file://ip-up-backup-routes \
            file://ip-down-backup-routes \
 "
@@ -19,6 +24,8 @@ inherit systemd
 
 SYSTEMD_SERVICE:${PN} = "ppp-link.service"
 SYSTEMD_AUTO_ENABLE:${PN} = "enable"
+
+FILES:${PN} += "${systemd_system_unitdir}/ppp-link-rate-negotiator.service ${libexecdir}/ppp-link-*"
 
 # On the MDB the link is slaved to DBC power: vehicle-service starts/stops
 # this unit alongside the dashboard_power GPIO. Auto-starting it at boot
@@ -34,6 +41,12 @@ do_install() {
     install -d ${D}${systemd_system_unitdir}
 
     install -m 0644 ${UNPACKDIR}/ppp-link.service ${D}${systemd_system_unitdir}
+    install -m 0644 ${UNPACKDIR}/ppp-link-rate-negotiator.service ${D}${systemd_system_unitdir}
+    install -d ${D}${libexecdir}
+    install -m 0755 ${UNPACKDIR}/ppp-link-start ${D}${libexecdir}/ppp-link-start
+    install -m 0755 ${UNPACKDIR}/ppp-link-stop ${D}${libexecdir}/ppp-link-stop
+    install -m 0755 ${UNPACKDIR}/ppp-link-set-rate ${D}${libexecdir}/ppp-link-set-rate
+    install -m 0755 ${UNPACKDIR}/ppp-link-rate-negotiator ${D}${libexecdir}/ppp-link-rate-negotiator
 
     # run-parts dispatches these from /etc/ppp/ip-{up,down}; both boards get
     # the same script and branch on their own PPP address.

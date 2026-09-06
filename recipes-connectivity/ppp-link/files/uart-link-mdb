@@ -1,7 +1,7 @@
 # PPP backup link over UART to DBC
 /dev/ttymxc2
 passive
-2500000
+250000
 local
 nocrtscts
 noauth

@@ -1,0 +1,31 @@
+#!/bin/sh
+
+RATE="$1"
+RATE_FILE="${PPP_RATE_FILE:-/run/librescoot/ppp-link-rate}"
+STATE_DIR="${PPP_RATE_STATE_DIR:-/run/librescoot}"
+SYSTEMCTL="${SYSTEMCTL:-systemctl}"
+
+case "$RATE" in
+    250000|2500000) ;;
+    *)
+        echo "unsupported PPP rate: $RATE" >&2
+        exit 2
+        ;;
+esac
+
+mkdir -p "$STATE_DIR" "$(dirname "$RATE_FILE")"
+if [ "$RATE" = 2500000 ] && [ -e "$STATE_DIR/ppp-link-disabled" ]; then
+    exit 0
+fi
+
+printf '%s\n' "$RATE" > "$RATE_FILE.tmp"
+mv "$RATE_FILE.tmp" "$RATE_FILE"
+
+if [ "${PPP_RATE_NO_RESTART:-0}" != 1 ] &&
+    "$SYSTEMCTL" is-active --quiet ppp-link.service; then
+    touch "$STATE_DIR/ppp-link-rate-restart"
+    "$SYSTEMCTL" try-restart ppp-link.service
+    RESULT=$?
+    rm -f "$STATE_DIR/ppp-link-rate-restart"
+    exit "$RESULT"
+fi

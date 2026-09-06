@@ -1,0 +1,9 @@
+[Unit]
+Description=Negotiate the PPP UART rate
+After=network.target ppp-link.service
+
+[Service]
+Type=simple
+ExecStart=/usr/libexec/ppp-link-rate-negotiator
+Restart=on-failure
+RestartSec=10

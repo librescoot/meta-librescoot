@@ -1,0 +1,21 @@
+#!/bin/sh
+
+STATE_DIR="${PPP_RATE_STATE_DIR:-/run/librescoot}"
+SET_RATE="${PPP_SET_RATE:-/usr/libexec/ppp-link-set-rate}"
+SYSTEMCTL="${SYSTEMCTL:-systemctl}"
+RESTART_MARKER="$STATE_DIR/ppp-link-rate-restart"
+
+mkdir -p "$STATE_DIR"
+# A negotiated restart preserves its timers; an external stop cancels them.
+if [ -e "$RESTART_MARKER" ]; then
+    rm -f "$RESTART_MARKER"
+    exit 0
+fi
+
+touch "$STATE_DIR/ppp-link-disabled"
+"$SYSTEMCTL" stop ppp-link-rate-negotiator.service >/dev/null 2>&1 || true
+for UNIT in ppp-link-rate-switch ppp-link-rate-fallback; do
+    "$SYSTEMCTL" stop "$UNIT.timer" >/dev/null 2>&1 || true
+    "$SYSTEMCTL" stop "$UNIT.service" >/dev/null 2>&1 || true
+done
+PPP_RATE_NO_RESTART=1 "$SET_RATE" 250000
