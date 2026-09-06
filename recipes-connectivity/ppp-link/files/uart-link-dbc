@@ -1,6 +1,6 @@
 # PPP backup link over UART to MDB
 /dev/ttymxc1
-250000
+2500000
 local
 nocrtscts
 noauth
