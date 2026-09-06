@@ -117,7 +117,7 @@ watch_target_rate() {
             PPP_RATE_NO_RESTART=1 "$SET_RATE" "$BASE_RATE"
             return 0
         fi
-        if "$PING" -c 1 -W 1 -I ppp0 "$PEER" >/dev/null 2>&1; then
+        if "$PING" -c 1 -W 1 "$PEER" >/dev/null 2>&1; then
             FAILURES=0
             SUCCESSES=$((SUCCESSES + 1))
             if [ "$ROLE" = mdb ] && [ "$SUCCESSES" -ge "$STABLE_CHECKS" ]; then
