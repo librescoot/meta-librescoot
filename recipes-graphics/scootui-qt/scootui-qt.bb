@@ -7,7 +7,9 @@ SECTION = "graphics"
 LICENSE = "CC-BY-NC-SA-4.0"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=fb5d051e53001fdff7fec0f368f47190"
 
-SCOOTUI_QT_BRANCH ??= "main"
+# The 1.3.1 release carries a narrow post-1.3 dashboard backport without the
+# audio and other 1.4 changes already on main.
+SCOOTUI_QT_BRANCH ??= "release/1.3.1"
 SCOOTUI_QT_SRCREV ??= "${AUTOREV}"
 SRCREV = "${SCOOTUI_QT_SRCREV}"
 SRC_URI = "git://github.com/librescoot/scootui-qt.git;branch=${SCOOTUI_QT_BRANCH};protocol=https"
