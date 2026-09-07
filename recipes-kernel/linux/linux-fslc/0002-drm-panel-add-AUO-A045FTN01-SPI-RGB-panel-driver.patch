@@ -1,0 +1,391 @@
+From 87816e17deda9a35345c1bca2a42a80132ad29f7 Mon Sep 17 00:00:00 2001
+From: LibreScoot <librescoot@example.com>
+Date: Thu, 3 Sep 2026 10:50:44 +0200
+Subject: [PATCH] drm/panel: add AUO A045FTN01 SPI/RGB panel driver
+
+Add a DRM panel driver for the AUO A045FTN01, a 4.5" 480x480 RGB panel
+whose controller is configured over a 3-wire SPI link (16-bit words,
+0x2000 command, 0x0000 parameter, 0x4000 data) and then fed pixels over
+a parallel RGB888 bus in RGB mode 2 (sync only, porches from registers).
+
+The panel cannot be brought up with panel-simple because its datasheet
+power-on sequence interleaves with the video signal:
+
+  prepare():   VDD on, RESX pulse (high 5 ms, low 10 ms, high 10 ms),
+               RGB mode 2 porch registers, Sleep Out
+  enable():    wait T10 (120 to 150 ms) with the RGB signals already
+               running, Display On, wait T11 (100 to 200 ms) before the
+               drm_panel core turns the backlight on
+  disable():   Sleep In, 120 ms, Display Off, still with RGB running
+  unprepare(): RESX low, 10 ms, VDD off
+
+Display On must only be sent after the CRTC has been driving the panel
+for at least T10, and the panel must be asleep and off before the CRTC
+stops, which is exactly the split the drm_panel prepare/enable and
+disable/unprepare pairs give us. Timings and register values are from
+the AUO A045FTN01 datasheet, sections 5.1, 5.2.3, 5.2.4 and 6.1.
+
+Fixed mode: 480x480, 16.6 MHz pixel clock, hfp/hs/hbp 33/4/37,
+vfp/vs/vbp 7/2/18, MEDIA_BUS_FMT_RGB888_1X24, DPI connector.
+
+Device tree properties: reg, spi-max-frequency, reset-gpios (RESX,
+active low), backlight, and an optional power-supply regulator.
+
+Upstream-Status: Pending
+---
+ drivers/gpu/drm/panel/Kconfig               |   9 +
+ drivers/gpu/drm/panel/Makefile              |   1 +
+ drivers/gpu/drm/panel/panel-auo-a045ftn01.c | 309 ++++++++++++++++++++
+ 3 files changed, 319 insertions(+)
+ create mode 100644 drivers/gpu/drm/panel/panel-auo-a045ftn01.c
+
+diff --git a/drivers/gpu/drm/panel/Kconfig b/drivers/gpu/drm/panel/Kconfig
+index d3a9a9f..726f5f4 100644
+--- a/drivers/gpu/drm/panel/Kconfig
++++ b/drivers/gpu/drm/panel/Kconfig
+@@ -45,6 +45,15 @@ config DRM_PANEL_AUO_A030JTN01
+ 	  Say Y here to enable support for the AUO A030JTN01 320x480 3.0" panel
+ 	  as found in the YLM RS-97 handheld gaming console.
+ 
++config DRM_PANEL_AUO_A045FTN01
++	tristate "AUO A045FTN01 480x480 RGB panel"
++	depends on OF && SPI
++	depends on BACKLIGHT_CLASS_DEVICE
++	help
++	  Say Y here if you want to enable support for the AUO A045FTN01
++	  4.5" 480x480 RGB panel whose controller is configured over SPI.
++	  To compile this driver as a module, choose M here.
++
+ config DRM_PANEL_BOE_BF060Y8M_AJ0
+ 	tristate "Boe BF060Y8M-AJ0 panel"
+ 	depends on OF
+diff --git a/drivers/gpu/drm/panel/Makefile b/drivers/gpu/drm/panel/Makefile
+index 987a087..a957651 100644
+--- a/drivers/gpu/drm/panel/Makefile
++++ b/drivers/gpu/drm/panel/Makefile
+@@ -3,6 +3,7 @@ obj-$(CONFIG_DRM_PANEL_ABT_Y030XX067A) += panel-abt-y030xx067a.o
+ obj-$(CONFIG_DRM_PANEL_ARM_VERSATILE) += panel-arm-versatile.o
+ obj-$(CONFIG_DRM_PANEL_ASUS_Z00T_TM5P5_NT35596) += panel-asus-z00t-tm5p5-n35596.o
+ obj-$(CONFIG_DRM_PANEL_AUO_A030JTN01) += panel-auo-a030jtn01.o
++obj-$(CONFIG_DRM_PANEL_AUO_A045FTN01) += panel-auo-a045ftn01.o
+ obj-$(CONFIG_DRM_PANEL_BOE_BF060Y8M_AJ0) += panel-boe-bf060y8m-aj0.o
+ obj-$(CONFIG_DRM_PANEL_BOE_HIMAX8279D) += panel-boe-himax8279d.o
+ obj-$(CONFIG_DRM_PANEL_BOE_TH101MB31UIG002_28A) += panel-boe-th101mb31ig002-28a.o
+diff --git a/drivers/gpu/drm/panel/panel-auo-a045ftn01.c b/drivers/gpu/drm/panel/panel-auo-a045ftn01.c
+new file mode 100644
+index 0000000..06c97ef
+--- /dev/null
++++ b/drivers/gpu/drm/panel/panel-auo-a045ftn01.c
+@@ -0,0 +1,309 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * AUO A045FTN01 4.5" 480x480 RGB panel, controller configured over SPI.
++ *
++ * Copyright (C) 2026 LibreScoot
++ */
++
++#include <linux/delay.h>
++#include <linux/gpio/consumer.h>
++#include <linux/media-bus-format.h>
++#include <linux/module.h>
++#include <linux/regulator/consumer.h>
++#include <linux/spi/spi.h>
++
++#include <video/mipi_display.h>
++
++#include <drm/drm_connector.h>
++#include <drm/drm_device.h>
++#include <drm/drm_modes.h>
++#include <drm/drm_panel.h>
++
++/* AUO A045FTN01 datasheet, section 5.1: 16-bit word, bit 13 = command, bit 14 = data, 0 = param. */
++#define A045_CMD(c)		(0x2000 | (c))
++#define A045_PARAM(p)		(0x0000 | (p))
++#define A045_DATA(d)		(0x4000 | (d))
++
++struct a045ftn01_reg {
++	u8 cmd;
++	u8 param;
++	u8 data;
++};
++
++/* AUO A045FTN01 datasheet, section 5.2.3, steps 1 to 18: RGB mode 2 porches via command2. */
++static const struct a045ftn01_reg a045ftn01_init[] = {
++	{ 0xff, 0x00, 0x80 },
++	{ 0xff, 0x01, 0x19 },
++	{ 0xff, 0x02, 0x01 },
++	{ 0xff, 0x80, 0x80 },
++	{ 0xff, 0x81, 0x19 },
++	{ 0xb2, 0x90, 0x00 },
++	{ 0xb2, 0x91, 0x06 },
++	{ 0xb2, 0x92, 0x00 },
++	{ 0xb2, 0x93, 0x13 },
++	{ 0xb2, 0x94, 0x00 },
++	{ 0xb2, 0x95, 0x2e },
++	{ 0xb2, 0x96, 0x00 },
++	{ 0xb2, 0x97, 0x2e },
++	{ 0xff, 0x80, 0xff },
++	{ 0xff, 0x81, 0xff },
++	{ 0xff, 0x00, 0xff },
++	{ 0xff, 0x01, 0xff },
++	{ 0xff, 0x02, 0xff },
++};
++
++struct a045ftn01 {
++	struct drm_panel panel;
++	struct spi_device *spi;
++	struct gpio_desc *reset;
++	struct regulator *power;
++	u16 tx_word;
++};
++
++static inline struct a045ftn01 *panel_to_a045ftn01(struct drm_panel *panel)
++{
++	return container_of(panel, struct a045ftn01, panel);
++}
++
++static int a045ftn01_write_word(struct a045ftn01 *ctx, u16 word)
++{
++	ctx->tx_word = word;
++
++	return spi_write(ctx->spi, &ctx->tx_word, sizeof(ctx->tx_word));
++}
++
++static int a045ftn01_write_cmd(struct a045ftn01 *ctx, u8 cmd)
++{
++	return a045ftn01_write_word(ctx, A045_CMD(cmd));
++}
++
++static int a045ftn01_write_reg(struct a045ftn01 *ctx,
++			       const struct a045ftn01_reg *reg)
++{
++	int ret;
++
++	ret = a045ftn01_write_word(ctx, A045_CMD(reg->cmd));
++	if (ret)
++		return ret;
++
++	ret = a045ftn01_write_word(ctx, A045_PARAM(reg->param));
++	if (ret)
++		return ret;
++
++	return a045ftn01_write_word(ctx, A045_DATA(reg->data));
++}
++
++static int a045ftn01_init_regs(struct a045ftn01 *ctx)
++{
++	unsigned int i;
++	int ret;
++
++	for (i = 0; i < ARRAY_SIZE(a045ftn01_init); i++) {
++		ret = a045ftn01_write_reg(ctx, &a045ftn01_init[i]);
++		if (ret)
++			return ret;
++	}
++
++	return 0;
++}
++
++static int a045ftn01_prepare(struct drm_panel *panel)
++{
++	struct a045ftn01 *ctx = panel_to_a045ftn01(panel);
++	int ret;
++
++	ret = regulator_enable(ctx->power);
++	if (ret)
++		return ret;
++
++	/* AUO A045FTN01 datasheet, section 5.2.3, steps 1 to 6: RESX high 5 ms, low 10 ms, high 10 ms. */
++	gpiod_set_value_cansleep(ctx->reset, 0);
++	msleep(5);
++	gpiod_set_value_cansleep(ctx->reset, 1);
++	msleep(10);
++	gpiod_set_value_cansleep(ctx->reset, 0);
++	msleep(10);
++
++	ret = a045ftn01_init_regs(ctx);
++	if (ret)
++		goto err_power_off;
++
++	ret = a045ftn01_write_cmd(ctx, MIPI_DCS_EXIT_SLEEP_MODE);
++	if (ret)
++		goto err_power_off;
++
++	return 0;
++
++err_power_off:
++	gpiod_set_value_cansleep(ctx->reset, 1);
++	regulator_disable(ctx->power);
++	return ret;
++}
++
++static int a045ftn01_enable(struct drm_panel *panel)
++{
++	struct a045ftn01 *ctx = panel_to_a045ftn01(panel);
++	int ret;
++
++	/* AUO A045FTN01 datasheet, section 6.1, T10: 120 to 150 ms of RGB signals before Display On. */
++	msleep(150);
++
++	ret = a045ftn01_write_cmd(ctx, MIPI_DCS_SET_DISPLAY_ON);
++	if (ret)
++		return ret;
++
++	/* AUO A045FTN01 datasheet, section 6.1, T11: 100 to 200 ms after Display On before backlight. */
++	msleep(120);
++
++	return 0;
++}
++
++static int a045ftn01_disable(struct drm_panel *panel)
++{
++	struct a045ftn01 *ctx = panel_to_a045ftn01(panel);
++	int ret;
++
++	/* AUO A045FTN01 datasheet, section 5.2.4, steps 1 to 3: Sleep In, 120 ms min, Display Off. */
++	ret = a045ftn01_write_cmd(ctx, MIPI_DCS_ENTER_SLEEP_MODE);
++	if (ret)
++		return ret;
++
++	msleep(120);
++
++	return a045ftn01_write_cmd(ctx, MIPI_DCS_SET_DISPLAY_OFF);
++}
++
++static int a045ftn01_unprepare(struct drm_panel *panel)
++{
++	struct a045ftn01 *ctx = panel_to_a045ftn01(panel);
++
++	/* AUO A045FTN01 datasheet, section 5.2.4, steps 4 to 6: RESX low, 10 ms minimum, VDD off. */
++	gpiod_set_value_cansleep(ctx->reset, 1);
++	msleep(10);
++
++	return regulator_disable(ctx->power);
++}
++
++static const struct drm_display_mode a045ftn01_mode = {
++	.clock = 16600,
++	.hdisplay = 480,
++	.hsync_start = 480 + 33,
++	.hsync_end = 480 + 33 + 4,
++	.htotal = 480 + 33 + 4 + 37,
++	.vdisplay = 480,
++	.vsync_start = 480 + 7,
++	.vsync_end = 480 + 7 + 2,
++	.vtotal = 480 + 7 + 2 + 18,
++	.width_mm = 80,
++	.height_mm = 80,
++	.type = DRM_MODE_TYPE_DRIVER | DRM_MODE_TYPE_PREFERRED,
++};
++
++static int a045ftn01_get_modes(struct drm_panel *panel,
++			       struct drm_connector *connector)
++{
++	static const u32 bus_format = MEDIA_BUS_FMT_RGB888_1X24;
++	struct drm_display_mode *mode;
++
++	mode = drm_mode_duplicate(connector->dev, &a045ftn01_mode);
++	if (!mode) {
++		dev_err(panel->dev, "failed to add mode %ux%u@%u\n",
++			a045ftn01_mode.hdisplay, a045ftn01_mode.vdisplay,
++			drm_mode_vrefresh(&a045ftn01_mode));
++		return -ENOMEM;
++	}
++
++	drm_mode_set_name(mode);
++	drm_mode_probed_add(connector, mode);
++
++	connector->display_info.bpc = 8;
++	connector->display_info.width_mm = a045ftn01_mode.width_mm;
++	connector->display_info.height_mm = a045ftn01_mode.height_mm;
++	connector->display_info.bus_flags = 0;
++	drm_display_info_set_bus_formats(&connector->display_info,
++					 &bus_format, 1);
++
++	return 1;
++}
++
++static const struct drm_panel_funcs a045ftn01_funcs = {
++	.prepare = a045ftn01_prepare,
++	.enable = a045ftn01_enable,
++	.disable = a045ftn01_disable,
++	.unprepare = a045ftn01_unprepare,
++	.get_modes = a045ftn01_get_modes,
++};
++
++static int a045ftn01_probe(struct spi_device *spi)
++{
++	struct device *dev = &spi->dev;
++	struct a045ftn01 *ctx;
++	int ret;
++
++	ctx = devm_kzalloc(dev, sizeof(*ctx), GFP_KERNEL);
++	if (!ctx)
++		return -ENOMEM;
++
++	ctx->spi = spi;
++	spi_set_drvdata(spi, ctx);
++
++	spi->bits_per_word = 16;
++	ret = spi_setup(spi);
++	if (ret < 0)
++		return dev_err_probe(dev, ret, "failed to set up SPI\n");
++
++	ctx->power = devm_regulator_get(dev, "power");
++	if (IS_ERR(ctx->power))
++		return dev_err_probe(dev, PTR_ERR(ctx->power),
++				     "failed to get power regulator\n");
++
++	ctx->reset = devm_gpiod_get(dev, "reset", GPIOD_OUT_LOW);
++	if (IS_ERR(ctx->reset))
++		return dev_err_probe(dev, PTR_ERR(ctx->reset),
++				     "failed to get reset GPIO\n");
++
++	drm_panel_init(&ctx->panel, dev, &a045ftn01_funcs,
++		       DRM_MODE_CONNECTOR_DPI);
++
++	ret = drm_panel_of_backlight(&ctx->panel);
++	if (ret)
++		return dev_err_probe(dev, ret, "failed to get backlight\n");
++
++	drm_panel_add(&ctx->panel);
++
++	return 0;
++}
++
++static void a045ftn01_remove(struct spi_device *spi)
++{
++	struct a045ftn01 *ctx = spi_get_drvdata(spi);
++
++	drm_panel_remove(&ctx->panel);
++}
++
++static const struct spi_device_id a045ftn01_spi_id[] = {
++	{ "a045ftn01" },
++	{ }
++};
++MODULE_DEVICE_TABLE(spi, a045ftn01_spi_id);
++
++static const struct of_device_id a045ftn01_of_match[] = {
++	{ .compatible = "auo,a045ftn01" },
++	{ }
++};
++MODULE_DEVICE_TABLE(of, a045ftn01_of_match);
++
++static struct spi_driver a045ftn01_driver = {
++	.probe = a045ftn01_probe,
++	.remove = a045ftn01_remove,
++	.id_table = a045ftn01_spi_id,
++	.driver = {
++		.name = "panel-auo-a045ftn01",
++		.of_match_table = a045ftn01_of_match,
++	},
++};
++module_spi_driver(a045ftn01_driver);
++
++MODULE_AUTHOR("LibreScoot");
++MODULE_DESCRIPTION("AUO A045FTN01 480x480 RGB panel driver");
++MODULE_LICENSE("GPL");
+-- 
+2.43.0
+
