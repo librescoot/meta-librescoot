@@ -30,6 +30,7 @@ DEPENDS = " \
     hiredis \
     qtbase \
     qtdeclarative \
+    qtmultimedia \
     qtdeclarative-native \
     qtshadertools \
     qtsvg \
@@ -45,6 +46,8 @@ RDEPENDS:${PN} = " \
     qtbase-plugins \
     qtdeclarative \
     qtdeclarative-qmlplugins \
+    qtmultimedia \
+    qtmultimedia-plugins \
     qtsvg \
     qtsvg-plugins \
     qtlocation \
