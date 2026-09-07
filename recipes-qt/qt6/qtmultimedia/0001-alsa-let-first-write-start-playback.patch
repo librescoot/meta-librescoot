@@ -1,0 +1,41 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Librescoot <hello@librescoot.org>
+Date: Sat, 6 Sep 2026 13:00:00 +0200
+Subject: [PATCH] ALSA: let the first buffered write start playback
+
+The hardware parameters set the start threshold to one period. Starting the
+PCM immediately after prepare, while its buffer is still empty, guarantees an
+underrun before QAudioSink's timer can provide the first period. Leave the PCM
+prepared; ALSA starts it automatically once the first write reaches the
+configured threshold. Once a finite pull source ends, do not query availability
+on the drained PCM either: ALSA reports that completed stream as an xrun even
+though it is the normal end-of-sample path.
+
+Upstream-Status: Pending
+---
+ src/multimedia/alsa/qalsaaudiosink.cpp | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/src/multimedia/alsa/qalsaaudiosink.cpp b/src/multimedia/alsa/qalsaaudiosink.cpp
+index 1111111..2222222 100644
+--- a/src/multimedia/alsa/qalsaaudiosink.cpp
++++ b/src/multimedia/alsa/qalsaaudiosink.cpp
+@@ -347,7 +347,6 @@ bool QAlsaAudioSink::open()
+     if(audioBuffer == 0)
+         audioBuffer = new char[snd_pcm_frames_to_bytes(handle,buffer_frames)];
+     snd_pcm_prepare( handle );
+-    snd_pcm_start(handle);
+ 
+     // Step 5: Setup timer
+     bytesAvailable = bytesFree();
+@@ -559,7 +558,7 @@ bool QAlsaAudioSink::deviceReady()
+             // Did not get any data to output
+             timer->stop();
+             snd_pcm_drain(handle);
+-            bytesAvailable = bytesFree();
++            bytesAvailable = buffer_size;
+             if(bytesAvailable > snd_pcm_frames_to_bytes(handle, buffer_frames-period_frames)) {
+                 // Underrun
+                 if (deviceState != QAudio::IdleState) {
+-- 
+2.43.0

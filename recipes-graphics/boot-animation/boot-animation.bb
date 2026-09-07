@@ -4,7 +4,7 @@ HOMEPAGE = "https://github.com/librescoot/boot-animation"
 LICENSE = "CC-BY-NC-4.0"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=3c4054a8416ddbc5debdf26a5359d962"
 
-SRC_URI = "git://github.com/librescoot/boot-animation.git;protocol=https;branch=feat/startup-audio"
+SRC_URI = "git://github.com/librescoot/boot-animation.git;protocol=https;branch=main"
 SRC_URI += " \
     file://boot-animation.service \
     file://boot-animation-launch.sh \
@@ -14,7 +14,7 @@ SRC_URI += " \
     file://windowsxp.json \
 "
 
-SRCREV = "01f691360d68e66cea36619fd3df8ecd0f7142fa"
+SRCREV = "${AUTOREV}"
 PV = "0.1.0+git"
 
 
