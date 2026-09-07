@@ -53,6 +53,8 @@ KERNEL_CONFIG_FRAGMENTS:append:unu-mdb = " \
 
 SRC_URI:append:unu-dbc = " \
     file://0001-fbcon-show-boot-logo-regardless-of-loglevel.patch \
+    file://0002-drm-panel-add-AUO-A045FTN01-SPI-RGB-panel-driver.patch \
+    file://config-panel-a045.cfg \
     file://config-logo.cfg \
     file://config-opt3001.cfg \
     file://config-tas5720.cfg \
@@ -69,6 +71,7 @@ SRC_URI:append:unu-dbc = " \
 
 KERNEL_CONFIG_FRAGMENTS:append:unu-dbc = " \
     ${UNPACKDIR}/config-opt3001.cfg \
+    ${UNPACKDIR}/config-panel-a045.cfg \
     ${UNPACKDIR}/config-logo.cfg \
     ${UNPACKDIR}/config-tas5720.cfg \
     ${UNPACKDIR}/config-video.cfg \
