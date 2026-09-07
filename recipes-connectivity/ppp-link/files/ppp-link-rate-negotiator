@@ -63,14 +63,16 @@ cancel_unit() {
 }
 
 arm_rollback() {
-    cancel_unit ppp-link-rate-fallback
-    "$SYSTEMD_RUN" --quiet --collect --unit=ppp-link-rate-fallback \
+    UNIT="ppp-link-rate-fallback-$1"
+    cancel_unit "$UNIT"
+    "$SYSTEMD_RUN" --quiet --collect --unit="$UNIT" \
         --on-active="${ROLLBACK_DELAY}s" "$SET_RATE" "$BASE_RATE"
 }
 
 schedule_switch() {
-    cancel_unit ppp-link-rate-switch
-    "$SYSTEMD_RUN" --quiet --collect --unit=ppp-link-rate-switch \
+    UNIT="ppp-link-rate-switch-$1"
+    cancel_unit "$UNIT"
+    "$SYSTEMD_RUN" --quiet --collect --unit="$UNIT" \
         --on-active="${SWITCH_DELAY}s" "$SET_RATE" "$TARGET_RATE"
 }
 
@@ -149,7 +151,7 @@ run_dbc() {
             "$SLEEP" "$POLL_INTERVAL"
             continue
         fi
-        if ! rate_change_allowed || ! arm_rollback; then
+        if ! rate_change_allowed || ! arm_rollback "$TOKEN"; then
             "$SLEEP" "$POLL_INTERVAL"
             continue
         fi
@@ -158,10 +160,10 @@ run_dbc() {
         printf '%s\n' "$TOKEN" > "$STATE_DIR/ppp-rate-dbc-last-token"
         redis_set "$PREFIX:prepared" "$TOKEN" "$PREPARE_TIMEOUT" || continue
         if ! wait_for_value "$PREFIX:go" "$TOKEN" "$PREPARE_TIMEOUT"; then
-            cancel_unit ppp-link-rate-fallback
+            cancel_unit "ppp-link-rate-fallback-$TOKEN"
             continue
         fi
-        schedule_switch || continue
+        schedule_switch "$TOKEN" || continue
 
         "$SLEEP" "$((SWITCH_DELAY + 2))"
         ELAPSED=0
@@ -169,7 +171,7 @@ run_dbc() {
             if [ "$(current_rate)" = "$TARGET_RATE" ] && redis PING >/dev/null; then
                 redis_set "$PREFIX:confirmed" "$TOKEN" "$CONFIRM_TIMEOUT" || true
                 if wait_for_value "$PREFIX:commit" "$TOKEN" "$CONFIRM_TIMEOUT"; then
-                    cancel_unit ppp-link-rate-fallback
+                    cancel_unit "ppp-link-rate-fallback-$TOKEN"
                     redis_set "$PREFIX:committed" "$TOKEN" "$CONFIRM_TIMEOUT" || true
                     touch "$STATE_DIR/ppp-rate-negotiated"
                     watch_target_rate
@@ -205,11 +207,11 @@ run_mdb() {
             continue
         fi
 
-        if ! rate_change_allowed || ! arm_rollback; then
+        if ! rate_change_allowed || ! arm_rollback "$TOKEN"; then
             "$SLEEP" "$RETRY_DELAY"
             continue
         fi
-        if ! redis_set "$PREFIX:go" "$TOKEN" "$PREPARE_TIMEOUT" || ! schedule_switch; then
+        if ! redis_set "$PREFIX:go" "$TOKEN" "$PREPARE_TIMEOUT" || ! schedule_switch "$TOKEN"; then
             "$SLEEP" "$RETRY_DELAY"
             continue
         fi
@@ -219,7 +221,7 @@ run_mdb() {
             [ "$(current_rate)" = "$TARGET_RATE" ]; then
             redis_set "$PREFIX:commit" "$TOKEN" "$CONFIRM_TIMEOUT" || return 1
             if wait_for_value "$PREFIX:committed" "$TOKEN" "$CONFIRM_TIMEOUT"; then
-                cancel_unit ppp-link-rate-fallback
+                cancel_unit "ppp-link-rate-fallback-$TOKEN"
                 touch "$STATE_DIR/ppp-rate-negotiated"
                 watch_target_rate
                 return $?

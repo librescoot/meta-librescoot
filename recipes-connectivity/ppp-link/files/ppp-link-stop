@@ -14,7 +14,8 @@ fi
 
 touch "$STATE_DIR/ppp-link-disabled"
 "$SYSTEMCTL" stop ppp-link-rate-negotiator.service >/dev/null 2>&1 || true
-for UNIT in ppp-link-rate-switch ppp-link-rate-fallback; do
+for UNIT in ppp-link-rate-switch ppp-link-rate-fallback \
+    'ppp-link-rate-switch-*' 'ppp-link-rate-fallback-*'; do
     "$SYSTEMCTL" stop "$UNIT.timer" >/dev/null 2>&1 || true
     "$SYSTEMCTL" stop "$UNIT.service" >/dev/null 2>&1 || true
 done

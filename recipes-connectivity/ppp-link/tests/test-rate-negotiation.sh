@@ -63,7 +63,7 @@ printf '%s\n' "$*" >> "$TEST_ROOT/systemctl.log"
 case "$1" in
     stop)
         case "$2" in
-            ppp-link-rate-fallback.timer)
+            ppp-link-rate-fallback*.timer)
                 if [ -r "$PPP_RATE_STATE_DIR/fallback.pid" ]; then
                     kill "$(cat "$PPP_RATE_STATE_DIR/fallback.pid")" 2>/dev/null || true
                     rm -f "$PPP_RATE_STATE_DIR/fallback.pid"
@@ -88,12 +88,16 @@ while [ "$#" -gt 0 ]; do
     esac
     shift
 done
-if [ "$UNIT" = ppp-link-rate-fallback ]; then
+printf '%s\n' "$UNIT" >> "$TEST_ROOT/systemd-run.log"
+case "$UNIT" in
+ppp-link-rate-fallback-*)
     (sleep "${TEST_ROLLBACK_DELAY:-6}"; "$1" "$2") &
     echo "$!" > "$PPP_RATE_STATE_DIR/fallback.pid"
-else
+    ;;
+*)
     "$1" "$2"
-fi
+    ;;
+esac
 EOF
 
 chmod +x "$ROOT/bin/redis-cli" "$ROOT/bin/ping" "$ROOT/bin/systemctl" "$ROOT/bin/systemd-run"
@@ -125,9 +129,9 @@ run_negotiator() {
         PPP_RATE_SWITCH_DELAY=0 \
         PPP_RATE_PREPARE_TIMEOUT=4 \
         PPP_RATE_CONFIRM_TIMEOUT=4 \
-        PPP_RATE_ROLLBACK_DELAY=6 \
+        PPP_RATE_ROLLBACK_DELAY=15 \
         TEST_ROOT="$ROOT" \
-        TEST_ROLLBACK_DELAY=6 \
+        TEST_ROLLBACK_DELAY=15 \
         "$@" "$FILES/ppp-link-rate-negotiator"
 }
 
@@ -158,10 +162,12 @@ printf '250000\n' > "$ROOT/dbc-rate"
 run_negotiator dbc & DBC_PID=$!
 sleep 1
 run_negotiator mdb & MDB_PID=$!
-wait_for_file "$ROOT/mdb-state/ppp-rate-negotiated" 12
+wait_for_file "$ROOT/mdb-state/ppp-rate-negotiated" 20
 wait_for_file "$ROOT/dbc-state/ppp-rate-negotiated" 5
 [ "$(cat "$ROOT/mdb-rate")" = 2500000 ]
 [ "$(cat "$ROOT/dbc-rate")" = 2500000 ]
+grep -Eq '^ppp-link-rate-fallback-.+' "$ROOT/systemd-run.log"
+grep -Eq '^ppp-link-rate-switch-.+' "$ROOT/systemd-run.log"
 printf '250000\n' > "$ROOT/mdb-rate"
 sleep 4
 [ "$(cat "$ROOT/dbc-rate")" = 250000 ]
@@ -227,7 +233,7 @@ sleep 1
 run_negotiator mdb & MDB_PID=$!
 wait_for_exit "$MDB_PID" 12
 wait "$MDB_PID" 2>/dev/null || true
-sleep 7
+sleep 16
 [ "$(cat "$ROOT/mdb-rate")" = 250000 ]
 [ "$(cat "$ROOT/dbc-rate")" = 250000 ]
 kill "$DBC_PID" 2>/dev/null || true

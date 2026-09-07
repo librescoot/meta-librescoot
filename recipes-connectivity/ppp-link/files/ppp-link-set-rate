@@ -18,8 +18,9 @@ if [ "$RATE" = 2500000 ] && [ -e "$STATE_DIR/ppp-link-disabled" ]; then
     exit 0
 fi
 
-printf '%s\n' "$RATE" > "$RATE_FILE.tmp"
-mv "$RATE_FILE.tmp" "$RATE_FILE"
+TEMP_FILE="$RATE_FILE.tmp.$$"
+printf '%s\n' "$RATE" > "$TEMP_FILE"
+mv "$TEMP_FILE" "$RATE_FILE"
 
 if [ "${PPP_RATE_NO_RESTART:-0}" != 1 ] &&
     "$SYSTEMCTL" is-active --quiet ppp-link.service; then
