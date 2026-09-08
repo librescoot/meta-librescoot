@@ -32,6 +32,7 @@ SYSTEMD_AUTO_ENABLE:${PN} = "enable"
 BOOT_ANIMATION_WIDTH ?= "480"
 BOOT_ANIMATION_HEIGHT ?= "480"
 BOOT_ANIMATION_FPS ?= "25"
+BOOT_ANIMATION_INTERVAL_MS = "${@str((1000 + int(d.getVar('BOOT_ANIMATION_FPS')) // 2) // int(d.getVar('BOOT_ANIMATION_FPS')))}"
 
 do_compile() {
     ${CC} ${CFLAGS} ${LDFLAGS} \
@@ -80,11 +81,10 @@ do_compile() {
     # Fail the image build if either packaged stream cannot be read back with
     # the production geometry/cadence. Runtime also validates the 32-bpp
     # framebuffer layout before selecting this RGB565 source.
-    interval_ms=$(( (1000 + ${BOOT_ANIMATION_FPS} / 2) / ${BOOT_ANIMATION_FPS} ))
     ${B}/check-stream ${B}/librescoot.lsba \
-        ${BOOT_ANIMATION_WIDTH} ${BOOT_ANIMATION_HEIGHT} "$interval_ms"
+        ${BOOT_ANIMATION_WIDTH} ${BOOT_ANIMATION_HEIGHT} ${BOOT_ANIMATION_INTERVAL_MS}
     ${B}/check-stream ${B}/windowsxp.lsba \
-        ${BOOT_ANIMATION_WIDTH} ${BOOT_ANIMATION_HEIGHT} "$interval_ms"
+        ${BOOT_ANIMATION_WIDTH} ${BOOT_ANIMATION_HEIGHT} ${BOOT_ANIMATION_INTERVAL_MS}
 }
 
 do_install() {
