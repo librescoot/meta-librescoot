@@ -11,15 +11,19 @@ do_install[depends] += "virtual/kernel:do_deploy u-boot-imx:do_deploy"
 do_install() {
     install -d ${D}${datadir}/boot-assets
 
-    install -m 0644 ${DEPLOY_DIR_IMAGE}/zImage ${D}${datadir}/boot-assets/zImage
+    # MDB boots its kernel and DTB from /boot; its updater only consumes U-Boot here.
+    ASSETS="u-boot-dtb.imx"
+    if [ "${MACHINE}" != "unu-mdb" ]; then
+        DTB_NAME=$(basename ${KERNEL_DEVICETREE})
+        ASSETS="zImage ${DTB_NAME} ${ASSETS}"
+    fi
 
-    DTB_NAME=$(basename ${KERNEL_DEVICETREE})
-    install -m 0644 ${DEPLOY_DIR_IMAGE}/${DTB_NAME} ${D}${datadir}/boot-assets/${DTB_NAME}
-
-    install -m 0644 ${DEPLOY_DIR_IMAGE}/u-boot-dtb.imx ${D}${datadir}/boot-assets/u-boot-dtb.imx
+    for asset in ${ASSETS}; do
+        install -m 0644 ${DEPLOY_DIR_IMAGE}/${asset} ${D}${datadir}/boot-assets/${asset}
+    done
 
     cd ${D}${datadir}/boot-assets
-    sha256sum zImage ${DTB_NAME} u-boot-dtb.imx > manifest.sha256
+    sha256sum ${ASSETS} > manifest.sha256
     sha256sum manifest.sha256 | awk '{print $1}' > version
 }
 
