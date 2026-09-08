@@ -4,7 +4,7 @@ HOMEPAGE = "https://github.com/librescoot/boot-animation"
 LICENSE = "CC-BY-NC-4.0"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=3c4054a8416ddbc5debdf26a5359d962"
 
-SRC_URI = "git://github.com/librescoot/boot-animation.git;protocol=https;branch=main"
+SRC_URI = "git://github.com/librescoot/boot-animation.git;protocol=https;nobranch=1"
 SRC_URI += " \
     file://boot-animation.service \
     file://boot-animation-launch.sh \
@@ -14,11 +14,11 @@ SRC_URI += " \
     file://windowsxp.json \
 "
 
-SRCREV = "${AUTOREV}"
-PV = "0.1.0+git"
+# v0.2.1: audio-independent 32-bpp stream and cadence fixes.
+SRCREV = "722685a5fa94e05824de4e5596711b738e863fda"
+PV = "0.2.1"
 
-
-DEPENDS = "alsa-lib thorvg zlib thorvg-native zlib-native"
+DEPENDS = "thorvg zlib thorvg-native zlib-native"
 
 inherit systemd pkgconfig
 
@@ -35,9 +35,10 @@ BOOT_ANIMATION_FPS ?= "25"
 
 do_compile() {
     ${CC} ${CFLAGS} ${LDFLAGS} \
-        $(pkg-config --cflags alsa thorvg-1) \
-        -o ${B}/boot-animation ${S}/main.c \
-        $(pkg-config --libs alsa) \
+        $(pkg-config --cflags thorvg-1) \
+        -I${S} \
+        -o ${B}/boot-animation \
+        ${S}/main.c ${S}/render_utils.c ${S}/signal_utils.c ${S}/stream_format.c \
         $(pkg-config --libs --static thorvg-1) \
         -lstdc++ -lm -lpthread -lz
 
@@ -49,9 +50,24 @@ do_compile() {
     PKG_CONFIG_SYSROOT_DIR="" PKG_CONFIG_PATH="${STAGING_LIBDIR_NATIVE}/pkgconfig" \
     ${BUILD_CC} ${BUILD_CFLAGS} ${BUILD_LDFLAGS} \
         $(PKG_CONFIG_SYSROOT_DIR="" PKG_CONFIG_PATH="${STAGING_LIBDIR_NATIVE}/pkgconfig" pkg-config --cflags thorvg-1) \
-        -o ${B}/lottie2stream ${S}/tools/lottie2stream.c \
+        -I${S} \
+        -o ${B}/lottie2stream ${S}/tools/lottie2stream.c ${S}/stream_format.c \
         $(PKG_CONFIG_SYSROOT_DIR="" PKG_CONFIG_PATH="${STAGING_LIBDIR_NATIVE}/pkgconfig" pkg-config --libs --static thorvg-1) \
         -lstdc++ -lm -lz
+
+    # Exercise the dependency-free framebuffer/timing validation with the
+    # native compiler during every image build.
+    ${BUILD_CC} ${BUILD_CPPFLAGS} ${BUILD_CFLAGS} ${BUILD_LDFLAGS} \
+        -D_POSIX_C_SOURCE=200809L -std=c11 -Wall -Wextra -Werror -I${S} \
+        -o ${B}/test-render-utils \
+        ${S}/tests/test_render_utils.c ${S}/render_utils.c \
+        ${S}/signal_utils.c ${S}/stream_format.c -lz
+    ${B}/test-render-utils
+
+    ${BUILD_CC} ${BUILD_CPPFLAGS} ${BUILD_CFLAGS} ${BUILD_LDFLAGS} \
+        -std=c11 -Wall -Wextra -Werror -I${S} \
+        -o ${B}/check-stream ${S}/tests/check_stream.c \
+        ${S}/stream_format.c -lz
 
     # librescoot plays once and holds its last frame; the others loop.
     ${B}/lottie2stream ${UNPACKDIR}/librescoot.json \
@@ -60,6 +76,15 @@ do_compile() {
     ${B}/lottie2stream ${UNPACKDIR}/windowsxp.json \
         ${BOOT_ANIMATION_WIDTH} ${BOOT_ANIMATION_HEIGHT} ${BOOT_ANIMATION_FPS} \
         ${B}/windowsxp.lsba --loop
+
+    # Fail the image build if either packaged stream cannot be read back with
+    # the production geometry/cadence. Runtime also validates the 32-bpp
+    # framebuffer layout before selecting this RGB565 source.
+    interval_ms=$(( (1000 + ${BOOT_ANIMATION_FPS} / 2) / ${BOOT_ANIMATION_FPS} ))
+    ${B}/check-stream ${B}/librescoot.lsba \
+        ${BOOT_ANIMATION_WIDTH} ${BOOT_ANIMATION_HEIGHT} "$interval_ms"
+    ${B}/check-stream ${B}/windowsxp.lsba \
+        ${BOOT_ANIMATION_WIDTH} ${BOOT_ANIMATION_HEIGHT} "$interval_ms"
 }
 
 do_install() {
@@ -76,7 +101,6 @@ do_install() {
     install -m 0644 ${UNPACKDIR}/windowsxp.json ${D}${datadir}/boot-animation/
     install -m 0644 ${B}/librescoot.lsba ${D}${datadir}/boot-animation/
     install -m 0644 ${B}/windowsxp.lsba ${D}${datadir}/boot-animation/
-    install -m 0644 ${S}/scooter-unlock.wav ${D}${datadir}/boot-animation/
 
     install -d ${D}${systemd_system_unitdir}
     install -m 0644 ${UNPACKDIR}/boot-animation.service ${D}${systemd_system_unitdir}/
