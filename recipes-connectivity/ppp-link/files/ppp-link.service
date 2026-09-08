@@ -1,10 +1,11 @@
 [Unit]
 Description=PPP backup link over UART
-After=local-fs.target
+After=local-fs.target systemd-tmpfiles-setup.service
 
 [Service]
 Type=simple
-ExecStartPre=/bin/mkdir -p /var/run/pppd/lock
+# pppd 2.5 locks the tty under /var/lock, a symlink into /run/lock
+ExecStartPre=/bin/mkdir -p /run/lock
 ExecStart=/usr/sbin/pppd call uart-link nodetach
 Restart=on-failure
 RestartSec=5
