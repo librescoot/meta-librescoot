@@ -58,6 +58,7 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     chrony \
     chronyc \
     ecu-service \
+    event-service \
     vehicle-service \
     keycard-service \
     boot-led-service \

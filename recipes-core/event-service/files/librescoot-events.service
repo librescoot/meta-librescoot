@@ -2,6 +2,7 @@
 Description=Librescoot Event Service
 After=valkey.service
 Wants=valkey.service
+RequiresMountsFor=/data
 
 [Service]
 Type=simple
