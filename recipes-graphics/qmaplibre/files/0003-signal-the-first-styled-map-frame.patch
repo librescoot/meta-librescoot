@@ -1,0 +1,112 @@
+From dc0143b701a7f5a5b3f0682d7ce752241fc56d0c Mon Sep 17 00:00:00 2001
+From: Teal Bauer <teal@starsong.eu>
+Date: Tue, 8 Sep 2026 11:24:25 +0200
+Subject: [PATCH] feat(location): signal the first styled map frame
+
+Upstream-Status: Pending
+
+---
+ src/location/plugins/declarative_style.cpp |  6 ++++++
+ src/location/plugins/declarative_style.hpp |  4 ++++
+ src/location/qgeomap.cpp                   | 13 ++++++++++++-
+ src/location/qgeomap.hpp                   |  4 ++++
+ src/location/qgeomap_p.hpp                 |  2 ++
+ 5 files changed, 28 insertions(+), 1 deletion(-)
+
+diff --git a/src/location/plugins/declarative_style.cpp b/src/location/plugins/declarative_style.cpp
+index da0b60a..d8fae15 100644
+--- a/src/location/plugins/declarative_style.cpp
++++ b/src/location/plugins/declarative_style.cpp
+@@ -28,6 +28,12 @@ void DeclarativeStyle::setMap(QGeoMapMapLibre *map) {
+     }
+ 
+     m_map = map;
++    connect(m_map, &QGeoMapMapLibre::styleLoadingStarted,
++            this, &DeclarativeStyle::styleLoadingStarted,
++            Qt::UniqueConnection);
++    connect(m_map, &QGeoMapMapLibre::firstStyledFrameRendered,
++            this, &DeclarativeStyle::firstStyledFrameRendered,
++            Qt::UniqueConnection);
+ 
+     for (StyleParameter *p : m_parameters) {
+         m_map->addStyleParameter(p);
+diff --git a/src/location/plugins/declarative_style.hpp b/src/location/plugins/declarative_style.hpp
+index 8f336bc..2ed1ca6 100644
+--- a/src/location/plugins/declarative_style.hpp
++++ b/src/location/plugins/declarative_style.hpp
+@@ -39,6 +39,10 @@ public:
+     Q_INVOKABLE void clearParameters();
+     QList<QObject *> parameters();
+ 
++Q_SIGNALS:
++    void styleLoadingStarted();
++    void firstStyledFrameRendered();
++
+ protected:
+     void componentComplete() override;
+ 
+diff --git a/src/location/qgeomap.cpp b/src/location/qgeomap.cpp
+index 192e300..973451b 100644
+--- a/src/location/qgeomap.cpp
++++ b/src/location/qgeomap.cpp
+@@ -445,10 +445,16 @@ QSGNode *QGeoMapMapLibre::updateSceneGraph(QSGNode *oldNode, QQuickWindow *windo
+ void QGeoMapMapLibre::onMapChanged(Map::MapChange change) {
+     Q_D(QGeoMapMapLibre);
+ 
+-    if (change == Map::MapChangeDidFinishLoadingStyle || change == Map::MapChangeDidFailLoadingMap) {
++    if (change == Map::MapChangeDidFinishLoadingStyle) {
++        d->m_styleLoaded = true;
++        d->m_styleSuccessfullyLoaded = true;
++    } else if (change == Map::MapChangeDidFailLoadingMap) {
+         d->m_styleLoaded = true;
+     } else if (change == Map::MapChangeWillStartLoadingMap) {
+         d->m_styleLoaded = false;
++        d->m_styleSuccessfullyLoaded = false;
++        d->m_firstStyledFrameEmitted = false;
++        emit styleLoadingStarted();
+         d->m_styleChanges.clear();
+ 
+         for (QDeclarativeGeoMapItemBase *item : d->m_mapItems) {
+@@ -464,6 +470,11 @@ void QGeoMapMapLibre::onMapChanged(Map::MapChange change) {
+                                                                                           d->m_mapItemsBefore);
+             std::move(changes.begin(), changes.end(), std::back_inserter(d->m_styleChanges));
+         }
++    } else if (d->m_styleSuccessfullyLoaded && !d->m_firstStyledFrameEmitted
++               && (change == Map::MapChangeDidFinishRenderingFrame
++                   || change == Map::MapChangeDidFinishRenderingFrameFullyRendered)) {
++        d->m_firstStyledFrameEmitted = true;
++        emit firstStyledFrameRendered();
+     }
+ }
+ 
+diff --git a/src/location/qgeomap.hpp b/src/location/qgeomap.hpp
+index 5eb0180..61fd15c 100644
+--- a/src/location/qgeomap.hpp
++++ b/src/location/qgeomap.hpp
+@@ -34,6 +34,10 @@ public:
+     void removeStyleParameter(StyleParameter *parameter);
+     void clearStyleParameters();
+ 
++Q_SIGNALS:
++    void styleLoadingStarted();
++    void firstStyledFrameRendered();
++
+ private Q_SLOTS:
+     // QMapLibre
+     void onMapChanged(Map::MapChange);
+diff --git a/src/location/qgeomap_p.hpp b/src/location/qgeomap_p.hpp
+index 4696e85..d2a88b5 100644
+--- a/src/location/qgeomap_p.hpp
++++ b/src/location/qgeomap_p.hpp
+@@ -62,6 +62,8 @@ public:
+     bool m_threadedRenderingChecked = false;
+     bool m_threadedRendering = false;
+     bool m_styleLoaded = false;
++    bool m_styleSuccessfullyLoaded = false;
++    bool m_firstStyledFrameEmitted = false;
+ 
+     SyncStates m_syncState = NoSync;
+ 
+-- 
+2.43.0
+

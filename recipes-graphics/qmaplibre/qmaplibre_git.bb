@@ -25,6 +25,7 @@ DEPENDS = " \
 SRC_URI = "gitsm://github.com/maplibre/maplibre-native-qt.git;protocol=https;branch=main \
     file://0001-disable-tests.patch \
     file://0002-fill-extrusion-position-only-depth-prepass.patch \
+    file://0003-signal-the-first-styled-map-frame.patch \
 "
 
 # Pin to 10c6d828: last commit before the "Drawables Renderer" switch to OpenGL ES 3.0+.
