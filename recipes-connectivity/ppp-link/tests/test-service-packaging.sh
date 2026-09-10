@@ -28,6 +28,15 @@ assert_line '    install -m 0644 ${UNPACKDIR}/ppp-link.service ${D}${systemd_sys
 assert_line 'After=local-fs.target systemd-tmpfiles-setup.service' "$UNIT"
 assert_line 'ExecStartPre=/bin/mkdir -p /run/lock' "$UNIT"
 assert_line 'ExecStart=/usr/sbin/pppd call uart-link nodetach' "$UNIT"
+
+# Intentional shutdown can preserve pppd's user-request or hangup status. Both
+# must report cleanly, while any unexpected daemon exit must still be restarted.
+assert_line 'SuccessExitStatus=5 16' "$UNIT"
+assert_line 'Restart=always' "$UNIT"
+if grep -Fqx 'Restart=on-failure' "$UNIT"; then
+    echo 'ppp-link.service can suppress restart for accepted pppd exit codes' >&2
+    exit 1
+fi
 if grep -Fq '/var/run/pppd/lock' "$UNIT"; then
     echo 'ppp-link.service still creates the unused pppd lock directory' >&2
     exit 1

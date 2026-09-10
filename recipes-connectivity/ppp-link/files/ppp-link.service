@@ -7,7 +7,13 @@ Type=simple
 # pppd 2.5 locks the tty under /var/lock, a symlink into /run/lock
 ExecStartPre=/bin/mkdir -p /run/lock
 ExecStart=/usr/sbin/pppd call uart-link nodetach
-Restart=on-failure
+
+# pppd may retain EXIT_USER_REQUEST (5) or EXIT_HANGUP (16) when systemd
+# intentionally stops it after the peer has already closed the UART link.
+# Treat both as clean for unit-state reporting. Restart=always still recovers
+# every unexpected daemon exit; systemd suppresses restart for an explicit stop.
+SuccessExitStatus=5 16
+Restart=always
 RestartSec=5
 
 # pppd logs to syslog AND to its standard streams. Without this, every
