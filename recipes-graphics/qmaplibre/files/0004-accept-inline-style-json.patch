@@ -1,0 +1,229 @@
+From 1c8ee645dd4c40063b21c5335a58ef6eb1bf6d62 Mon Sep 17 00:00:00 2001
+From: Teal Bauer <teal@starsong.eu>
+Date: Sat, 12 Sep 2026 20:26:13 +0200
+Subject: [PATCH] feat(location): accept inline style JSON
+
+
+diff --git a/src/core/types.cpp b/src/core/types.cpp
+index f170900..5eef319 100644
+--- a/src/core/types.cpp
++++ b/src/core/types.cpp
+@@ -81,7 +81,7 @@ namespace QMapLibre {
+ 
+     \headerfile types.hpp <QMapLibre/Types>
+ 
+-    Represents map styles via its \a url, \a name,
++    Represents map styles via either its \a url or inline \a json, plus \a name,
+     \a description (optional), \a night (optional) and \a type (optional).
+ 
+     \enum Style::Type
+@@ -95,6 +95,9 @@ namespace QMapLibre {
+     \var Style::url
+     \brief style URL
+ 
++    \var Style::json
++    \brief inline MapLibre style JSON; used instead of \a url when non-empty
++
+     \var Style::name
+     \brief style name
+ 
+diff --git a/src/core/types.hpp b/src/core/types.hpp
+index 696fab1..2f9d40c 100644
+--- a/src/core/types.hpp
++++ b/src/core/types.hpp
+@@ -53,6 +53,7 @@ struct Q_MAPLIBRE_CORE_EXPORT Style {
+ #endif
+ 
+     QString url;
++    QString json;
+     QString name;
+     QString description;
+     bool night{};
+diff --git a/src/location/qgeomap.cpp b/src/location/qgeomap.cpp
+index 192e300..bfe82ea 100644
+--- a/src/location/qgeomap.cpp
++++ b/src/location/qgeomap.cpp
+@@ -85,8 +85,13 @@ QSGNode *QGeoMapMapLibrePrivate::updateSceneGraph(QSGNode *node, QQuickWindow *w
+     }
+     map = static_cast<TextureNode *>(node)->map();
+ 
+-    if ((m_syncState & MapTypeSync) != 0 && m_activeMapType.metadata().contains(QStringLiteral("url"))) {
+-        map->setStyleUrl(m_activeMapType.metadata()[QStringLiteral("url")].toString());
++    if ((m_syncState & MapTypeSync) != 0) {
++        const QVariantMap metadata = m_activeMapType.metadata();
++        if (metadata.contains(QStringLiteral("json"))) {
++            map->setStyleJson(metadata.value(QStringLiteral("json")).toString());
++        } else if (metadata.contains(QStringLiteral("url"))) {
++            map->setStyleUrl(metadata.value(QStringLiteral("url")).toString());
++        }
+     }
+ 
+     if ((m_syncState & VisibleAreaSync) != 0) {
+diff --git a/src/location/qt_mapping_engine.cpp b/src/location/qt_mapping_engine.cpp
+index 48338d0..8dd01c6 100644
+--- a/src/location/qt_mapping_engine.cpp
++++ b/src/location/qt_mapping_engine.cpp
+@@ -87,6 +87,7 @@ QtMappingEngine::QtMappingEngine(const QVariantMap &parameters,
+                                        QStringLiteral("maplibre.api.base_url"),
+                                        QStringLiteral("maplibre.api.key"),
+                                        QStringLiteral("maplibre.map.styles"),
++                                       QStringLiteral("maplibre.map.style_json"),
+                                        QStringLiteral("maplibre.cache.memory"),
+                                        QStringLiteral("maplibre.cache.directory"),
+                                        QStringLiteral("maplibre.cache.size"),
+@@ -126,8 +127,13 @@ QtMappingEngine::QtMappingEngine(const QVariantMap &parameters,
+     QList<QGeoMapType> mapTypes;
+     int mapId{};
+ 
+-    if (parameters.contains(QStringLiteral("maplibre.map.styles"))) {
+-        Styles styles;
++    Styles styles;
++    const QString inlineStyle = parameters.value(QStringLiteral("maplibre.map.style_json")).toString();
++    if (!inlineStyle.isEmpty()) {
++        Style style(QString(), QStringLiteral("Inline Style"));
++        style.json = inlineStyle;
++        styles.append(std::move(style));
++    } else if (parameters.contains(QStringLiteral("maplibre.map.styles"))) {
+         const QVariant stylesValue = parameters.value(QStringLiteral("maplibre.map.styles"));
+         if (stylesValue.userType() == qMetaTypeId<QJSValue>()) {
+             auto jsonDoc = QJsonDocument::fromVariant(stylesValue.value<QJSValue>().toVariant());
+@@ -157,24 +163,28 @@ QtMappingEngine::QtMappingEngine(const QVariantMap &parameters,
+                 styles.append(Style(url, "Style " + QString::number(styles.size() + 1)));
+             }
+         }
++    }
+ 
+-        m_settings.setStyles(styles);
+-
+-        for (const Style &style : styles) {
+-            QVariantMap mapMetadata;
++    m_settings.setStyles(styles);
++    for (const Style &style : styles) {
++        QVariantMap mapMetadata;
++        if (!style.json.isEmpty()) {
++            mapMetadata[QStringLiteral("json")] = style.json;
++            mapMetadata[QStringLiteral("isHTTPS")] = false;
++        } else {
+             mapMetadata[QStringLiteral("url")] = style.url;
+             mapMetadata[QStringLiteral("isHTTPS")] = style.url.startsWith(QStringLiteral("https:"));
+-
+-            mapTypes << QGeoMapType(static_cast<QGeoMapType::MapStyle>(style.type),
+-                                    style.name,
+-                                    style.description,
+-                                    false,
+-                                    style.night,
+-                                    ++mapId,
+-                                    pluginName,
+-                                    cameraCaps,
+-                                    mapMetadata);
+         }
++
++        mapTypes << QGeoMapType(static_cast<QGeoMapType::MapStyle>(style.type),
++                                style.name,
++                                style.description,
++                                false,
++                                style.night,
++                                ++mapId,
++                                pluginName,
++                                cameraCaps,
++                                mapMetadata);
+     }
+ 
+     // load provider styles if available
+diff --git a/test/qml/qt5/tst_plugin_inline_style.qml b/test/qml/qt5/tst_plugin_inline_style.qml
+new file mode 100644
+index 0000000..50d24d9
+--- /dev/null
++++ b/test/qml/qt5/tst_plugin_inline_style.qml
+@@ -0,0 +1,41 @@
++// Copyright (C) 2023 MapLibre contributors
++
++// SPDX-License-Identifier: BSD-2-Clause
++
++import QtQuick 2.15
++import QtLocation 5.15
++import QtTest 1.0
++
++Item {
++    width: 64
++    height: 64
++
++    readonly property string inlineJson: "{\"version\":8,\"sources\":{},\"layers\":[]}"
++
++    Plugin {
++        id: mapPlugin
++        name: "maplibre"
++
++        PluginParameter {
++            name: "maplibre.map.style_json"
++            value: inlineJson
++        }
++    }
++
++    Map {
++        id: map
++        anchors.fill: parent
++        plugin: mapPlugin
++    }
++
++    TestCase {
++        name: "PluginInlineStyle"
++        when: windowShown
++
++        function test_inline_style_metadata() {
++            compare(map.supportedMapTypes.length, 1)
++            compare(map.supportedMapTypes[0].metadata["json"], inlineJson)
++            verify(map.supportedMapTypes[0].metadata["url"] === undefined)
++        }
++    }
++}
+diff --git a/test/qml/qt6/tst_plugin_inline_style.qml b/test/qml/qt6/tst_plugin_inline_style.qml
+new file mode 100644
+index 0000000..49d59e3
+--- /dev/null
++++ b/test/qml/qt6/tst_plugin_inline_style.qml
+@@ -0,0 +1,41 @@
++// Copyright (C) 2023 MapLibre contributors
++
++// SPDX-License-Identifier: BSD-2-Clause
++
++import QtQuick 2.15
++import QtLocation 6.5
++import QtTest 1.0
++
++Item {
++    width: 64
++    height: 64
++
++    readonly property string inlineJson: "{\"version\":8,\"sources\":{},\"layers\":[]}"
++
++    Plugin {
++        id: mapPlugin
++        name: "maplibre"
++
++        PluginParameter {
++            name: "maplibre.map.style_json"
++            value: inlineJson
++        }
++    }
++
++    MapView {
++        id: mapView
++        anchors.fill: parent
++        map.plugin: mapPlugin
++    }
++
++    TestCase {
++        name: "PluginInlineStyle"
++        when: windowShown
++
++        function test_inline_style_metadata() {
++            compare(mapView.map.supportedMapTypes.length, 1)
++            compare(mapView.map.supportedMapTypes[0].metadata["json"], inlineJson)
++            verify(mapView.map.supportedMapTypes[0].metadata["url"] === undefined)
++        }
++    }
++}
+-- 
+2.43.0
+
