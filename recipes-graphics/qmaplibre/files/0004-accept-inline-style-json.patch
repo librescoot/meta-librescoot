@@ -3,6 +3,7 @@ From: Teal Bauer <teal@starsong.eu>
 Date: Sat, 12 Sep 2026 20:26:13 +0200
 Subject: [PATCH] feat(location): accept inline style JSON
 
+Upstream-Status: Pending
 
 diff --git a/src/core/types.cpp b/src/core/types.cpp
 index f170900..5eef319 100644
