@@ -14,11 +14,10 @@ SRC_URI += " \
     file://windowsxp.json \
 "
 
-# v0.2.1: audio-independent 32-bpp stream and cadence fixes.
-SRCREV = "722685a5fa94e05824de4e5596711b738e863fda"
-PV = "0.2.1"
+SRCREV = "${AUTOREV}"
+PV = "0.2.2+git"
 
-DEPENDS = "thorvg zlib thorvg-native zlib-native"
+DEPENDS = "alsa-lib thorvg zlib thorvg-native zlib-native"
 
 inherit systemd pkgconfig
 
@@ -36,11 +35,11 @@ BOOT_ANIMATION_INTERVAL_MS = "${@str((1000 + int(d.getVar('BOOT_ANIMATION_FPS'))
 
 do_compile() {
     ${CC} ${CFLAGS} ${LDFLAGS} \
-        $(pkg-config --cflags thorvg-1) \
+        $(pkg-config --cflags alsa thorvg-1) \
         -I${S} \
         -o ${B}/boot-animation \
-        ${S}/main.c ${S}/render_utils.c ${S}/signal_utils.c ${S}/stream_format.c \
-        $(pkg-config --libs --static thorvg-1) \
+        ${S}/main.c ${S}/audio_playback.c ${S}/render_utils.c ${S}/signal_utils.c ${S}/stream_format.c \
+        $(pkg-config --libs --static alsa thorvg-1) \
         -lstdc++ -lm -lpthread -lz
 
     # Prerender the animations into frame streams. Rasterising Lottie costs
@@ -101,6 +100,7 @@ do_install() {
     install -m 0644 ${UNPACKDIR}/windowsxp.json ${D}${datadir}/boot-animation/
     install -m 0644 ${B}/librescoot.lsba ${D}${datadir}/boot-animation/
     install -m 0644 ${B}/windowsxp.lsba ${D}${datadir}/boot-animation/
+    install -m 0644 ${S}/scooter-unlock.wav ${D}${datadir}/boot-animation/
 
     install -d ${D}${systemd_system_unitdir}
     install -m 0644 ${UNPACKDIR}/boot-animation.service ${D}${systemd_system_unitdir}/
