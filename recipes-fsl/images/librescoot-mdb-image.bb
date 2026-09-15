@@ -73,6 +73,7 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     update-service \
     ums-service \
     settings-service \
+    trip-service \
     alarm-service \
     motion-service \
     data-server \

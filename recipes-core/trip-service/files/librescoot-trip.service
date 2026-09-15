@@ -1,0 +1,18 @@
+[Unit]
+Description=Librescoot Trip Service
+Requires=valkey.service
+After=valkey.service librescoot-settings.service
+Wants=librescoot-settings.service
+RequiresMountsFor=/data
+
+[Service]
+Type=simple
+User=root
+Group=root
+ExecStart=/usr/bin/trip-service
+Restart=on-failure
+RestartSec=5
+KillMode=mixed
+
+[Install]
+WantedBy=multi-user.target
