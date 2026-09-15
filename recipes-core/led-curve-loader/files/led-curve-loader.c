@@ -32,10 +32,11 @@
 
 #define MAX_FADE_SIZE 4096
 #define MAX_CUES      16
+#define LED_COUNT     8
 
-#define LED_DEV   "/dev/pwm_led0"
-#define FADES_DIR "/usr/share/led-curves/fades"
-#define CUES_DIR  "/usr/share/led-curves/cues"
+#define LED_DEV_FMT "/dev/pwm_led%d"
+#define FADES_DIR   "/usr/share/led-curves/fades"
+#define CUES_DIR    "/usr/share/led-curves/cues"
 
 static int write_all(int fd, const char *buf, size_t len)
 {
@@ -132,33 +133,54 @@ static void load_dir(int fd, const char *dir, const char *pattern, int open_cmd,
 	closedir(d);
 }
 
+static int is_blinker(int channel)
+{
+	return channel == 3 || channel == 4 || channel == 6 || channel == 7;
+}
+
 int main(void)
 {
 	unsigned int config;
-	int fd;
-
-	fd = open(LED_DEV, O_RDWR);
-	if (fd < 0) {
-		fprintf(stderr, "failed to open %s: %s\n", LED_DEV, strerror(errno));
-		return 1;
-	}
+	int fds[LED_COUNT];
+	int i;
 
 	config = PWM_PERIOD |
 		 (PWM_PRESCALER << PWM_CFG_BIT_PRESCALER) |
 		 (PWM_INVERT << PWM_CFG_BIT_INVERT) |
 		 (PWM_REPEAT << PWM_CFG_BIT_REPEAT);
-	if (ioctl(fd, PWM_LED_CONFIGURE, config) != 0)
-		fprintf(stderr, "failed to configure PWM: %s\n", strerror(errno));
 
-	if (ioctl(fd, PWM_LED_SET_ADAPT, 1) != 0)
-		fprintf(stderr, "failed to set adaptive mode: %s\n", strerror(errno));
+	for (i = 0; i < LED_COUNT; i++) {
+		char dev[sizeof(LED_DEV_FMT) + 10];
 
-	if (ioctl(fd, PWM_LED_SET_ACTIVE, 1) != 0)
-		fprintf(stderr, "failed to activate %s: %s\n", LED_DEV, strerror(errno));
+		fds[i] = -1;
+		snprintf(dev, sizeof(dev), LED_DEV_FMT, i);
+		fds[i] = open(dev, O_RDWR);
+		if (fds[i] < 0) {
+			fprintf(stderr, "failed to open %s: %s\n", dev, strerror(errno));
+			continue;
+		}
 
-	load_dir(fd, FADES_DIR, "fade%d", PWM_LED_OPEN_FADE, MAX_FADE_SIZE, 2, MAX_FADE_SIZE);
-	load_dir(fd, CUES_DIR, "cue%d", PWM_LED_OPEN_CUE, MAX_CUES, 4, -1);
+		if (ioctl(fds[i], PWM_LED_CONFIGURE, config) != 0)
+			fprintf(stderr, "failed to configure %s: %s\n", dev, strerror(errno));
 
-	close(fd);
+		if (!is_blinker(i) && ioctl(fds[i], PWM_LED_SET_ADAPT, 1) != 0)
+			fprintf(stderr, "failed to set adaptive mode on %s: %s\n", dev,
+				strerror(errno));
+
+		if (ioctl(fds[i], PWM_LED_SET_ACTIVE, 1) != 0)
+			fprintf(stderr, "failed to activate %s: %s\n", dev, strerror(errno));
+	}
+
+	if (fds[0] < 0)
+		return 1;
+
+	load_dir(fds[0], FADES_DIR, "fade%d", PWM_LED_OPEN_FADE, MAX_FADE_SIZE, 2,
+		 MAX_FADE_SIZE);
+	load_dir(fds[0], CUES_DIR, "cue%d", PWM_LED_OPEN_CUE, MAX_CUES, 4, -1);
+
+	for (i = 0; i < LED_COUNT; i++) {
+		if (fds[i] >= 0)
+			close(fds[i]);
+	}
 	return 0;
 }
