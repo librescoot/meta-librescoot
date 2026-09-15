@@ -3,6 +3,9 @@ LICENSE = "MIT"
 
 inherit core-image
 
+# Keep the generated filesystem within the fixed Mender rootfs partition.
+IMAGE_OVERHEAD_FACTOR = "1.25"
+
 require librescoot-hwclock-seed.inc
 
 LIBRESCOOT_OTA_COMPONENT = "mdb"
