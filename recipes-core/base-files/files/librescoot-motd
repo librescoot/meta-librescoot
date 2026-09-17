@@ -1,0 +1,7 @@
+
+  lsc status                   vehicle, battery, network, update and fault state
+  lsc --help                   every command group (vehicle, alarm, led, gps, ota, ...)
+  journalctl -u <service> -e   tail one service's log
+  systemctl status <service>   service state
+  redis-cli HGETALL system     firmware and board versions
+  cat /etc/os-release          image version

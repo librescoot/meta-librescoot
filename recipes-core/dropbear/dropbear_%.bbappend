@@ -47,3 +47,21 @@ do_install:append:librescoot-dbc-rpi4() {
     install -m 0600 ${UNPACKDIR}/knownhosts-dbc ${D}/root/.ssh/known_hosts
     install -m 0600 ${UNPACKDIR}/hostkey-dbc ${D}${sysconfdir}/dropbear/dropbear_rsa_host_key
 }
+
+# Send the version banner to SSH clients before authentication.
+#
+# The upstream dropbear@.service already reads /etc/default/dropbear and expands
+# DROPBEAR_EXTRA_ARGS, so this needs no unit override. -b takes a file, and
+# base-files generates /etc/issue.net as "<DISTRO_NAME> <DISTRO_VERSION>" - the
+# same line the serial console shows. Pre-auth is the point: a fleet probe or a
+# bench board can tell which image it runs without credentials.
+#
+# Append instead of writing the file, because whatever else the image puts there
+# (the passwordless-root -B, for instance) has to survive.
+do_install:append() {
+    sed -i 's|^DROPBEAR_EXTRA_ARGS="\(.*\)"$|DROPBEAR_EXTRA_ARGS="\1 -b /etc/issue.net"|' \
+        ${D}${sysconfdir}/default/dropbear
+    grep -q -- '-b /etc/issue.net' ${D}${sysconfdir}/default/dropbear || \
+        bbfatal "dropbear: failed to add -b /etc/issue.net to DROPBEAR_EXTRA_ARGS in ${sysconfdir}/default/dropbear"
+}
+
