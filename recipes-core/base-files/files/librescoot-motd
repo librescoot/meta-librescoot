@@ -1,7 +1,8 @@
 
   lsc status                   vehicle, battery, network, update and fault state
+  lsc version                  MDB, DBC, nRF, ECU and battery versions
+
+  lsc service list             Librescoot services and their state
+  lsc service <cmd> <service>  start, stop, restart, enable, disable, status, logs
+
   lsc --help                   every command group (vehicle, alarm, led, gps, ota, ...)
-  journalctl -u <service> -e   tail one service's log
-  systemctl status <service>   service state
-  redis-cli HGETALL system     firmware and board versions
-  cat /etc/os-release          image version

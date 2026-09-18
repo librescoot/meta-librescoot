@@ -10,9 +10,10 @@ do_install:append() {
     # banner - the one thing the banner exists for. Releases are unaffected.
     #
     # /etc/issue.net is the pre-auth SSH banner (dropbear -b in the dropbear
-    # bbappend). One plain line: dropbear does not expand escapes, and scripts
-    # read it as well as people.
-    printf '%s %s\n' "${DISTRO_NAME}" "${DISTRO_VERSION}" > ${D}${sysconfdir}/issue.net
+    # bbappend). One plain line plus a blank: dropbear does not expand escapes,
+    # and scripts read it as well as people. The blank keeps the banner from
+    # running straight into the motd that dropbear prints after login.
+    printf '%s %s\n\n' "${DISTRO_NAME}" "${DISTRO_VERSION}" > ${D}${sysconfdir}/issue.net
 
     # /etc/issue is the same line on the serial console, where agetty does expand
     # escapes: keep \n (nodename) and \l (line) literal for it.
@@ -23,8 +24,11 @@ do_install:append() {
     # interactive SSH logins (dropbear's -m turns that off, ~/.hushlogin skips it).
     # Base-files ships it empty, which makes a board on a bench say nothing about
     # itself.
+    # The version is deliberately absent here: /etc/issue.net (dropbear -b) and
+    # /etc/issue already print it before login, so every SSH and console session
+    # showed the same "Librescoot nightly-..." line twice in a row.
     {
-        printf '%s %s - https://librescoot.org/docs\n' "${DISTRO_NAME}" "${DISTRO_VERSION}"
+        printf 'Welcome to %s - https://librescoot.org/docs\n' "${DISTRO_NAME}"
         cat ${UNPACKDIR}/librescoot-motd
     } > ${D}${sysconfdir}/motd
     chmod 0644 ${D}${sysconfdir}/motd
