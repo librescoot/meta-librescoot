@@ -12,6 +12,7 @@ SRC_URI += " \
     file://00-shutdown-timeout.conf \
     file://librescoot.json \
     file://windowsxp.json \
+    file://coopertino.json \
 "
 
 SRCREV = "${AUTOREV}"
@@ -69,13 +70,16 @@ do_compile() {
         -o ${B}/check-stream ${S}/tests/check_stream.c \
         ${S}/stream_format.c -lz
 
-    # librescoot plays once and holds its last frame; the others loop.
+    # librescoot plays once and holds its last frame; the other themes loop.
     ${B}/lottie2stream ${UNPACKDIR}/librescoot.json \
         ${BOOT_ANIMATION_WIDTH} ${BOOT_ANIMATION_HEIGHT} ${BOOT_ANIMATION_FPS} \
         ${B}/librescoot.lsba
     ${B}/lottie2stream ${UNPACKDIR}/windowsxp.json \
         ${BOOT_ANIMATION_WIDTH} ${BOOT_ANIMATION_HEIGHT} ${BOOT_ANIMATION_FPS} \
         ${B}/windowsxp.lsba --loop
+    ${B}/lottie2stream ${UNPACKDIR}/coopertino.json \
+        ${BOOT_ANIMATION_WIDTH} ${BOOT_ANIMATION_HEIGHT} ${BOOT_ANIMATION_FPS} \
+        ${B}/coopertino.lsba --loop
 
     # Fail the image build if either packaged stream cannot be read back with
     # the production geometry/cadence. Runtime also validates the 32-bpp
@@ -83,6 +87,8 @@ do_compile() {
     ${B}/check-stream ${B}/librescoot.lsba \
         ${BOOT_ANIMATION_WIDTH} ${BOOT_ANIMATION_HEIGHT} ${BOOT_ANIMATION_INTERVAL_MS}
     ${B}/check-stream ${B}/windowsxp.lsba \
+        ${BOOT_ANIMATION_WIDTH} ${BOOT_ANIMATION_HEIGHT} ${BOOT_ANIMATION_INTERVAL_MS}
+    ${B}/check-stream ${B}/coopertino.lsba \
         ${BOOT_ANIMATION_WIDTH} ${BOOT_ANIMATION_HEIGHT} ${BOOT_ANIMATION_INTERVAL_MS}
 }
 
@@ -98,8 +104,12 @@ do_install() {
     install -d ${D}${datadir}/boot-animation
     install -m 0644 ${UNPACKDIR}/librescoot.json ${D}${datadir}/boot-animation/
     install -m 0644 ${UNPACKDIR}/windowsxp.json ${D}${datadir}/boot-animation/
+    install -m 0644 ${UNPACKDIR}/coopertino.json ${D}${datadir}/boot-animation/
+    ln -sf windowsxp.json ${D}${datadir}/boot-animation/librescoot-xp.json
     install -m 0644 ${B}/librescoot.lsba ${D}${datadir}/boot-animation/
     install -m 0644 ${B}/windowsxp.lsba ${D}${datadir}/boot-animation/
+    install -m 0644 ${B}/coopertino.lsba ${D}${datadir}/boot-animation/
+    ln -sf windowsxp.lsba ${D}${datadir}/boot-animation/librescoot-xp.lsba
     install -m 0644 ${S}/scooter-unlock.wav ${D}${datadir}/boot-animation/
 
     install -d ${D}${systemd_system_unitdir}

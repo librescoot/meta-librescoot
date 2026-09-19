@@ -17,6 +17,7 @@ SCOOTUI_QT_GIT_PARAMS = "${@';nobranch=1' if len(d.getVar('SRCREV') or '') == 40
 SRC_URI = "git://github.com/librescoot/scootui-qt.git;protocol=https${SCOOTUI_QT_GIT_PARAMS}"
 SRC_URI += "file://scootui-qt.service"
 SRC_URI += "file://scootui-qt-rpi4.service"
+SRC_URI += "file://scootui-qt-kms.json"
 
 PV = "1.0.0+git${SRCPV}"
 PE = "1"
@@ -55,7 +56,6 @@ RDEPENDS:${PN} = " \
     qtsvg-plugins \
     qtlocation \
     qmaplibre \
-    qt-eglfs-fbdev \
 "
 
 EXTRA_OECMAKE = "-DCMAKE_BUILD_TYPE=Release"
@@ -78,6 +78,8 @@ SYSTEMD_AUTO_ENABLE:${PN} = "disable"
 do_install:append:unu-dbc() {
     install -d ${D}${systemd_system_unitdir}
     install -m 0644 ${UNPACKDIR}/scootui-qt.service ${D}${systemd_system_unitdir}/
+    install -d ${D}${sysconfdir}
+    install -m 0644 ${UNPACKDIR}/scootui-qt-kms.json ${D}${sysconfdir}/
 }
 
 do_install:append:librescoot-dbc-rpi4() {
@@ -88,5 +90,6 @@ do_install:append:librescoot-dbc-rpi4() {
 FILES:${PN} = " \
     ${bindir}/scootui-qt \
     ${datadir}/scootui/glyphs \
+    ${sysconfdir}/scootui-qt-kms.json \
     ${systemd_system_unitdir}/scootui-qt.service \
 "
