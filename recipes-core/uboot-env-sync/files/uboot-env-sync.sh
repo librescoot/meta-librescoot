@@ -5,10 +5,11 @@
 #   set-if-missing key value       — set only if unset or empty
 #   set-always key value           — always overwrite
 #   set-if-matches key old new     — replace old value with new (safe migration)
+#   append-if-missing key token    — append a space-delimited token if absent
 #   unset key                      — remove unconditionally
 #   unset-if-matches key value     — remove only if current value matches
 
-CONF_DIR=/etc/uboot-env.d
+CONF_DIR=${UBOOT_ENV_SYNC_CONF_DIR:-/etc/uboot-env.d}
 changed=0
 
 for conf in "$CONF_DIR"/*.conf; do
@@ -50,6 +51,25 @@ for conf in "$CONF_DIR"/*.conf; do
                     echo "uboot-env-sync: set-if-matches $key: [$oldval] -> [$newval]"
                     changed=1
                 fi
+                ;;
+            append-if-missing)
+                # For space-delimited lists such as bootargs, where the exact
+                # value depends on what else has been put on the line. A
+                # whole-string set-if-matches cannot express a value that
+                # contains spaces, so it silently never migrates those.
+                key="${rest%% *}"
+                value="${rest#* }"
+                current="$(fw_printenv -n "$key" 2>/dev/null)" || true
+                current="${current% }"
+                case " $current " in
+                    *" $value "*)
+                        ;;
+                    *)
+                        fw_setenv "$key" "${current:+$current }$value"
+                        echo "uboot-env-sync: append-if-missing $key += $value"
+                        changed=1
+                        ;;
+                esac
                 ;;
             unset)
                 key="${rest%% *}"

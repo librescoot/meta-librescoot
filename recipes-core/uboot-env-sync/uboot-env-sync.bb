@@ -6,6 +6,7 @@ inherit systemd
 
 SRC_URI = "file://uboot-env-sync.sh \
            file://uboot-env-sync.service \
+           file://test-uboot-env-sync.sh \
            file://identity.conf"
 SRC_URI:append:unu-dbc = " file://boot-animation.conf"
 
@@ -15,6 +16,13 @@ SYSTEMD_SERVICE:${PN} = "uboot-env-sync.service"
 SYSTEMD_AUTO_ENABLE:${PN} = "enable"
 
 RDEPENDS:${PN} = "u-boot-fw-utils"
+
+do_compile() {
+    # The directives write boot-critical values, so run the real script against
+    # a fake U-Boot environment during the build instead of trusting a board to
+    # find out. The shipped conf is DBC-only; the generic checks run everywhere.
+    sh ${UNPACKDIR}/test-uboot-env-sync.sh
+}
 
 do_install() {
     install -d ${D}${systemd_system_unitdir}
