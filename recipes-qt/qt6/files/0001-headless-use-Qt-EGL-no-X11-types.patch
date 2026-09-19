@@ -1,0 +1,30 @@
+From d2e413141651bdd69314422926f73b87189cc69d Mon Sep 17 00:00:00 2001
+From: Librescoot <dev@librescoot.org>
+Date: Fri, 19 Sep 2026 12:00:00 +0200
+Subject: [PATCH] build: select Qt's headless EGL platform types
+
+The DBC Qt build has EGLFS but no X11 development headers. Qt's private
+qt_egl_p.h otherwise selects USE_X11 before including eglplatform.h, causing
+an unnecessary Xlib dependency while compiling this headless plugin.
+
+Upstream-Status: Pending
+---
+ CMakeLists.txt | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 6494beb..6ac878b 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -25,6 +25,9 @@ target_include_directories(qeglfs-fbdev-integration PRIVATE
+     ${GBM_INCLUDE_DIRS}
+ )
+ 
++# The DBC image is headless: make Qt select Mesa's non-X11 EGL types.
++target_compile_definitions(qeglfs-fbdev-integration PRIVATE QT_EGL_NO_X11)
++
+ target_link_libraries(qeglfs-fbdev-integration PRIVATE
+     Qt6::Core
+     Qt6::CorePrivate
+-- 
+2.47.3

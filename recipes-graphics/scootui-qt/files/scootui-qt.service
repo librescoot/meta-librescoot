@@ -18,9 +18,12 @@ Environment=XDG_CACHE_HOME=/var/volatile/cache
 Environment=XDG_RUNTIME_DIR="/run/user/0"
 Environment=MESA_SHADER_CACHE_DIR=/var/volatile/mesa_shader_cache
 Environment=QT_QPA_PLATFORM=eglfs
-Environment=QT_QPA_EGLFS_INTEGRATION=eglfs_kms
-Environment=QT_QPA_EGLFS_KMS_CONFIG=/etc/scootui-qt-kms.json
-Environment=QT_QPA_EGLFS_KMS_ATOMIC=1
+# Render with the GPU render node but copy each frame to the fb1 overlay.
+# This deliberately never opens card1 or becomes DRM master, so the boot
+# animation remains live on fb0 until the overlay alpha handoff.
+Environment=QT_QPA_EGLFS_INTEGRATION=eglfs_fbdev
+Environment=EGLFS_FBDEV_FB_DEVICE=/dev/fb1
+Environment=EGLFS_FBDEV_RENDER_DEVICE=/dev/dri/renderD128
 Environment=QT_QPA_EGLFS_SWAPINTERVAL=1
 Environment=QSG_RENDER_LOOP=basic
 Environment=QT_PLUGIN_PATH=/usr/plugins:/usr/lib/plugins
@@ -34,6 +37,9 @@ Environment=QT_QPA_EGLFS_DISABLE_INPUT=1
 # ~10.8s. CPUWeight alone measured no effect on this image.
 Nice=-10
 RuntimeDirectory=user/0
+# Keep the dashboard overlay hidden until it has rendered its first frame.
+# Application::fadeInOverlay then makes the live 0→255 handoff from fb0.
+ExecStartPre=/usr/bin/imx-overlay-alpha 0
 ExecStart=/usr/bin/scootui-qt
 
 User=root
