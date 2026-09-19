@@ -24,7 +24,7 @@ SRC_URI:append:mender-uboot = " file://common/0004-mender-malloc.patch"
 
 SRC_URI:append = " file://common/0001-helloworld.patch"
 SRC_URI:append = " file://common/0003-sanity-check.patch"
-SRC_URI:append:unu-dbc = " file://dbc/mx6sabresd.bmp"
+SRC_URI:append:unu-dbc = " file://dbc/uboot-logo.bmp"
 
 SRC_URI:append:unu-mdb = " file://mdb/0004-enable-usb-mass-storage.patch"
 SRC_URI:append:unu-mdb = " file://mdb/0006-spi-remove.patch"
@@ -56,8 +56,8 @@ COMPATIBLE_MACHINE = "(mx6|mx7)"
 FILES:${PN} += "/uboot/*"
 
 do_compile:prepend() {
-    if [ -f ${UNPACKDIR}/dbc/mx6sabresd.bmp ]; then
-        cp ${UNPACKDIR}/dbc/mx6sabresd.bmp ${S}/tools/logos/freescale.bmp
+    if [ -f ${UNPACKDIR}/dbc/uboot-logo.bmp ]; then
+        cp ${UNPACKDIR}/dbc/uboot-logo.bmp ${S}/tools/logos/freescale.bmp
     fi
     cp ${S}/include/fdt.h ${S}/lib/libfdt/
     cp ${S}/include/libfdt.h ${S}/lib/libfdt/

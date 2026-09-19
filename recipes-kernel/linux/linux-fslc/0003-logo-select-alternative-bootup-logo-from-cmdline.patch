@@ -1,0 +1,256 @@
+From 7cca8710dd54e07688fa0a55b37faf862318c4a8 Mon Sep 17 00:00:00 2001
+From: LibreScoot <librescoot@example.com>
+Date: Sat, 19 Sep 2026 13:16:15 +0200
+Subject: [PATCH] logo: allow selecting an alternative bootup logo from the
+ command line
+
+The bootup logo is baked into the image at build time and cannot be changed
+later: fb_find_logo() picks one of the static logos and the data is freed
+once the logos are no longer needed.  A product that ships the same hardware
+with more than one brand therefore needs one kernel build per logo.
+
+Add up to eight alternative logos, all compiled in, and select one of them
+with logo.name=<name> on the kernel command line.  Without that parameter
+the behaviour is unchanged.  The names come from Kconfig, so a distribution
+decides what its alternatives are called, and an alternative that is not
+enabled costs nothing; an enabled one costs width * height bytes of image
+size.
+
+Only CLUT224 alternatives are supported for now, hence the depth >= 8 check.
+A name that matches nothing, or a request at a lower colour depth, falls
+back to the regular logo.
+
+Upstream-Status: Inappropriate [LibreScoot platform requirement]
+
+Signed-off-by: LibreScoot <librescoot@example.com>
+---
+ drivers/video/logo/Kconfig  | 87 +++++++++++++++++++++++++++++++++++++
+ drivers/video/logo/Makefile | 10 +++++
+ drivers/video/logo/logo.c   | 79 +++++++++++++++++++++++++++++++++
+ 3 files changed, 176 insertions(+)
+
+diff --git a/drivers/video/logo/Kconfig b/drivers/video/logo/Kconfig
+index ce6bb75..1522129 100644
+--- a/drivers/video/logo/Kconfig
++++ b/drivers/video/logo/Kconfig
+@@ -70,4 +70,91 @@ config LOGO_SUPERH_CLUT224
+ 	depends on SUPERH
+ 	default y
+ 
++#
++# Additional logos that are all compiled into the image, one of which can be
++# picked at boot with logo.name=<name> on the kernel command line.  Up to eight
++# are supported; each one costs its own width * height bytes of image size.
++#
++menu "Alternative bootup logos"
++
++config LOGO_ALT
++	bool
++	help
++	  Selected by the LOGO_ALT<N>_CLUT224 options below, never set on its
++	  own.  Without any of them there is no logo.name= parameter at all.
++
++config LOGO_ALT1_CLUT224
++	bool "Alternative logo 1 (logo_alt1_clut224.ppm)"
++	select LOGO_ALT
++
++config LOGO_ALT1_NAME
++	string "  logo.name= name of alternative logo 1"
++	depends on LOGO_ALT1_CLUT224
++	default "alt1"
++
++config LOGO_ALT2_CLUT224
++	bool "Alternative logo 2 (logo_alt2_clut224.ppm)"
++	select LOGO_ALT
++
++config LOGO_ALT2_NAME
++	string "  logo.name= name of alternative logo 2"
++	depends on LOGO_ALT2_CLUT224
++	default "alt2"
++
++config LOGO_ALT3_CLUT224
++	bool "Alternative logo 3 (logo_alt3_clut224.ppm)"
++	select LOGO_ALT
++
++config LOGO_ALT3_NAME
++	string "  logo.name= name of alternative logo 3"
++	depends on LOGO_ALT3_CLUT224
++	default "alt3"
++
++config LOGO_ALT4_CLUT224
++	bool "Alternative logo 4 (logo_alt4_clut224.ppm)"
++	select LOGO_ALT
++
++config LOGO_ALT4_NAME
++	string "  logo.name= name of alternative logo 4"
++	depends on LOGO_ALT4_CLUT224
++	default "alt4"
++
++config LOGO_ALT5_CLUT224
++	bool "Alternative logo 5 (logo_alt5_clut224.ppm)"
++	select LOGO_ALT
++
++config LOGO_ALT5_NAME
++	string "  logo.name= name of alternative logo 5"
++	depends on LOGO_ALT5_CLUT224
++	default "alt5"
++
++config LOGO_ALT6_CLUT224
++	bool "Alternative logo 6 (logo_alt6_clut224.ppm)"
++	select LOGO_ALT
++
++config LOGO_ALT6_NAME
++	string "  logo.name= name of alternative logo 6"
++	depends on LOGO_ALT6_CLUT224
++	default "alt6"
++
++config LOGO_ALT7_CLUT224
++	bool "Alternative logo 7 (logo_alt7_clut224.ppm)"
++	select LOGO_ALT
++
++config LOGO_ALT7_NAME
++	string "  logo.name= name of alternative logo 7"
++	depends on LOGO_ALT7_CLUT224
++	default "alt7"
++
++config LOGO_ALT8_CLUT224
++	bool "Alternative logo 8 (logo_alt8_clut224.ppm)"
++	select LOGO_ALT
++
++config LOGO_ALT8_NAME
++	string "  logo.name= name of alternative logo 8"
++	depends on LOGO_ALT8_CLUT224
++	default "alt8"
++
++endmenu
++
+ endif # LOGO
+diff --git a/drivers/video/logo/Makefile b/drivers/video/logo/Makefile
+index 895c60b..3b3ccb6 100644
+--- a/drivers/video/logo/Makefile
++++ b/drivers/video/logo/Makefile
+@@ -14,6 +14,16 @@ obj-$(CONFIG_LOGO_SUPERH_MONO)		+= logo_superh_mono.o
+ obj-$(CONFIG_LOGO_SUPERH_VGA16)		+= logo_superh_vga16.o
+ obj-$(CONFIG_LOGO_SUPERH_CLUT224)	+= logo_superh_clut224.o
+ 
++# Alternative logos, selectable at boot with logo.name=<name>.
++obj-$(CONFIG_LOGO_ALT1_CLUT224)	+= logo_alt1_clut224.o
++obj-$(CONFIG_LOGO_ALT2_CLUT224)	+= logo_alt2_clut224.o
++obj-$(CONFIG_LOGO_ALT3_CLUT224)	+= logo_alt3_clut224.o
++obj-$(CONFIG_LOGO_ALT4_CLUT224)	+= logo_alt4_clut224.o
++obj-$(CONFIG_LOGO_ALT5_CLUT224)	+= logo_alt5_clut224.o
++obj-$(CONFIG_LOGO_ALT6_CLUT224)	+= logo_alt6_clut224.o
++obj-$(CONFIG_LOGO_ALT7_CLUT224)	+= logo_alt7_clut224.o
++obj-$(CONFIG_LOGO_ALT8_CLUT224)	+= logo_alt8_clut224.o
++
+ obj-$(CONFIG_SPU_BASE)			+= logo_spe_clut224.o
+ 
+ # How to generate logo's
+diff --git a/drivers/video/logo/logo.c b/drivers/video/logo/logo.c
+index 141f15a..791944e 100644
+--- a/drivers/video/logo/logo.c
++++ b/drivers/video/logo/logo.c
+@@ -11,7 +11,9 @@
+  */
+ 
+ #include <linux/linux_logo.h>
++#include <linux/kernel.h>
+ #include <linux/stddef.h>
++#include <linux/string.h>
+ #include <linux/module.h>
+ 
+ #ifdef CONFIG_M68K
+@@ -22,6 +24,69 @@ static bool nologo;
+ module_param(nologo, bool, 0);
+ MODULE_PARM_DESC(nologo, "Disables startup logo");
+ 
++#ifdef CONFIG_LOGO_ALT
++/*
++ * Alternative logos.  They are all compiled into the image, and one of them
++ * can be picked at boot with logo.name=<name>; without that parameter the
++ * regular logo is used.  Each entry needs a matching logo_alt<N>_clut224.ppm
++ * in this directory, see the Kconfig help for the list.
++ */
++static char logo_name[32];
++module_param_string(name, logo_name, sizeof(logo_name), 0);
++MODULE_PARM_DESC(name, "Name of an alternative startup logo to display");
++
++extern const struct linux_logo logo_alt1_clut224;
++extern const struct linux_logo logo_alt2_clut224;
++extern const struct linux_logo logo_alt3_clut224;
++extern const struct linux_logo logo_alt4_clut224;
++extern const struct linux_logo logo_alt5_clut224;
++extern const struct linux_logo logo_alt6_clut224;
++extern const struct linux_logo logo_alt7_clut224;
++extern const struct linux_logo logo_alt8_clut224;
++
++static const struct alt_logo {
++	const char *name;
++	const struct linux_logo *logo;
++} alt_logos[] __initconst = {
++#ifdef CONFIG_LOGO_ALT1_CLUT224
++	{ CONFIG_LOGO_ALT1_NAME, &logo_alt1_clut224 },
++#endif
++#ifdef CONFIG_LOGO_ALT2_CLUT224
++	{ CONFIG_LOGO_ALT2_NAME, &logo_alt2_clut224 },
++#endif
++#ifdef CONFIG_LOGO_ALT3_CLUT224
++	{ CONFIG_LOGO_ALT3_NAME, &logo_alt3_clut224 },
++#endif
++#ifdef CONFIG_LOGO_ALT4_CLUT224
++	{ CONFIG_LOGO_ALT4_NAME, &logo_alt4_clut224 },
++#endif
++#ifdef CONFIG_LOGO_ALT5_CLUT224
++	{ CONFIG_LOGO_ALT5_NAME, &logo_alt5_clut224 },
++#endif
++#ifdef CONFIG_LOGO_ALT6_CLUT224
++	{ CONFIG_LOGO_ALT6_NAME, &logo_alt6_clut224 },
++#endif
++#ifdef CONFIG_LOGO_ALT7_CLUT224
++	{ CONFIG_LOGO_ALT7_NAME, &logo_alt7_clut224 },
++#endif
++#ifdef CONFIG_LOGO_ALT8_CLUT224
++	{ CONFIG_LOGO_ALT8_NAME, &logo_alt8_clut224 },
++#endif
++};
++
++static const struct linux_logo * __init fb_find_alt_logo(const char *name)
++{
++	unsigned int i;
++
++	for (i = 0; i < ARRAY_SIZE(alt_logos); i++) {
++		if (!strcmp(name, alt_logos[i].name))
++			return alt_logos[i].logo;
++	}
++
++	return NULL;
++}
++#endif /* CONFIG_LOGO_ALT */
++
+ /*
+  * Logos are located in the initdata, and will be freed in kernel_init.
+  * Use late_init to mark the logos as freed to prevent any further use.
+@@ -48,6 +113,20 @@ const struct linux_logo * __ref fb_find_logo(int depth)
+ 	if (nologo || logos_freed)
+ 		return NULL;
+ 
++#ifdef CONFIG_LOGO_ALT
++	if (logo_name[0] && depth >= 8) {
++		const struct linux_logo *alt = fb_find_alt_logo(logo_name);
++
++		if (alt) {
++			pr_info("logo: selected alternative '%s'\n", logo_name);
++			return alt;
++		}
++
++		pr_info("logo: unknown logo.name='%s', using the default logo\n",
++			logo_name);
++	}
++#endif
++
+ 	if (depth >= 1) {
+ #ifdef CONFIG_LOGO_LINUX_MONO
+ 		/* Generic Linux logo */
+-- 
+2.43.0
+

@@ -3,6 +3,9 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 SRC_URI:append = " \
     file://librescoot-dbc.dts \
     file://logo/logo_linux_clut224.ppm \
+    file://logo/logo_alt1_clut224.ppm \
+    file://logo/logo_alt2_clut224.ppm \
+    file://logo/logo_alt3_clut224.ppm \
 "
 
 SRC_URI:append:unu-mdb = " \
@@ -54,8 +57,10 @@ KERNEL_CONFIG_FRAGMENTS:append:unu-mdb = " \
 SRC_URI:append:unu-dbc = " \
     file://0001-fbcon-show-boot-logo-regardless-of-loglevel.patch \
     file://0002-drm-panel-add-AUO-A045FTN01-SPI-RGB-panel-driver.patch \
+    file://0003-logo-select-alternative-bootup-logo-from-cmdline.patch \
     file://config-panel-a045.cfg \
     file://config-logo.cfg \
+    file://config-logos.cfg \
     file://config-opt3001.cfg \
     file://config-tas5720.cfg \
     file://config-video.cfg \
@@ -73,6 +78,7 @@ KERNEL_CONFIG_FRAGMENTS:append:unu-dbc = " \
     ${UNPACKDIR}/config-opt3001.cfg \
     ${UNPACKDIR}/config-panel-a045.cfg \
     ${UNPACKDIR}/config-logo.cfg \
+    ${UNPACKDIR}/config-logos.cfg \
     ${UNPACKDIR}/config-tas5720.cfg \
     ${UNPACKDIR}/config-video.cfg \
     ${UNPACKDIR}/config-cmdline.cfg \
@@ -83,11 +89,13 @@ KERNEL_CONFIG_FRAGMENTS:append:unu-dbc = " \
 "
 
 do_configure:prepend:unu-dbc() {
-        # Install the logo file to the correct location in the Linux source tree
-        if [ -e ${UNPACKDIR}/logo/logo_linux_clut224.ppm ]; then
-            install -d ${S}/drivers/video/logo
-            install -m 0644 ${UNPACKDIR}/logo/logo_linux_clut224.ppm ${S}/drivers/video/logo/
-        fi
+        # Install the default and selectable boot logos into the kernel tree.
+        # Each enabled config-logos.cfg slot needs logo_alt<N>_clut224.ppm.
+        install -d ${S}/drivers/video/logo
+        for ppm in ${UNPACKDIR}/logo/*.ppm; do
+            [ -e "$ppm" ] || continue
+            install -m 0644 "$ppm" ${S}/drivers/video/logo/
+        done
 }
 
 do_compile:prepend() {
