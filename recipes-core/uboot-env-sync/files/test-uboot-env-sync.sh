@@ -77,12 +77,12 @@ expect bootargs 'logo.name=${boot_animation}'
 
 # --- set-if-missing --------------------------------------------------------
 
-printf '%s\n' 'set-if-missing test_key 1' > "$conf/01.conf"
+printf '%s\n' 'set-if-missing boot_sound 1' > "$conf/01.conf"
 run
-expect test_key '1'
-printf '0' > "$store/test_key"
+expect boot_sound '1'
+printf '0' > "$store/boot_sound"
 run
-expect test_key '0'
+expect boot_sound '0'
 
 # --- the shipped conf ------------------------------------------------------
 
@@ -110,8 +110,10 @@ expect bootargs 'console=ttymxc0,115200 loglevel=0 quiet boot.animation=${boot_a
 expect splashpos 'm,395'
 
 # The theme default is only filled in when absent.
+rm -f "$store/boot_sound"
 run
 expect boot_animation 'librescoot'
+expect boot_sound '1'
 
 fi # shipped conf
 

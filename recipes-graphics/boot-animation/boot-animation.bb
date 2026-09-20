@@ -13,6 +13,9 @@ SRC_URI += " \
     file://librescoot.json \
     file://windowsxp.json \
     file://coopertino.json \
+    file://sounds/windowsxp.wav \
+    file://sounds/librescoot-xp.wav \
+    file://sounds/coopertino.wav \
 "
 
 SRCREV = "${AUTOREV}"
@@ -111,6 +114,23 @@ do_install() {
     install -m 0644 ${B}/coopertino.lsba ${D}${datadir}/boot-animation/
     ln -sf windowsxp.lsba ${D}${datadir}/boot-animation/librescoot-xp.lsba
     install -m 0644 ${S}/scooter-unlock.wav ${D}${datadir}/boot-animation/
+
+    # Per-theme startup sounds. What ships here is a clean-room placeholder; a
+    # build server that may carry the retail sounds overlays its own copies of
+    # these exact filenames from a private layer via FILESEXTRAPATHS:prepend.
+    # The lookup is per file, so an overlay that supplies only some of them
+    # still leaves the rest at their committed placeholders. A missing or
+    # malformed sound is never fatal: the animation simply plays silently, and
+    # audio_playback.c reports the one format it accepts in the journal.
+    install -m 0644 ${UNPACKDIR}/sounds/windowsxp.wav ${D}${datadir}/boot-animation/
+    install -m 0644 ${UNPACKDIR}/sounds/librescoot-xp.wav ${D}${datadir}/boot-animation/
+    install -m 0644 ${UNPACKDIR}/sounds/coopertino.wav ${D}${datadir}/boot-animation/
+    for wav in windowsxp librescoot-xp coopertino; do
+        sound=${D}${datadir}/boot-animation/$wav.wav
+        if [ "$(head -c 4 "$sound")" != "RIFF" ] || [ "$(dd if="$sound" bs=1 skip=8 count=4 2>/dev/null)" != "WAVE" ]; then
+            bbwarn "boot-animation: $wav.wav is not a RIFF/WAVE file; it will be ignored at runtime"
+        fi
+    done
 
     install -d ${D}${systemd_system_unitdir}
     install -m 0644 ${UNPACKDIR}/boot-animation.service ${D}${systemd_system_unitdir}/
