@@ -12,6 +12,7 @@ SRC_URI += " \
     file://00-shutdown-timeout.conf \
     file://librescoot.json \
     file://windowsxp.json \
+    file://librescoot-xp.json \
     file://coopertino.json \
     file://sounds/windowsxp.wav \
     file://sounds/librescoot-xp.wav \
@@ -83,8 +84,11 @@ do_compile() {
     ${B}/lottie2stream ${UNPACKDIR}/coopertino.json \
         ${BOOT_ANIMATION_WIDTH} ${BOOT_ANIMATION_HEIGHT} ${BOOT_ANIMATION_FPS} \
         ${B}/coopertino.lsba --loop
+    ${B}/lottie2stream ${UNPACKDIR}/librescoot-xp.json \
+        ${BOOT_ANIMATION_WIDTH} ${BOOT_ANIMATION_HEIGHT} ${BOOT_ANIMATION_FPS} \
+        ${B}/librescoot-xp.lsba --loop
 
-    # Fail the image build if either packaged stream cannot be read back with
+    # Fail the image build if a packaged stream cannot be read back with
     # the production geometry/cadence. Runtime also validates the 32-bpp
     # framebuffer layout before selecting this RGB565 source.
     ${B}/check-stream ${B}/librescoot.lsba \
@@ -92,6 +96,8 @@ do_compile() {
     ${B}/check-stream ${B}/windowsxp.lsba \
         ${BOOT_ANIMATION_WIDTH} ${BOOT_ANIMATION_HEIGHT} ${BOOT_ANIMATION_INTERVAL_MS}
     ${B}/check-stream ${B}/coopertino.lsba \
+        ${BOOT_ANIMATION_WIDTH} ${BOOT_ANIMATION_HEIGHT} ${BOOT_ANIMATION_INTERVAL_MS}
+    ${B}/check-stream ${B}/librescoot-xp.lsba \
         ${BOOT_ANIMATION_WIDTH} ${BOOT_ANIMATION_HEIGHT} ${BOOT_ANIMATION_INTERVAL_MS}
 }
 
@@ -108,11 +114,14 @@ do_install() {
     install -m 0644 ${UNPACKDIR}/librescoot.json ${D}${datadir}/boot-animation/
     install -m 0644 ${UNPACKDIR}/windowsxp.json ${D}${datadir}/boot-animation/
     install -m 0644 ${UNPACKDIR}/coopertino.json ${D}${datadir}/boot-animation/
-    ln -sf windowsxp.json ${D}${datadir}/boot-animation/librescoot-xp.json
+    # librescoot-xp is the same XP-style animation over its own background
+    # frame. That frame already carries the bottom notice, so this theme has no
+    # separate text layers and is not an alias for windowsxp.
+    install -m 0644 ${UNPACKDIR}/librescoot-xp.json ${D}${datadir}/boot-animation/
     install -m 0644 ${B}/librescoot.lsba ${D}${datadir}/boot-animation/
     install -m 0644 ${B}/windowsxp.lsba ${D}${datadir}/boot-animation/
     install -m 0644 ${B}/coopertino.lsba ${D}${datadir}/boot-animation/
-    ln -sf windowsxp.lsba ${D}${datadir}/boot-animation/librescoot-xp.lsba
+    install -m 0644 ${B}/librescoot-xp.lsba ${D}${datadir}/boot-animation/
     install -m 0644 ${S}/scooter-unlock.wav ${D}${datadir}/boot-animation/
 
     # Per-theme startup sounds. What ships here is a clean-room placeholder; a
