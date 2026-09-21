@@ -1999,19 +1999,19 @@ display@di0 {
 	backlight: backlight {
 		compatible = "pwm-backlight";
 		pwms = <0x4a 0x00 0x30D40>;
-		brightness-levels = <1500 6000 18000 36000 47000 58000>;
-		num-interpolated-steps = <0x800>;
-		/* 5 intervals × 2048 steps = 10240 total levels.
-		 * Anchor points tuned empirically for perceptually linear
-		 * brightness on the A045FTN01 9-LED backlight:
-		 *   1500-6000:  dim (min ensures ≥5µs on-pulse for boost converter at 5kHz)
-		 *   6000-18000: low-mid
-		 *   18000-36000: mid (compressed, perceptually flat region)
-		 *   36000-47000: mid-high (finer, ramps harder here)
-		 *   47000-58000: high (finer, caps at perceptual max)
-		 * systemd-backlight restores the saved value at T+7s; this only
-		 * applies for the first ~7 seconds of boot. */
-		default-brightness-level = <4096>;
+		brightness-levels = <32768 72704 112640 152576 192512 232448
+			272384 312320 352256 392192 432128 472064
+			512000 551936 591872 631808 671744 711680
+			751616 791552 831488 871424 911360 951296
+			991232 1031168 1071104 1111040 1150976 1190912
+			1230848 1270784 1310720>;
+		num-interpolated-steps = <0x400>;
+		/* 32 intervals × 1024 steps = 32768 output indices.
+		 * This uniformly spaces TPS61169 PWM duty and LED current from
+		 * 2.5% (a 5µs on-pulse at 5kHz) through 100%. Adjacent anchors
+		 * differ by 39 × 1024 raw units, so pwm-backlight interpolation
+		 * has no integer-truncation discontinuities. */
+		default-brightness-level = <9600>;
 		status = "okay";
 	};
 
