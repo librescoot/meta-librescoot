@@ -7,6 +7,13 @@ Type=simple
 ExecStart=/usr/bin/data-server
 Restart=on-failure
 RestartSec=5
+# Serves multi-hundred-MB archives: background transfer work that must not
+# crowd the dashboard off CPU 0 or out of the eMMC queue. Best-effort 7
+# yields to everything without the starvation risk of the idle class.
+Nice=10
+IOSchedulingClass=best-effort
+IOSchedulingPriority=7
+CPUAffinity=0
 User=root
 StandardOutput=journal
 StandardError=journal

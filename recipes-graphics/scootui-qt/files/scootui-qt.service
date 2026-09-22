@@ -34,6 +34,10 @@ Environment=QT_QPA_EGLFS_DISABLE_INPUT=1
 # nice -10 it gets the CPU when it is runnable and the first frame lands at
 # ~10.8s. CPUWeight alone measured no effect on this image.
 Nice=-10
+# CPU 1 belongs to the dashboard; CPU 0 is where the background batch work
+# (update-service, valhalla, data-server) is pinned, so route calculations and
+# an in-flight OTA cannot steal render time. Threads inherit the mask.
+CPUAffinity=1
 RuntimeDirectory=user/0
 ExecStart=/usr/bin/scootui-qt
 

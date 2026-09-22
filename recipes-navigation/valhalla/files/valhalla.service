@@ -21,6 +21,10 @@ WorkingDirectory=/data/valhalla
 ExecStart=/usr/bin/valhalla_service /etc/valhalla/valhalla_config.json 1
 Restart=always
 RestartSec=5
+# Route calculations crunch the 672 MB tile extract; the dashboard renders
+# over them, so yield CPU and stay on CPU 0 with the other batch work.
+Nice=10
+CPUAffinity=0
 
 [Install]
 WantedBy=multi-user.target
