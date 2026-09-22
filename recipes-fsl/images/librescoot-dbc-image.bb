@@ -96,3 +96,10 @@ mask_getty_tty1() {
 # (which runs `systemctl preset-all`); preset-all errors on an already-masked
 # unit, so the mask must be applied only once preset-all has finished.
 do_rootfs[postfuncs] += "mask_getty_tty1"
+
+# The unit ships with a baked-in enable that preset processing leaves in
+# place; with no scooter.logserver set it crash-loops on the placeholder URL.
+strip_journal_upload_enable() {
+    rm -f ${IMAGE_ROOTFS}${sysconfdir}/systemd/system/multi-user.target.wants/systemd-journal-upload.service
+}
+do_rootfs[postfuncs] += "strip_journal_upload_enable"

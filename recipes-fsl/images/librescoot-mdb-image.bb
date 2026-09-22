@@ -111,3 +111,10 @@ IMAGE_INSTALL:append = " systemd-journal-upload"
 IMAGE_INSTALL:append:unu-mdb = " boot-assets"
 
 IMAGE_INSTALL:remove = "ofono"
+
+# The unit ships with a baked-in enable that preset processing leaves in
+# place; with no scooter.logserver set it crash-loops on the placeholder URL.
+strip_journal_upload_enable() {
+    rm -f ${IMAGE_ROOTFS}${sysconfdir}/systemd/system/multi-user.target.wants/systemd-journal-upload.service
+}
+do_rootfs[postfuncs] += "strip_journal_upload_enable"
