@@ -114,9 +114,9 @@ do_install() {
     install -m 0644 ${UNPACKDIR}/librescoot.json ${D}${datadir}/boot-animation/
     install -m 0644 ${UNPACKDIR}/windowsxp.json ${D}${datadir}/boot-animation/
     install -m 0644 ${UNPACKDIR}/coopertino.json ${D}${datadir}/boot-animation/
-    # librescoot-xp is the same XP-style animation over its own background
-    # frame. That frame already carries the bottom notice, so this theme has no
-    # separate text layers and is not an alias for windowsxp.
+    # Both XP themes are full-frame artwork that already carries the bottom
+    # notice, so neither has separate text layers. librescoot-xp is its own
+    # frame, not an alias for windowsxp.
     install -m 0644 ${UNPACKDIR}/librescoot-xp.json ${D}${datadir}/boot-animation/
     install -m 0644 ${B}/librescoot.lsba ${D}${datadir}/boot-animation/
     install -m 0644 ${B}/windowsxp.lsba ${D}${datadir}/boot-animation/
