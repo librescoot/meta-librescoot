@@ -2,6 +2,7 @@
 # Readout after a kernel test round. Read-only.
 D=/data/flashfree; OUT=$D/kernel-readout-$(date +%s).txt; exec > >(tee "$OUT") 2>&1
 echo "== kernel"; uname -a; md5sum /boot/zImage /boot/librescoot-dbc.dtb /boot/zImage.test /boot/librescoot-dbc.dtb.test 2>&1
+echo "== kernel/modules pairing"; echo "release: $(uname -r)"; ls -l /boot/zImage; ls /lib/modules; [ -d "/lib/modules/$(uname -r)" ] && echo "modules for the running kernel: present" || echo "modules for the running kernel: MISSING (every non-built-in driver is gone)"; echo "test release recorded: $(cat /data/flashfree/test-kernel-version 2>/dev/null || echo none)"
 echo "== testboot env"; fw_printenv bootcmd bootcmd_orig testboot mender_kernel_name mender_dtb_name 2>&1
 echo "== live fdt has spi panel"; python3 -c "d=open('/sys/firmware/fdt','rb').read(); print('a045ftn01' in d.decode('latin1'))"
 echo "== uptime / boots"; uptime; journalctl --list-boots 2>/dev/null | tail -3
