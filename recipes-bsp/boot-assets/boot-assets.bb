@@ -4,19 +4,19 @@ LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda
 
 COMPATIBLE_MACHINE = "(unu-mdb|unu-dbc)"
 
-DEPENDS = "virtual/kernel u-boot-imx"
+DEPENDS = "u-boot-imx"
 
-do_install[depends] += "virtual/kernel:do_deploy u-boot-imx:do_deploy"
+do_install[depends] += "u-boot-imx:do_deploy"
 
 do_install() {
     install -d ${D}${datadir}/boot-assets
 
-    # MDB boots its kernel and DTB from /boot; its updater only consumes U-Boot here.
+    # U-Boot only. This is the one boot component outside the A/B rootfs, so it
+    # is the only thing a bundle has to carry. The kernel and DTB ship inside
+    # the rootfs image, together with the modules that belong to them, and U-Boot
+    # loads both from /boot in the slot it selected. A bundle carrying a kernel
+    # could only ever pair that kernel with another image's modules.
     ASSETS="u-boot-dtb.imx"
-    if [ "${MACHINE}" != "unu-mdb" ]; then
-        DTB_NAME=$(basename ${KERNEL_DEVICETREE})
-        ASSETS="zImage ${DTB_NAME} ${ASSETS}"
-    fi
 
     for asset in ${ASSETS}; do
         install -m 0644 ${DEPLOY_DIR_IMAGE}/${asset} ${D}${datadir}/boot-assets/${asset}
