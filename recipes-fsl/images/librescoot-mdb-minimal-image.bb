@@ -101,7 +101,6 @@ CORE_IMAGE_EXTRA_INSTALL += " \
 # Around 10 MB on a 170 MB image, or about five seconds of flash time.
 
 IMAGE_INSTALL:append = " libubootenv-bin"
-IMAGE_INSTALL:append = " linux-firmware-imx-sdma-imx6q"
 
 IMAGE_INSTALL:remove = "ofono"
 
