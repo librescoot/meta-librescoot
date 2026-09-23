@@ -50,6 +50,13 @@ inherit fsl-u-boot-localversion dtc-145
 
 LOCALVERSION ?= "-${SRCBRANCH}"
 
+# What identifies a build: U-Boot's own version names the source branch and revision,
+# which are the same for every Librescoot image built from this tree, and its banner
+# date is pinned to the source revision by SOURCE_DATE_EPOCH. Append the image
+# version and the board instead — this is the string a serial capture shows and that
+# `strings` finds in a U-Boot image sitting in a boot region.
+LOCALVERSION:append = "-librescoot-${@d.getVar('DISTRO_VERSION') or 'dev'}-${MACHINE}"
+
 PACKAGE_ARCH = "${MACHINE_ARCH}"
 COMPATIBLE_MACHINE = "(mx6|mx7)"
 
