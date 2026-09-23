@@ -16,7 +16,7 @@ SRC_URI:append:unu-mdb = " \
     file://mdb/0004-nfc-add-pn5xx-NFC-driver-for-PN544-PN547-PN548.patch \
     file://mdb/0005-nfc-pn5xx-track-supply-state-to-balance-regulator-e.patch \
     file://mdb/config-epit.cfg \
-    file://mdb/config-sdma.cfg \
+    file://config-sdma.cfg \
     file://mdb/config-nfc.cfg \
     file://mdb/config-leds.cfg \
     file://mdb/config-wireguard.cfg \
@@ -36,7 +36,7 @@ SRC_URI:append:unu-mdb = " \
 
 KERNEL_CONFIG_FRAGMENTS:append:unu-mdb = " \
     ${UNPACKDIR}/mdb/config-epit.cfg \
-    ${UNPACKDIR}/mdb/config-sdma.cfg \
+    ${UNPACKDIR}/config-sdma.cfg \
     ${UNPACKDIR}/mdb/config-nfc.cfg \
     ${UNPACKDIR}/mdb/config-leds.cfg \
     ${UNPACKDIR}/mdb/config-wireguard.cfg \
@@ -67,6 +67,7 @@ SRC_URI:append:unu-dbc = " \
     file://config-cmdline.cfg \
     file://config-iotop.cfg \
     file://config-ppp.cfg \
+    file://config-sdma.cfg \
     file://config-panic.cfg \
     file://config-namespaces.cfg \
 "
@@ -84,6 +85,7 @@ KERNEL_CONFIG_FRAGMENTS:append:unu-dbc = " \
     ${UNPACKDIR}/config-cmdline.cfg \
     ${UNPACKDIR}/config-iotop.cfg \
     ${UNPACKDIR}/config-ppp.cfg \
+    ${UNPACKDIR}/config-sdma.cfg \
     ${UNPACKDIR}/config-panic.cfg \
     ${UNPACKDIR}/config-namespaces.cfg \
 "

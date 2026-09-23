@@ -412,7 +412,7 @@ display@di0 {
 					interrupts = <0x00 0x1f 0x04>;
 					clocks = <0x04 0x70 0x04 0x70>;
 					clock-names = "ipg\0per";
-					/* no dmas: this kernel has no SDMA driver, spi-imx would defer forever */
+					/* no dmas: the panel is configured at 1 MHz, where PIO keeps up */
 					pinctrl-names = "default";
 					pinctrl-0 = <&pinctrl_ecspi1>;
 					status = "okay";
