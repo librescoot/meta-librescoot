@@ -8,6 +8,65 @@
 #   append-if-missing key token    — append a space-delimited token if absent
 #   unset key                      — remove unconditionally
 #   unset-if-matches key value     — remove only if current value matches
+#
+# A value containing spaces can only be given to set-if-matches in single
+# quotes; quoting is what separates the old value from the new one:
+#
+#   set-if-matches mender_pre_setup_commands 'setexpr uid_lo *0x021BC410; ...' \
+#                                             'setexpr uid_hi *0x021BC420; ...'
+#
+# Unquoted operands keep the original reading — the first token is the old value
+# and everything after it is the new one — which is how a bare token is expanded
+# into a full line. A value cannot itself contain a single quote.
+
+# parse_match_operands <key-relative-operands>
+#
+# Sets MATCH_OLD and MATCH_NEW. Fails on a line that does not carry both.
+parse_match_operands() {
+    rest="$1"
+    MATCH_OLD=
+    MATCH_NEW=
+
+    case "$rest" in
+        \'*)
+            # Drop the opening quote, then cut the value at the closing one and
+            # keep the rest as the remainder for the second operand.
+            rest="${rest#\'}"
+            case "$rest" in
+                *\'*) MATCH_OLD="${rest%%\'*}"; rest="${rest#*\'}" ;;
+                *) return 1 ;;
+            esac
+            # Drop the blanks between the two operands.
+            while :; do
+                case "$rest" in
+                    ' '*) rest="${rest# }" ;;
+                    "	"*) rest="${rest#	}" ;;
+                    *) break ;;
+                esac
+            done
+            case "$rest" in
+                \'*)
+                    rest="${rest#\'}"
+                    case "$rest" in
+                        *\'*) MATCH_NEW="${rest%%\'*}" ;;
+                        *) return 1 ;;
+                    esac
+                    ;;
+                '') return 1 ;;
+                *) MATCH_NEW="$rest" ;;
+            esac
+            ;;
+        *)
+            case "$rest" in
+                '') return 1 ;;
+                *' '*) MATCH_OLD="${rest%% *}"; MATCH_NEW="${rest#* }" ;;
+                *) MATCH_OLD="$rest" ;;
+            esac
+            [ -n "$MATCH_NEW" ] || return 1
+            ;;
+    esac
+    return 0
+}
 
 CONF_DIR=${UBOOT_ENV_SYNC_CONF_DIR:-/etc/uboot-env.d}
 changed=0
@@ -43,12 +102,14 @@ for conf in "$CONF_DIR"/*.conf; do
             set-if-matches)
                 key="${rest%% *}"
                 rest2="${rest#* }"
-                oldval="${rest2%% *}"
-                newval="${rest2#* }"
+                if ! parse_match_operands "$rest2"; then
+                    echo "uboot-env-sync: malformed set-if-matches for '$key' in $conf, skipping"
+                    continue
+                fi
                 current="$(fw_printenv -n "$key" 2>/dev/null)" || true
-                if [ "$current" = "$oldval" ]; then
-                    fw_setenv "$key" "$newval"
-                    echo "uboot-env-sync: set-if-matches $key: [$oldval] -> [$newval]"
+                if [ "$current" = "$MATCH_OLD" ]; then
+                    fw_setenv "$key" "$MATCH_NEW"
+                    echo "uboot-env-sync: set-if-matches $key: [$MATCH_OLD] -> [$MATCH_NEW]"
                     changed=1
                 fi
                 ;;

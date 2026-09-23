@@ -84,6 +84,45 @@ printf '0' > "$store/boot_sound"
 run
 expect boot_sound '0'
 
+# --- set-if-matches --------------------------------------------------------
+
+# Unquoted operands keep the original reading: the first token is the old value
+# and everything after it is the new one. This is how a bare console line is
+# expanded into the full bootargs.
+printf '%s\n' 'set-if-matches bootargs console=ttymxc0,115200 console=ttymxc0,115200 loglevel=0 quiet' > "$conf/01.conf"
+printf '%s' 'console=ttymxc0,115200' > "$store/bootargs"
+run
+expect bootargs 'console=ttymxc0,115200 loglevel=0 quiet'
+
+# A value containing spaces needs single quotes to separate it from the other
+# operand. Without quoting this line compared the current value against the
+# literal string "setexpr" and never matched.
+cat > "$conf/01.conf" <<'CONF'
+set-if-matches mender_pre_setup_commands 'setexpr uid_lo *0x021BC410; setenv _hn systemd.hostname=unu-dbc-${uid_lo}; setenv bootargs ${bootargs} ${_hn}' 'setexpr uid_hi *0x021BC420; setenv _hn systemd.hostname=unu-dbc-${uid_hi}; setenv bootargs ${bootargs} ${_hn}'
+CONF
+printf '%s' 'setexpr uid_lo *0x021BC410; setenv _hn systemd.hostname=unu-dbc-${uid_lo}; setenv bootargs ${bootargs} ${_hn}' > "$store/mender_pre_setup_commands"
+run
+expect mender_pre_setup_commands 'setexpr uid_hi *0x021BC420; setenv _hn systemd.hostname=unu-dbc-${uid_hi}; setenv bootargs ${bootargs} ${_hn}'
+
+# Idempotent: the migrated value no longer matches the old one.
+run
+expect mender_pre_setup_commands 'setexpr uid_hi *0x021BC420; setenv _hn systemd.hostname=unu-dbc-${uid_hi}; setenv bootargs ${bootargs} ${_hn}'
+
+# A value that does not match is left alone.
+printf '%s' 'something else entirely' > "$store/mender_pre_setup_commands"
+run
+expect mender_pre_setup_commands 'something else entirely'
+
+# An unterminated quote, and a line with only one operand, are config errors.
+# Both used to be read as an operand pair and reported as applied.
+printf '%s\n' "set-if-matches bootargs 'console=ttymxc0,115200 quiet" > "$conf/01.conf"
+printf '%s' 'console=ttymxc0,115200 quiet' > "$store/bootargs"
+run
+expect bootargs 'console=ttymxc0,115200 quiet'
+printf '%s\n' 'set-if-matches bootargs console=ttymxc0,115200' > "$conf/01.conf"
+run
+expect bootargs 'console=ttymxc0,115200 quiet'
+
 # --- the shipped conf ------------------------------------------------------
 
 if [ -z "$shipped" ]; then
