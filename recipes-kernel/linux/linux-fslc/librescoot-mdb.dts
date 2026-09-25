@@ -223,14 +223,15 @@
 					dma-names = "rx\0tx";
 					status = "okay";
 					fsl,spi-num-chipselects = <0x01>;
-					cs-gpios = <0x00>;
+					cs-gpios = <0x2e 0x15 0x01>;
 					pinctrl-names = "default";
 					pinctrl-0 = <0x0d>;
 
-					spidev@0 {
-						compatible = "linux,spidev";
-						spi-max-frequency = <0x1312d00>;
+					adc@0 {
+						compatible = "ti,adc124s021";
 						reg = <0x00>;
+						vref-supply = <0x2a>;
+						spi-max-frequency = <0x30d400>;
 					};
 				};
 

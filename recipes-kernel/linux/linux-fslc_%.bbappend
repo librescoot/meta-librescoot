@@ -25,6 +25,7 @@ SRC_URI:append:unu-mdb = " \
     file://mdb/config-bt-wifi.cfg \
     file://mdb/config-netfilter.cfg \
     file://mdb/config-bmx055.cfg \
+    file://mdb/config-adc.cfg \
     file://mdb/config-ramoops.cfg \
     file://mdb/config-cmdline.cfg \
     file://mdb/config-headless.cfg \
@@ -45,6 +46,7 @@ KERNEL_CONFIG_FRAGMENTS:append:unu-mdb = " \
     ${UNPACKDIR}/mdb/config-bt-wifi.cfg \
     ${UNPACKDIR}/mdb/config-netfilter.cfg \
     ${UNPACKDIR}/mdb/config-bmx055.cfg \
+    ${UNPACKDIR}/mdb/config-adc.cfg \
     ${UNPACKDIR}/mdb/config-ramoops.cfg \
     ${UNPACKDIR}/mdb/config-cmdline.cfg \
     ${UNPACKDIR}/mdb/config-headless.cfg \
