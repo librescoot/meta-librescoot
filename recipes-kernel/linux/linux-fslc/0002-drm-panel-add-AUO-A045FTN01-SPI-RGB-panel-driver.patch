@@ -1,5 +1,5 @@
 From 87816e17deda9a35345c1bca2a42a80132ad29f7 Mon Sep 17 00:00:00 2001
-From: LibreScoot <librescoot@example.com>
+From: Librescoot <librescoot@example.com>
 Date: Thu, 3 Sep 2026 10:50:44 +0200
 Subject: [PATCH] drm/panel: add AUO A045FTN01 SPI/RGB panel driver
 
@@ -81,7 +81,7 @@ index 0000000..06c97ef
 +/*
 + * AUO A045FTN01 4.5" 480x480 RGB panel, controller configured over SPI.
 + *
-+ * Copyright (C) 2026 LibreScoot
++ * Copyright (C) 2026 Librescoot
 + */
 +
 +#include <linux/delay.h>
@@ -383,7 +383,7 @@ index 0000000..06c97ef
 +};
 +module_spi_driver(a045ftn01_driver);
 +
-+MODULE_AUTHOR("LibreScoot");
++MODULE_AUTHOR("Librescoot");
 +MODULE_DESCRIPTION("AUO A045FTN01 480x480 RGB panel driver");
 +MODULE_LICENSE("GPL");
 -- 

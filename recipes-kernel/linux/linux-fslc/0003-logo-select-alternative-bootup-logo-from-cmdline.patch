@@ -1,5 +1,5 @@
 From 7cca8710dd54e07688fa0a55b37faf862318c4a8 Mon Sep 17 00:00:00 2001
-From: LibreScoot <librescoot@example.com>
+From: Librescoot <librescoot@example.com>
 Date: Sat, 19 Sep 2026 13:16:15 +0200
 Subject: [PATCH] logo: allow selecting an alternative bootup logo from the
  command line
@@ -20,9 +20,9 @@ Only CLUT224 alternatives are supported for now, hence the depth >= 8 check.
 A name that matches nothing, or a request at a lower colour depth, falls
 back to the regular logo.
 
-Upstream-Status: Inappropriate [LibreScoot platform requirement]
+Upstream-Status: Inappropriate [Librescoot platform requirement]
 
-Signed-off-by: LibreScoot <librescoot@example.com>
+Signed-off-by: Librescoot <librescoot@example.com>
 ---
  drivers/video/logo/Kconfig  | 87 +++++++++++++++++++++++++++++++++++++
  drivers/video/logo/Makefile | 10 +++++
