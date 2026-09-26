@@ -15,7 +15,7 @@ DEPENDS = "systemd hiredis"
 
 inherit systemd pkgconfig
 
-RDEPENDS:${PN} += "scootui-qt"
+RDEPENDS:${PN} += "scootui-qt curl ffmpeg"
 
 FILES:${PN} += "/usr/lib/systemd/system/dbc-dispatcher.service"
 
