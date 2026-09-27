@@ -11,7 +11,7 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=fb5d051e53001fdff7fec0f368f47190"
 # when the branch is named. Release pins are fetched by SHA and may not be
 # reachable from any branch, so naming one makes the fetcher reject them.
 SCOOTUI_QT_BRANCH ??= "main"
-SCOOTUI_QT_SRCREV ??= "${AUTOREV}"
+SCOOTUI_QT_SRCREV = "30f9fa5afc6dcb24807598498df5157995875a96"
 SRCREV = "${SCOOTUI_QT_SRCREV}"
 SCOOTUI_QT_GIT_PARAMS = "${@';nobranch=1' if len(d.getVar('SRCREV') or '') == 40 else ';branch=${SCOOTUI_QT_BRANCH}'}"
 SRC_URI = "git://github.com/librescoot/scootui-qt.git;protocol=https${SCOOTUI_QT_GIT_PARAMS}"

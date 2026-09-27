@@ -3,10 +3,10 @@ HOMEPAGE = "https://github.com/librescoot/ums-service"
 LICENSE = "CC-BY-NC-SA-4.0"
 LIC_FILES_CHKSUM = "file://src/github.com/librescoot/ums-service/LICENSE;md5=fb5d051e53001fdff7fec0f368f47190"
 
-SRC_URI = "git://github.com/librescoot/ums-service.git;protocol=https;branch=main;destsuffix=${GO_SRCURI_DESTSUFFIX}"
+SRC_URI = "git://github.com/librescoot/ums-service.git;protocol=https;nobranch=1;destsuffix=${GO_SRCURI_DESTSUFFIX}"
 SRC_URI += " file://librescoot-ums.service"
 
-SRCREV = "${AUTOREV}"
+SRCREV = "52933fd71064acb3941f8ce6a18189efbd595b6d"
 PE = "1"
 
 
