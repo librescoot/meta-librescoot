@@ -1,6 +1,6 @@
 [Unit]
 Description=Valhalla routing daemon
-After=network.target
+RequiresMountsFor=/data
 ConditionPathExists=/data/valhalla/tiles.tar
 
 [Service]
