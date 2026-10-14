@@ -10,6 +10,8 @@ SRC_URI = " \
     file://ipv6.rules \
 "
 
+S = "${UNPACKDIR}"
+
 inherit systemd
 
 RDEPENDS:${PN} = "iptables"
