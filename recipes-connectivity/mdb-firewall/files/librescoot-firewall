@@ -1,0 +1,15 @@
+#!/bin/sh
+set -eu
+
+rules_dir=${1:-/etc/librescoot/firewall}
+
+# A missing module or invalid ruleset must not expose a permissive boot policy.
+iptables -w 5 -P INPUT DROP
+iptables -w 5 -P FORWARD DROP
+ip6tables -w 5 -P INPUT DROP
+ip6tables -w 5 -P FORWARD DROP
+
+iptables-restore -w 5 --test < "$rules_dir/ipv4.rules"
+ip6tables-restore -w 5 --test < "$rules_dir/ipv6.rules"
+iptables-restore -w 5 < "$rules_dir/ipv4.rules"
+ip6tables-restore -w 5 < "$rules_dir/ipv6.rules"

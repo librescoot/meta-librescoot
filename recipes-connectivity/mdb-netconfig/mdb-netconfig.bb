@@ -15,6 +15,8 @@ SRC_URI += "file://89-mdb-netconfig.preset"
 
 inherit systemd
 
+RDEPENDS:${PN} += "mdb-firewall"
+
 SYSTEMD_SERVICE:${PN} = "librescoot-netconfig.service librescoot-usb0-failsafe.timer"
 SYSTEMD_AUTO_ENABLE:${PN} = "enable"
 

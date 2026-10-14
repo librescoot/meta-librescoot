@@ -1,0 +1,22 @@
+*filter
+:INPUT DROP [0:0]
+:FORWARD DROP [0:0]
+:OUTPUT ACCEPT [0:0]
+-A INPUT -i lo -j ACCEPT
+-A INPUT -m conntrack --ctstate INVALID -j DROP
+-A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+# Trust ingress links, not the destination address of a local socket.
+-A INPUT -i usb0 -j ACCEPT
+-A INPUT -i ppp0 -j ACCEPT
+-A INPUT -i wg+ -j ACCEPT
+-A INPUT -p udp --sport 67 --dport 68 -j ACCEPT
+-A INPUT -p icmp --icmp-type destination-unreachable -j ACCEPT
+-A INPUT -p icmp --icmp-type time-exceeded -j ACCEPT
+-A INPUT -p icmp --icmp-type parameter-problem -j ACCEPT
+-A INPUT -p icmp --icmp-type echo-request -j ACCEPT
+-A FORWARD -m conntrack --ctstate INVALID -j DROP
+-A FORWARD -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+-A FORWARD -i usb0 -j ACCEPT
+-A FORWARD -i ppp0 -j ACCEPT
+-A FORWARD -i wg+ -j ACCEPT
+COMMIT
