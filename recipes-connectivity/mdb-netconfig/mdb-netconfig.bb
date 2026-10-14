@@ -12,6 +12,9 @@ SRC_URI += "file://librescoot-usb0-failsafe.service"
 SRC_URI += "file://librescoot-usb0-failsafe.timer"
 SRC_URI += "file://90-hostname.conf"
 SRC_URI += "file://89-mdb-netconfig.preset"
+SRC_URI += "file://dnsmasq-mdb.conf"
+
+S = "${UNPACKDIR}"
 
 inherit systemd
 
@@ -31,6 +34,8 @@ do_install() {
     install -d ${D}/etc/systemd/network
     install -d ${D}/etc/NetworkManager/system-connections/
     install -d ${D}${sbindir}
+    install -d ${D}${sysconfdir}/dnsmasq.d
+    install -m 0644 ${UNPACKDIR}/dnsmasq-mdb.conf ${D}${sysconfdir}/dnsmasq.d/librescoot.conf
     install -d ${D}${systemd_system_unitdir}
 
     install -m 0644 ${UNPACKDIR}/10-usb0.network ${D}/etc/systemd/network
