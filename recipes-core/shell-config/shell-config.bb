@@ -5,14 +5,20 @@ LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda
 SRC_URI = " \
     file://librescoot-aliases.sh \
     file://librescoot-aliases-dbc.sh \
+    file://librescoot-path.sh \
+    file://librescoot-bin.conf \
 "
 
 FILES:${PN} = " \
-    /etc/profile.d/librescoot-aliases.sh \
+    ${sysconfdir}/profile.d/librescoot-aliases.sh \
+    ${sysconfdir}/profile.d/librescoot-path.sh \
+    ${libdir}/tmpfiles.d/librescoot-bin.conf \
 "
 
 do_install () {
-    install -d ${D}${sysconfdir}/profile.d
+    install -d ${D}${sysconfdir}/profile.d ${D}${libdir}/tmpfiles.d
+    install -m 0644 ${UNPACKDIR}/librescoot-path.sh ${D}${sysconfdir}/profile.d/
+    install -m 0644 ${UNPACKDIR}/librescoot-bin.conf ${D}${libdir}/tmpfiles.d/
 }
 
 do_install:append:unu-mdb () {
