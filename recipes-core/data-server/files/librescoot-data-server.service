@@ -1,10 +1,11 @@
 [Unit]
 Description=Librescoot Data Server
-After=local-fs.target
+Requires=librescoot-netconfig.service
+After=local-fs.target librescoot-netconfig.service
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/data-server
+ExecStart=/usr/bin/data-server -addr @DATA_SERVER_ADDR@
 Restart=on-failure
 RestartSec=5
 # Serves multi-hundred-MB archives: background transfer work that must not
