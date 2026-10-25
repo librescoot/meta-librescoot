@@ -1,6 +1,8 @@
+# SPDX-License-Identifier: CC-BY-NC-SA-4.0
 SUMMARY = "Boot assets packaged into the rootfs for OTA boot updates"
-LICENSE = "MIT"
-LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda2f7b4f302"
+# The payload is U-Boot; this recipe's source license does not replace it.
+LICENSE = "GPL-2.0-or-later"
+LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/GPL-2.0-or-later;md5=fed54355545ffd980b814dab4a3b312c"
 
 COMPATIBLE_MACHINE = "(unu-mdb|unu-dbc)"
 

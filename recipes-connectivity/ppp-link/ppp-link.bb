@@ -1,6 +1,6 @@
 SUMMARY = "PPP backup link over UART between MDB and DBC"
-LICENSE = "CLOSED"
-LIC_FILES_CHKSUM = ""
+LICENSE = "CC-BY-NC-SA-4.0"
+LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/CC-BY-NC-SA-4.0;md5=277261f4a7c6c099822f8f5cb0180da0"
 
 # pppd 2.5.x loads OpenSSL's legacy provider (DES/MD4 for the Microsoft
 # auth protocols) unconditionally at startup and exits when it's missing,

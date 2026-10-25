@@ -2,8 +2,8 @@ SUMMARY = "Keeps /dev/dri/card1 open to suppress imx-drm lastclose modeset flash
 DESCRIPTION = "Tiny helper that holds an fd on the primary DRM node so that \
 scootui-qt can exit promptly on SIGTERM without triggering a visible modeset \
 flash during imx-drm's fb_helper lastclose path."
-LICENSE = "MIT"
-LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda2f7b4f302"
+LICENSE = "CC-BY-NC-SA-4.0"
+LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/CC-BY-NC-SA-4.0;md5=277261f4a7c6c099822f8f5cb0180da0"
 
 SRC_URI = " \
     file://drm-holder.c \

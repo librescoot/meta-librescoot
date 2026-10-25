@@ -1,5 +1,5 @@
 DESCRIPTION = "Librescoot DBC image"
-LICENSE = "MIT"
+LICENSE = "CC-BY-NC-SA-4.0"
 
 inherit core-image
 

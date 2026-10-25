@@ -1,7 +1,7 @@
 SUMMARY = "Fade and cue data for the PWM-LED driver"
 DESCRIPTION = "Curve data loaded into the imx-pwm-led driver so PLAY_FADE and PLAY_CUE work"
-LICENSE = "CLOSED"
-LIC_FILES_CHKSUM = ""
+LICENSE = "CC-BY-NC-SA-4.0"
+LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/CC-BY-NC-SA-4.0;md5=277261f4a7c6c099822f8f5cb0180da0"
 
 CURVE_DIR = "/usr/share/led-curves"
 

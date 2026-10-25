@@ -3,8 +3,8 @@ DESCRIPTION = "dbc-sdp-probe determines whether a DBC with a corrupted \
 bootloader can be reached from the MDB in i.MX serial-download mode, by \
 flipping the MDB's OTG port to host and watching the bus for the boot ROM. \
 Reports only; it writes nothing to the DBC."
-LICENSE = "MIT"
-LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda2f7b4f302"
+LICENSE = "CC-BY-NC-SA-4.0"
+LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/CC-BY-NC-SA-4.0;md5=277261f4a7c6c099822f8f5cb0180da0"
 
 SRC_URI = "file://dbc-sdp-probe.sh"
 

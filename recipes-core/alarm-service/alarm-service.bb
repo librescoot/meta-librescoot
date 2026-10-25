@@ -1,6 +1,6 @@
 SUMMARY = "Librescoot Alarm Service"
 HOMEPAGE = "https://github.com/librescoot/alarm-service"
-LICENSE = "CC-BY-NC-4.0"
+LICENSE = "CC-BY-NC-SA-4.0"
 LIC_FILES_CHKSUM = "file://src/alarm-service/LICENSE;md5=fb5d051e53001fdff7fec0f368f47190"
 
 SRC_URI = "git://github.com/librescoot/alarm-service.git;protocol=https;branch=main;destsuffix=${GO_SRCURI_DESTSUFFIX}"

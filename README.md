@@ -127,6 +127,17 @@ full artifact before normal operation.
 
 ## License
 
-This project is licensed under the [Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License](LICENSE).
+Original Librescoot layer definitions and helpers are licensed under
+[CC-BY-NC-SA-4.0](LICENSE). Librescoot components with an existing AGPL license
+also offer CC-BY-NC-SA-4.0 as an alternative; their recipes preserve the AGPL
+version and express the choice with `|`.
+
+Upstream software retains its own license. In particular, `boot-assets` packages
+U-Boot under GPL-2.0-or-later; the recipe definition remains CC-BY-NC-SA-4.0.
+An image recipe's license covers its definition, not every package in the image.
+The generated SPDX image SBOM records those package licenses.
+
+Run the offline license declaration checks with
+`python3 -m unittest discover -s tests -v`.
 
 Made with ❤️ by the Librescoot community

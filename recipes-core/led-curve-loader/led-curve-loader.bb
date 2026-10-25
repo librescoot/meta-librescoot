@@ -1,8 +1,8 @@
 SUMMARY = "Loads PWM-LED fade/cue curves without vehicle-service"
 DESCRIPTION = "Standalone loader for the imx-pwm-led driver's fade and cue \
 tables, for images that don't ship vehicle-service"
-LICENSE = "CLOSED"
-LIC_FILES_CHKSUM = ""
+LICENSE = "CC-BY-NC-SA-4.0"
+LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/CC-BY-NC-SA-4.0;md5=277261f4a7c6c099822f8f5cb0180da0"
 
 SRC_URI = "file://led-curve-loader.c"
 SRC_URI += "file://led-curve-loader.service"

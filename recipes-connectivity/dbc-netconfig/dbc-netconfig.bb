@@ -1,5 +1,5 @@
-LICENSE = "CLOSED"
-LIC_FILES_CHKSUM = ""
+LICENSE = "CC-BY-NC-SA-4.0"
+LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/CC-BY-NC-SA-4.0;md5=277261f4a7c6c099822f8f5cb0180da0"
 
 SRC_URI = "file://10-usb0.network"
 SRC_URI += "file://librescoot-netconfig.sh"

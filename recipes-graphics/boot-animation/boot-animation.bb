@@ -1,8 +1,8 @@
 SUMMARY = "Boot animation for Librescoot DBC"
 DESCRIPTION = "Renders Lottie JSON animations to /dev/fb0 using ThorVG"
 HOMEPAGE = "https://github.com/librescoot/boot-animation"
-LICENSE = "CC-BY-NC-4.0"
-LIC_FILES_CHKSUM = "file://LICENSE;md5=3c4054a8416ddbc5debdf26a5359d962"
+LICENSE = "CC-BY-NC-SA-4.0"
+LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/CC-BY-NC-SA-4.0;md5=277261f4a7c6c099822f8f5cb0180da0"
 
 SRC_URI = "git://github.com/librescoot/boot-animation.git;protocol=https;branch=main"
 SRC_URI += " \
