@@ -1,6 +1,6 @@
 SUMMARY = "Librescoot Version Service"
 HOMEPAGE = "https://github.com/librescoot/version-service"
-LICENSE = "(AGPL-3.0-or-later | CC-BY-NC-SA-4.0)"
+LICENSE = "(AGPL-3.0-only | CC-BY-NC-SA-4.0)"
 LIC_FILES_CHKSUM = "file://src/github.com/librescoot/version-service/LICENSE;md5=eb1e647870add0502f8f010b19de32af \
                     file://${COMMON_LICENSE_DIR}/CC-BY-NC-SA-4.0;md5=277261f4a7c6c099822f8f5cb0180da0"
 

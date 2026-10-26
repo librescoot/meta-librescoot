@@ -47,7 +47,7 @@ class LicensePolicyTests(unittest.TestCase):
                 self.assertEqual(license_of(image), CC_LICENSE)
 
     def test_agpl_is_an_alternative_not_an_additional_restriction(self):
-        for name, variant in [('data-server', 'or-later'), ('version-service', 'or-later'),
+        for name, variant in [('data-server', 'only'), ('version-service', 'only'),
                               ('event-service', 'only'), ('modem-service', 'only'),
                               ('pm-service', 'only'), ('update-service', 'only'),
                               ('uplink-service', 'only')]:
