@@ -20,6 +20,7 @@ SRC_URI:append:unu-mdb = " \
     file://mdb/config-nfc.cfg \
     file://mdb/config-leds.cfg \
     file://mdb/config-wireguard.cfg \
+    file://mdb/config-tailscale.cfg \
     file://mdb/config-can.cfg \
     file://mdb/config-modem.cfg \
     file://mdb/config-bt-wifi.cfg \
@@ -42,6 +43,7 @@ KERNEL_CONFIG_FRAGMENTS:append:unu-mdb = " \
     ${UNPACKDIR}/mdb/config-nfc.cfg \
     ${UNPACKDIR}/mdb/config-leds.cfg \
     ${UNPACKDIR}/mdb/config-wireguard.cfg \
+    ${UNPACKDIR}/mdb/config-tailscale.cfg \
     ${UNPACKDIR}/mdb/config-can.cfg \
     ${UNPACKDIR}/mdb/config-modem.cfg \
     ${UNPACKDIR}/mdb/config-bt-wifi.cfg \
