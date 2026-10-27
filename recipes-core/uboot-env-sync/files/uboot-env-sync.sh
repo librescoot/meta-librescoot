@@ -78,7 +78,14 @@ read_current() {
         echo "uboot-env-sync: cannot read environment for $key" >&2
         return 1
     fi
-    if printf '%s\n' "$environment" | grep -F "${key}=" >/dev/null; then
+    if printf '%s\n' "$environment" | (
+        while IFS= read -r entry; do
+            case "$entry" in
+                "$key="*) exit 0 ;;
+            esac
+        done
+        exit 1
+    ); then
         echo "uboot-env-sync: cannot read $key" >&2
         return 1
     fi

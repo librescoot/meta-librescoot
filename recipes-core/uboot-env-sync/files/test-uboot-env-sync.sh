@@ -148,7 +148,8 @@ for identity in "$script_dir/identity.conf" "$script_dir/unu-mdb/identity.conf" 
     new='setexpr uid_hi *0x021BC420; setenv _hn systemd.hostname='"$board"'-${uid_hi}; setenv bootargs ${bootargs} ${_hn}'
     use_conf "$identity"
     printf '%s' 'custom bootargs' > "$store/bootargs"
-    printf '%s' 'untouched' > "$store/other"
+    printf '%s' 'untouched mender_pre_setup_commands=inside-value' > "$store/other"
+    printf '%s' 'untouched' > "$store/prefix_mender_pre_setup_commands"
     rm -f "$store/mender_pre_setup_commands" "$ENVSTORE.writes"
     run
     expect mender_pre_setup_commands "$new"
@@ -173,7 +174,8 @@ for identity in "$script_dir/identity.conf" "$script_dir/unu-mdb/identity.conf" 
         [ ! -f "$ENVSTORE.writes" ] || fail 'custom command was written'
     done
     expect bootargs 'custom bootargs'
-    expect other 'untouched'
+    expect other 'untouched mender_pre_setup_commands=inside-value'
+    expect prefix_mender_pre_setup_commands 'untouched'
     rm -f "$store/mender_pre_setup_commands" "$ENVSTORE.writes"
     if FAIL_READ=1 run; then fail 'read failure succeeded'; fi
     [ ! -f "$ENVSTORE.writes" ] || fail 'read failure wrote env'
