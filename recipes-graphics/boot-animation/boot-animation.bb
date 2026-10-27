@@ -12,6 +12,7 @@ SRC_URI += " \
     file://00-shutdown-timeout.conf \
     file://librescoot.json \
     file://windowsxp.json \
+    file://windowsxp-post.json \
     file://librescoot-xp.json \
     file://coopertino.json \
     file://sounds/windowsxp.wav \
@@ -81,6 +82,9 @@ do_compile() {
     ${B}/lottie2stream ${UNPACKDIR}/windowsxp.json \
         ${BOOT_ANIMATION_WIDTH} ${BOOT_ANIMATION_HEIGHT} ${BOOT_ANIMATION_FPS} \
         ${B}/windowsxp.lsba --loop
+    ${B}/lottie2stream ${UNPACKDIR}/windowsxp-post.json \
+        ${BOOT_ANIMATION_WIDTH} ${BOOT_ANIMATION_HEIGHT} ${BOOT_ANIMATION_FPS} \
+        ${B}/windowsxp-post.lsba
     ${B}/lottie2stream ${UNPACKDIR}/coopertino.json \
         ${BOOT_ANIMATION_WIDTH} ${BOOT_ANIMATION_HEIGHT} ${BOOT_ANIMATION_FPS} \
         ${B}/coopertino.lsba --loop
@@ -94,6 +98,8 @@ do_compile() {
     ${B}/check-stream ${B}/librescoot.lsba \
         ${BOOT_ANIMATION_WIDTH} ${BOOT_ANIMATION_HEIGHT} ${BOOT_ANIMATION_INTERVAL_MS}
     ${B}/check-stream ${B}/windowsxp.lsba \
+        ${BOOT_ANIMATION_WIDTH} ${BOOT_ANIMATION_HEIGHT} ${BOOT_ANIMATION_INTERVAL_MS}
+    ${B}/check-stream ${B}/windowsxp-post.lsba \
         ${BOOT_ANIMATION_WIDTH} ${BOOT_ANIMATION_HEIGHT} ${BOOT_ANIMATION_INTERVAL_MS}
     ${B}/check-stream ${B}/coopertino.lsba \
         ${BOOT_ANIMATION_WIDTH} ${BOOT_ANIMATION_HEIGHT} ${BOOT_ANIMATION_INTERVAL_MS}
@@ -113,13 +119,13 @@ do_install() {
     install -d ${D}${datadir}/boot-animation
     install -m 0644 ${UNPACKDIR}/librescoot.json ${D}${datadir}/boot-animation/
     install -m 0644 ${UNPACKDIR}/windowsxp.json ${D}${datadir}/boot-animation/
+    install -m 0644 ${UNPACKDIR}/windowsxp-post.json ${D}${datadir}/boot-animation/
     install -m 0644 ${UNPACKDIR}/coopertino.json ${D}${datadir}/boot-animation/
-    # Both XP themes are full-frame artwork that already carries the bottom
-    # notice, so neither has separate text layers. librescoot-xp is its own
-    # frame, not an alias for windowsxp.
+    # The XP main animations use full-frame artwork; POST is a separate intro.
     install -m 0644 ${UNPACKDIR}/librescoot-xp.json ${D}${datadir}/boot-animation/
     install -m 0644 ${B}/librescoot.lsba ${D}${datadir}/boot-animation/
     install -m 0644 ${B}/windowsxp.lsba ${D}${datadir}/boot-animation/
+    install -m 0644 ${B}/windowsxp-post.lsba ${D}${datadir}/boot-animation/
     install -m 0644 ${B}/coopertino.lsba ${D}${datadir}/boot-animation/
     install -m 0644 ${B}/librescoot-xp.lsba ${D}${datadir}/boot-animation/
     install -m 0644 ${S}/scooter-unlock.wav ${D}${datadir}/boot-animation/

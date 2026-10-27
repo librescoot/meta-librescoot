@@ -9,9 +9,10 @@ SOUND_DIR=/usr/share/boot-animation
 
 # Each theme has its own startup sound and its own end behaviour.
 ONCE=""
+INTRO=""
 case "$ANIM" in
     librescoot)    ONCE="--once"; SOUND_NAME=scooter-unlock.wav ;;
-    windowsxp)     SOUND_NAME=windowsxp.wav ;;
+    windowsxp)     SOUND_NAME=windowsxp.wav; INTRO="--intro $SOUND_DIR/windowsxp-post.json" ;;
     librescoot-xp) SOUND_NAME=librescoot-xp.wav ;;
     coopertino)    SOUND_NAME=coopertino.wav ;;
     *)             SOUND_NAME="" ;;
@@ -36,5 +37,5 @@ if [ "$SOUND_ENABLED" = 1 ] && [ -n "$SOUND_NAME" ] && [ -f "$SOUND_DIR/$SOUND_N
     SOUND="--sound $SOUND_DIR/$SOUND_NAME"
 fi
 
-exec /usr/bin/boot-animation "$SOUND_DIR/${ANIM}.json" --fps 25 --fade-ms 1000 \
+exec /usr/bin/boot-animation $INTRO "$SOUND_DIR/${ANIM}.json" --fps 25 --fade-ms 1000 \
     --audio-device "$AUDIO_DEVICE" $ONCE $SOUND
