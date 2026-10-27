@@ -1,0 +1,34 @@
+From: Teal Bauer <teal@starsong.eu>
+Subject: [PATCH] nfc: pn5xx: demote optional GPIO warnings to debug
+
+The board does not wire the optional firmware-download and clock-request
+GPIOs. Keep their existing GPIO_UNUSED handling, but log their absence
+at debug level. Required enable and interrupt GPIO errors stay visible.
+
+Upstream-Status: Inappropriate [board-specific driver]
+Signed-off-by: Teal Bauer <teal@starsong.eu>
+---
+ drivers/nfc/pn5xx/pn5xx_i2c.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/nfc/pn5xx/pn5xx_i2c.c b/drivers/nfc/pn5xx/pn5xx_i2c.c
+--- a/drivers/nfc/pn5xx/pn5xx_i2c.c
++++ b/drivers/nfc/pn5xx/pn5xx_i2c.c
+@@ -522,7 +522,7 @@ static int pn54x_get_pdata(struct device *dev,
+ 	}
+ 	else {
+ 		pdata->firm_gpio = GPIO_UNUSED;
+-		dev_warn(dev, "FIRM GPIO <OPTIONAL> error getting from OF node\n");
++		dev_dbg(dev, "FIRM GPIO <OPTIONAL> error getting from OF node\n");
+ 	}
+ 
+ 	/* irq pin - data available irq - REQUIRED */
+@@ -545,7 +545,7 @@ static int pn54x_get_pdata(struct device *dev,
+ 	}
+ 	else {
+ 		pdata->clkreq_gpio = GPIO_UNUSED;
+-		dev_warn(dev, "CLKREQ GPIO <OPTIONAL> error getting from OF node\n");
++		dev_dbg(dev, "CLKREQ GPIO <OPTIONAL> error getting from OF node\n");
+ 	}
+ 
+ 	/* handle the regulator lines - these are optional

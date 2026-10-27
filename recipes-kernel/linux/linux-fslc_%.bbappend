@@ -15,6 +15,7 @@ SRC_URI:append:unu-mdb = " \
     file://mdb/0003-usb-cdc-wdm-demote-EPIPE-messages-to-debug-level.patch \
     file://mdb/0004-nfc-add-pn5xx-NFC-driver-for-PN544-PN547-PN548.patch \
     file://mdb/0005-nfc-pn5xx-track-supply-state-to-balance-regulator-e.patch \
+    file://mdb/0006-nfc-pn5xx-demote-optional-gpio-warnings.patch \
     file://mdb/config-epit.cfg \
     file://config-sdma.cfg \
     file://mdb/config-nfc.cfg \
