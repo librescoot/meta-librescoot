@@ -27,12 +27,25 @@ mkdir -p "$store" "$conf" "$bin"
 
 cat > "$bin/fw_printenv" <<'EOF'
 #!/bin/sh
+[ "${FAIL_READ:-0}" = 0 ] || exit 1
+if [ "$#" = 0 ]; then
+    for file in "$ENVSTORE"/*; do
+        [ -f "$file" ] || continue
+        printf '%s=' "${file##*/}"
+        cat "$file"
+        printf '\n'
+    done
+    exit 0
+fi
 [ "$1" = "-n" ] || exit 1
+[ "${FAIL_KEY_READ:-0}" = 0 ] || exit 1
 [ -f "$ENVSTORE/$2" ] || exit 1
 cat "$ENVSTORE/$2"
 EOF
 cat > "$bin/fw_setenv" <<'EOF'
 #!/bin/sh
+[ "${FAIL_WRITE:-0}" = 0 ] || exit 1
+printf "%s\n" "$1" >> "$ENVSTORE.writes"
 if [ $# -ge 2 ]; then
     printf '%s' "$2" > "$ENVSTORE/$1"
 else
@@ -122,6 +135,56 @@ expect bootargs 'console=ttymxc0,115200 quiet'
 printf '%s\n' 'set-if-matches bootargs console=ttymxc0,115200' > "$conf/01.conf"
 run
 expect bootargs 'console=ttymxc0,115200 quiet'
+
+# Test the actual shipped identity files, including the flattened build input.
+for identity in "$script_dir/identity.conf" "$script_dir/unu-mdb/identity.conf" "$script_dir/unu-dbc/identity.conf"; do
+    [ -f "$identity" ] || continue
+    case "$(cat "$identity")" in
+        *unu-mdb-*) board=unu-mdb ;;
+        *unu-dbc-*) board=unu-dbc ;;
+        *) fail "unknown identity board: $identity" ;;
+    esac
+    old='setexpr uid_lo *0x021BC410; setenv _hn systemd.hostname='"$board"'-${uid_lo}; setenv bootargs ${bootargs} ${_hn}'
+    new='setexpr uid_hi *0x021BC420; setenv _hn systemd.hostname='"$board"'-${uid_hi}; setenv bootargs ${bootargs} ${_hn}'
+    use_conf "$identity"
+    printf '%s' 'custom bootargs' > "$store/bootargs"
+    printf '%s' 'untouched' > "$store/other"
+    rm -f "$store/mender_pre_setup_commands" "$ENVSTORE.writes"
+    run
+    expect mender_pre_setup_commands "$new"
+    run
+    [ "$(wc -l < "$ENVSTORE.writes")" -eq 1 ] || fail 'missing initialization wrote twice'
+    : > "$store/mender_pre_setup_commands"
+    rm -f "$ENVSTORE.writes"
+    run
+    expect mender_pre_setup_commands "$new"
+    [ "$(wc -l < "$ENVSTORE.writes")" -eq 1 ] || fail 'empty initialization failed'
+    printf '%s' "$old" > "$store/mender_pre_setup_commands"
+    rm -f "$ENVSTORE.writes"
+    run
+    expect mender_pre_setup_commands "$new"
+    run
+    [ "$(wc -l < "$ENVSTORE.writes")" -eq 1 ] || fail 'migration wrote twice'
+    for custom in "$old; custom" " $old" "${old%_hn}other}" 'custom hostname command'; do
+        printf '%s' "$custom" > "$store/mender_pre_setup_commands"
+        rm -f "$ENVSTORE.writes"
+        run
+        expect mender_pre_setup_commands "$custom"
+        [ ! -f "$ENVSTORE.writes" ] || fail 'custom command was written'
+    done
+    expect bootargs 'custom bootargs'
+    expect other 'untouched'
+    rm -f "$store/mender_pre_setup_commands" "$ENVSTORE.writes"
+    if FAIL_READ=1 run; then fail 'read failure succeeded'; fi
+    [ ! -f "$ENVSTORE.writes" ] || fail 'read failure wrote env'
+    if FAIL_WRITE=1 run; then fail 'write failure succeeded'; fi
+    [ ! -f "$store/mender_pre_setup_commands" ] || fail 'write failure changed env'
+    printf '%s' "$old" > "$store/mender_pre_setup_commands"
+    if FAIL_KEY_READ=1 run; then fail 'key read failure succeeded'; fi
+    expect mender_pre_setup_commands "$old"
+    if FAIL_WRITE=1 run; then fail 'migration write failure succeeded'; fi
+    expect mender_pre_setup_commands "$old"
+done
 
 # --- the shipped conf ------------------------------------------------------
 
