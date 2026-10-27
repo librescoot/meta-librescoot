@@ -84,6 +84,7 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     lsc \
     shell-config \
     radio-gaga \
+    connect-service \
     iptables \
     iproute2-tc \
     htop \
