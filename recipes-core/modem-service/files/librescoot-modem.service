@@ -3,6 +3,7 @@ Description=Librescoot Modem Service
 Requires=valkey.service
 After=valkey.service dbus.service ModemManager.service
 Wants=ModemManager.service
+RequiresMountsFor=/data
 
 [Service]
 Type=simple
