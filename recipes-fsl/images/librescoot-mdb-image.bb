@@ -3,8 +3,8 @@ LICENSE = "CC-BY-NC-SA-4.0"
 
 inherit core-image
 
-# Keep the generated filesystem within the fixed Mender rootfs partition.
-IMAGE_OVERHEAD_FACTOR = "1.25"
+# Mender supplies the fixed 512 MiB floor; keep sizing headroom within it.
+IMAGE_OVERHEAD_FACTOR = "1.20"
 
 require librescoot-hwclock-seed.inc
 
@@ -84,6 +84,7 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     lsc \
     shell-config \
     radio-gaga \
+    connect-service \
     iptables \
     iproute2-tc \
     htop \

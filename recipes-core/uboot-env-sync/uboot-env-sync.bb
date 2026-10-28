@@ -20,7 +20,7 @@ RDEPENDS:${PN} = "u-boot-fw-utils"
 do_compile() {
     # The directives write boot-critical values, so run the real script against
     # a fake U-Boot environment during the build instead of trusting a board to
-    # find out. The shipped conf is DBC-only; the generic checks run everywhere.
+    # find out. Identity is checked on both boards; animation is DBC-only.
     sh ${UNPACKDIR}/test-uboot-env-sync.sh
 }
 

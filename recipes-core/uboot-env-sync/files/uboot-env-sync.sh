@@ -68,6 +68,30 @@ parse_match_operands() {
     return 0
 }
 
+# A missing key and an unreadable environment both make fw_printenv -n fail.
+# Confirm the environment is readable and the key absent before initializing it.
+read_current() {
+    if current="$(fw_printenv -n "$key" 2>/dev/null)"; then
+        return 0
+    fi
+    if ! environment="$(fw_printenv 2>/dev/null)"; then
+        echo "uboot-env-sync: cannot read environment for $key" >&2
+        return 1
+    fi
+    if printf '%s\n' "$environment" | (
+        while IFS= read -r entry; do
+            case "$entry" in
+                "$key="*) exit 0 ;;
+            esac
+        done
+        exit 1
+    ); then
+        echo "uboot-env-sync: cannot read $key" >&2
+        return 1
+    fi
+    current=
+}
+
 CONF_DIR=${UBOOT_ENV_SYNC_CONF_DIR:-/etc/uboot-env.d}
 changed=0
 
@@ -85,9 +109,9 @@ for conf in "$CONF_DIR"/*.conf; do
             set-if-missing)
                 key="${rest%% *}"
                 value="${rest#* }"
-                current="$(fw_printenv -n "$key" 2>/dev/null)" || true
+                read_current || exit 1
                 if [ -z "$current" ]; then
-                    fw_setenv "$key" "$value"
+                    fw_setenv "$key" "$value" || exit 1
                     echo "uboot-env-sync: set-if-missing $key = $value"
                     changed=1
                 fi
@@ -106,9 +130,9 @@ for conf in "$CONF_DIR"/*.conf; do
                     echo "uboot-env-sync: malformed set-if-matches for '$key' in $conf, skipping"
                     continue
                 fi
-                current="$(fw_printenv -n "$key" 2>/dev/null)" || true
+                read_current || exit 1
                 if [ "$current" = "$MATCH_OLD" ]; then
-                    fw_setenv "$key" "$MATCH_NEW"
+                    fw_setenv "$key" "$MATCH_NEW" || exit 1
                     echo "uboot-env-sync: set-if-matches $key: [$MATCH_OLD] -> [$MATCH_NEW]"
                     changed=1
                 fi
