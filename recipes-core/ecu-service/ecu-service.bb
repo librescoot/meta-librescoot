@@ -3,7 +3,8 @@ HOMEPAGE = "https://github.com/librescoot/ecu-service"
 LICENSE = "CC-BY-NC-SA-4.0"
 LIC_FILES_CHKSUM = "file://src/ecu-service/LICENSE;md5=fb5d051e53001fdff7fec0f368f47190"
 
-SRC_URI = "git://github.com/librescoot/ecu-service.git;protocol=https;branch=main;destsuffix=${GO_SRCURI_DESTSUFFIX}"
+# Pinned release integrations can live outside main; AUTOREV still follows main.
+SRC_URI = "git://github.com/librescoot/ecu-service.git;protocol=https;branch=main;nobranch=1;destsuffix=${GO_SRCURI_DESTSUFFIX}"
 SRC_URI += " file://librescoot-ecu.service"
 
 SRCREV = "${AUTOREV}"
