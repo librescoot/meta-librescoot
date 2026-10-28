@@ -12,8 +12,8 @@ class MdbImageSizeTests(unittest.TestCase):
     def test_package_budget_does_not_expand_fixed_rootfs(self):
         recipe = (ROOT / 'recipes-fsl/images/librescoot-mdb-image.bb').read_text()
         factor = Decimal(re.search(r'^IMAGE_OVERHEAD_FACTOR = "([0-9.]+)"', recipe, re.M)[1])
-        # Budget includes the administrative enrollment CLI; units are KiB.
-        package_budget = 424 * 1024
+        # Budget includes enrollment and the persistent SMS stack; units are KiB.
+        package_budget = 440 * 1024
         partition_size = 512 * 1024
         padded_size = int((package_budget * factor).to_integral_value(rounding=ROUND_CEILING))
         self.assertGreaterEqual(factor, 1)

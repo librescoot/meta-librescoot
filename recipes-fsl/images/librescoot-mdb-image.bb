@@ -4,7 +4,7 @@ LICENSE = "CC-BY-NC-SA-4.0"
 inherit core-image
 
 # Mender supplies the fixed 512 MiB floor; keep sizing headroom within it.
-IMAGE_OVERHEAD_FACTOR = "1.20"
+IMAGE_OVERHEAD_FACTOR = "1.15"
 
 require librescoot-hwclock-seed.inc
 
