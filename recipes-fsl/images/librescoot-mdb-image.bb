@@ -6,6 +6,26 @@ inherit core-image
 # Mender supplies the fixed 512 MiB floor; keep sizing headroom within it.
 IMAGE_OVERHEAD_FACTOR = "1.15"
 
+# 32768 inodes leave over three times the installed file count without a 32 MiB
+# inode table. Scope this to the rootfs task, not the separate data filesystem.
+EXTRA_IMAGECMD:ext4:task-image-ext4 = "-i 16384"
+
+python check_mdb_rootfs_headroom() {
+    import os
+    import subprocess
+
+    image = os.path.join(d.getVar('IMGDEPLOYDIR'), d.getVar('IMAGE_NAME') + '.ext4')
+    output = subprocess.check_output(['dumpe2fs', '-h', image], text=True,
+                                     env=dict(os.environ, LC_ALL='C'))
+    fields = dict(line.split(':', 1) for line in output.splitlines() if ':' in line)
+    available = (int(fields['Free blocks']) - int(fields['Reserved block count'])) * int(fields['Block size'])
+    minimum = 16 * 1024 * 1024
+    if available < minimum:
+        bb.fatal('MDB rootfs has %d unreserved bytes free; at least %d required' % (available, minimum))
+    bb.note('MDB rootfs has %d unreserved bytes free' % available)
+}
+do_image_ext4[postfuncs] += "check_mdb_rootfs_headroom"
+
 require librescoot-hwclock-seed.inc
 
 LIBRESCOOT_OTA_COMPONENT = "mdb"
