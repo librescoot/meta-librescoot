@@ -7,8 +7,9 @@ inherit core-image
 IMAGE_OVERHEAD_FACTOR = "1.15"
 
 # 32768 inodes leave over three times the installed file count without a 32 MiB
-# inode table. Scope this to the rootfs task, not the separate data filesystem.
-EXTRA_IMAGECMD:ext4:task-image-ext4 = "-i 16384"
+# inode table. The separate data image uses MENDER_DATA_PART_FSOPTS instead.
+# Image-type options must be set before the image tasks are generated.
+EXTRA_IMAGECMD:ext4 = "-i 16384"
 
 python check_mdb_rootfs_headroom() {
     import os

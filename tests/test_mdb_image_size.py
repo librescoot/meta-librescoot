@@ -54,7 +54,8 @@ class MdbImageSizeTests(unittest.TestCase):
     @unittest.skipUnless(shutil.which('mkfs.ext4') and shutil.which('dumpe2fs'), 'requires e2fsprogs')
     def test_inode_geometry_preserves_reserve_and_recovers_space(self):
         recipe = (ROOT / 'recipes-fsl/images/librescoot-mdb-image.bb').read_text()
-        ratio = int(re.search(r'^EXTRA_IMAGECMD:ext4:task-image-ext4 = "-i (\d+)"', recipe, re.M)[1])
+        self.assertNotIn('EXTRA_IMAGECMD:ext4:task-', recipe)
+        ratio = int(re.search(r'^EXTRA_IMAGECMD:ext4 = "-i (\d+)"', recipe, re.M)[1])
         geometries = []
         with tempfile.TemporaryDirectory() as directory:
             for value in (4096, ratio):
