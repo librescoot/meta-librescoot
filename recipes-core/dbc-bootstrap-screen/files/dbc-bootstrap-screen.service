@@ -1,0 +1,13 @@
+[Unit]
+Description=Show DBC bootstrap status
+After=systemd-vconsole-setup.service
+Before=network-pre.target
+ConditionPathExists=/dev/tty1
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/dbc-bootstrap-screen
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

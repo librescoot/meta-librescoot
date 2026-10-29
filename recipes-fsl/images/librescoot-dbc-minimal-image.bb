@@ -25,6 +25,7 @@ IMAGE_FEATURES += " \
 CORE_IMAGE_EXTRA_INSTALL += " \
     u-boot-default-env \
     dbc-netconfig \
+    dbc-bootstrap-screen \
     machine-id-init \
     uboot-env-sync \
     data-server \
@@ -56,11 +57,14 @@ PACKAGE_EXCLUDE = "ofono neard"
 # artifact was actually applied to, because both report the same version.
 MENDER_ARTIFACT_NAME = "release-${LIBRESCOOT_VERSION}-minimal"
 
-# IMAGE_ID is the os-release(5) field for a specific OS image, unused elsewhere
-# in this project. The trampoline reads the DBC's /etc/os-release over ssh and
-# has no mender access there, so the artifact name alone never reaches it.
-# version-service mirrors every os-release line into redis with no allowlist, so
-# this also lands as version:dbc[image_id] at no extra cost.
+# Mask the display console after systemd's offline preset processing. Serial
+# gettys and SSH remain available, and the installer can replace this screen.
+mask_bootstrap_getty_tty1() {
+    ln -sf /dev/null ${IMAGE_ROOTFS}${sysconfdir}/systemd/system/getty@tty1.service
+}
+do_rootfs[postfuncs] += "mask_bootstrap_getty_tty1"
+
+# IMAGE_ID identifies this image to the installer without changing VERSION_ID.
 ROOTFS_POSTPROCESS_COMMAND:append = " librescoot_mark_bootstrap_image;"
 librescoot_mark_bootstrap_image() {
     echo "IMAGE_ID=librescoot-dbc-bootstrap" >> ${IMAGE_ROOTFS}/usr/lib/os-release
