@@ -39,7 +39,8 @@ class DbcBootCrossfadeTest(unittest.TestCase):
             (True, True, True, "eglfs_fbdev"),
             (False, True, True, "eglfs_kms"),
             (True, False, True, "eglfs_kms"),
-            (True, True, False, "eglfs_kms"),
+            (True, True, False, None),
+            (False, True, False, None),
         ):
             with self.subTest(device=device, alpha=alpha, helper_ok=helper_ok), tempfile.TemporaryDirectory() as tmp:
                 root = Path(tmp)
@@ -57,8 +58,13 @@ class DbcBootCrossfadeTest(unittest.TestCase):
                                   .replace("/sys/class/graphics/fb1/overlay_alpha", str(alpha_path))
                                   .replace("/usr/bin/imx-overlay-alpha", str(helper))
                                   .replace("/usr/bin/scootui-qt", str(app)))
-                result = subprocess.run(["sh", str(launch), "argument with spaces"], text=True, capture_output=True, check=True)
-                self.assertEqual(result.stdout.splitlines(), [expected, "argument with spaces"])
+                result = subprocess.run(["sh", str(launch), "argument with spaces"], text=True, capture_output=True)
+                if expected is None:
+                    self.assertNotEqual(result.returncode, 0)
+                    self.assertEqual(result.stdout, "")
+                else:
+                    self.assertEqual(result.returncode, 0, result.stderr)
+                    self.assertEqual(result.stdout.splitlines(), [expected, "argument with spaces"])
 
     def test_alpha_helper_propagates_write_failures(self):
         source = GRAPHICS / "imx-overlay-alpha/files/imx-overlay-alpha.c"
