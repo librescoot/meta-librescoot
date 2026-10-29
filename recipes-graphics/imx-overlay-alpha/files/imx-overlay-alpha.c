@@ -3,7 +3,7 @@
  *
  * Reads/writes /sys/class/graphics/fb1/overlay_alpha to control the
  * IPU Display Processor global alpha for seamless crossfade between
- * boot animation (fb0) and Flutter UI (fb1).
+ * boot animation (fb0) and ScootUI (fb1).
  *
  * Usage:
  *   imx-overlay-alpha <value>
@@ -35,7 +35,13 @@ static int set_alpha(int fd, int alpha)
 {
 	char buf[16];
 	int len = snprintf(buf, sizeof(buf), "%d\n", alpha);
-	if (pwrite(fd, buf, len, 0) < 0) {
+	ssize_t written;
+	do {
+		written = pwrite(fd, buf, len, 0);
+	} while (written < 0 && errno == EINTR);
+	if (written != len) {
+		if (written >= 0)
+			errno = EIO;
 		perror("write alpha");
 		return -1;
 	}
@@ -51,6 +57,10 @@ static void sleep_us(long us)
 
 static int do_fade(int fd, int from, int to, int duration_ms)
 {
+	if (from < 0 || from > 255 || to < 0 || to > 255 || duration_ms < 0) {
+		errno = EINVAL;
+		return -1;
+	}
 	int steps = abs(to - from);
 	if (steps == 0) return set_alpha(fd, to);
 	if (steps > 60) steps = 60;
@@ -61,7 +71,8 @@ static int do_fade(int fd, int from, int to, int duration_ms)
 
 	for (int i = 0; i <= steps; i++) {
 		int alpha = from + (to - from) * i / steps;
-		set_alpha(fd, alpha);
+		if (set_alpha(fd, alpha) < 0)
+			return -1;
 
 		if (i < steps) {
 			clock_gettime(CLOCK_MONOTONIC, &now);

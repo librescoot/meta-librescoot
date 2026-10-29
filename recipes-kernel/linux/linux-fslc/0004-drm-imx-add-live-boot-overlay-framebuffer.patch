@@ -1,0 +1,673 @@
+From: Teal Bauer <teal@starsong.eu>
+Subject: [PATCH] drm/imx: expose a live boot overlay framebuffer
+
+Keep the boot animation on the primary framebuffer while the dashboard
+renders through the GPU render node into an XRGB8888 overlay framebuffer.
+Expose its global alpha through sysfs for the first-frame crossfade without
+letting primary page flips overwrite the foreground alpha controls.
+
+Attach and detach the overlay through DRM atomic state, retry deadlocks
+without leaking states, serialize alpha writes, and retain mapped buffers
+until the last framebuffer user releases them.
+
+Upstream-Status: Inappropriate [Librescoot DBC display integration]
+Signed-off-by: Teal Bauer <teal@starsong.eu>
+
+diff --git a/drivers/gpu/drm/imx/ipuv3/imx-drm-core.c b/drivers/gpu/drm/imx/ipuv3/imx-drm-core.c
+index 4cfabcf73..d441dd638 100644
+--- a/drivers/gpu/drm/imx/ipuv3/imx-drm-core.c
++++ b/drivers/gpu/drm/imx/ipuv3/imx-drm-core.c
+@@ -13,8 +13,17 @@
+ 
+ #include <video/imx-ipu-v3.h>
+ 
++#include <linux/delay.h>
++#include <linux/fb.h>
++#include <linux/mutex.h>
++#include <linux/workqueue.h>
+ #include <drm/drm_atomic.h>
+ #include <drm/drm_atomic_helper.h>
++#include <drm/drm_atomic_uapi.h>
++#include <drm/drm_blend.h>
++#include <drm/drm_client.h>
++#include <drm/drm_fourcc.h>
++#include <drm/drm_framebuffer.h>
+ #include <drm/drm_drv.h>
+ #include <drm/drm_fbdev_dma.h>
+ #include <drm/drm_gem_dma_helper.h>
+@@ -29,9 +38,475 @@
+ 
+ #define MAX_CRTC	4
+ 
+-static int legacyfb_depth = 16;
++/* Both live boot planes use XRGB8888; the IPU drives the RGB565 panel. */
++static int legacyfb_depth = 32;
+ module_param(legacyfb_depth, int, 0444);
+ 
++/* --- Overlay framebuffer device (fb1) with alpha control --- */
++
++struct imx_overlay_fbdev {
++	struct drm_device *drm;
++	struct drm_plane *overlay;
++	struct drm_crtc *crtc;
++	struct drm_gem_dma_object *dma_obj;
++	struct drm_framebuffer *fb;
++	struct fb_info *info;
++	struct drm_client_dev client;
++	struct drm_client_buffer *buffer;
++	u8 alpha;
++	struct delayed_work setup_work;
++	bool attached;
++	struct mutex lock;
++};
++
++static int imx_overlay_atomic_commit(struct imx_overlay_fbdev *ofb, u16 alpha);
++static int imx_overlay_atomic_disable(struct imx_overlay_fbdev *ofb);
++
++static int imx_overlay_fb_mmap(struct fb_info *info, struct vm_area_struct *vma)
++{
++	struct imx_overlay_fbdev *ofb = info->par;
++
++	return drm_gem_prime_mmap(ofb->buffer->gem, vma);
++}
++
++static void imx_overlay_fb_destroy(struct fb_info *info);
++
++static const struct fb_ops imx_overlay_fb_ops = {
++	.fb_destroy = imx_overlay_fb_destroy,
++	.owner = THIS_MODULE,
++	.fb_read = fb_sys_read,
++	.fb_write = fb_sys_write,
++	.fb_fillrect = sys_fillrect,
++	.fb_copyarea = sys_copyarea,
++	.fb_imageblit = sys_imageblit,
++	.fb_mmap = imx_overlay_fb_mmap,
++};
++
++static ssize_t overlay_alpha_show(struct device *dev,
++				  struct device_attribute *attr, char *buf)
++{
++	struct fb_info *info = dev_get_drvdata(dev);
++	struct imx_overlay_fbdev *ofb = info->par;
++
++	return sysfs_emit(buf, "%u\n", READ_ONCE(ofb->alpha));
++}
++
++static ssize_t overlay_alpha_store(struct device *dev,
++				   struct device_attribute *attr,
++				   const char *buf, size_t count)
++{
++	struct fb_info *info = dev_get_drvdata(dev);
++	struct imx_overlay_fbdev *ofb = info->par;
++	unsigned int alpha;
++	int ret = 0;
++
++	if (kstrtouint(buf, 10, &alpha) || alpha > 255)
++		return -EINVAL;
++
++	mutex_lock(&ofb->lock);
++	if (alpha == 0) {
++		ret = imx_overlay_atomic_disable(ofb);
++	} else if (!ofb->attached) {
++		/* First non-zero alpha: attach the plane once. */
++		ret = imx_overlay_atomic_commit(ofb, (u16)alpha << 8 | alpha);
++	} else {
++		/*
++		 * Raw DP register path. No DRM atomic commit, so there is
++		 * nothing to contend with the compositor's page flips: a fade
++		 * step is a register write and cannot be delayed or backed off.
++		 * ipu_plane_atomic_update() only re-applies the global alpha
++		 * when the plane state changes, so this value persists.
++		 */
++		struct ipu_plane *ipu_plane = to_ipu_plane(ofb->overlay);
++
++		/*
++		 * No re-arm here: the attach commit above went through the full
++		 * plane path, which enables the DP channel. Re-arming on every
++		 * step would issue an extra SRM update per step for nothing.
++		 */
++		if (ipu_plane->dp)
++			ipu_dp_set_global_alpha(ipu_plane->dp, true, alpha,
++						false);
++		else
++			ret = -ENODEV;
++	}
++
++	if (!ret)
++		WRITE_ONCE(ofb->alpha, alpha);
++	mutex_unlock(&ofb->lock);
++	return ret ? ret : count;
++}
++
++static DEVICE_ATTR_RW(overlay_alpha);
++
++static int imx_overlay_atomic_commit(struct imx_overlay_fbdev *ofb, u16 alpha)
++{
++	struct drm_device *drm = ofb->drm;
++	struct drm_atomic_state *state;
++	struct drm_plane_state *plane_state;
++	struct drm_modeset_acquire_ctx ctx;
++	int ret;
++
++	drm_modeset_acquire_init(&ctx, 0);
++retry:
++	state = drm_atomic_state_alloc(drm);
++	if (!state) {
++		ret = -ENOMEM;
++		goto out;
++	}
++	state->acquire_ctx = &ctx;
++
++	plane_state = drm_atomic_get_plane_state(state, ofb->overlay);
++	if (IS_ERR(plane_state)) {
++		ret = PTR_ERR(plane_state);
++		/* Taking the mode config locks can fail with -EDEADLK while
++		 * another client (EGLFS) is mid-commit. That is a "retry"
++		 * signal, not an error: letting it escape makes the alpha
++		 * write fail and the caller drop that fade step, which shows
++		 * up as a visible jump in the crossfade. */
++		if (ret == -EDEADLK)
++			goto backoff;
++		goto out_state;
++	}
++
++	drm_atomic_set_fb_for_plane(plane_state, ofb->fb);
++	ret = drm_atomic_set_crtc_for_plane(plane_state, ofb->crtc);
++	if (ret) {
++		if (ret == -EDEADLK)
++			goto backoff;
++		goto out_state;
++	}
++	plane_state->src_x = 0;
++	plane_state->src_y = 0;
++	plane_state->src_w = (u32)ofb->fb->width << 16;
++	plane_state->src_h = (u32)ofb->fb->height << 16;
++	plane_state->crtc_x = 0;
++	plane_state->crtc_y = 0;
++	plane_state->crtc_w = ofb->fb->width;
++	plane_state->crtc_h = ofb->fb->height;
++	plane_state->alpha = alpha;
++
++	ret = drm_atomic_commit(state);
++	if (ret == -EDEADLK)
++		goto backoff;
++
++	if (ret == 0)
++		/*
++		 * The commit above may have taken the short path, which only
++		 * swaps the IDMAC buffer and never re-enables the DP channel.
++		 * If the CRTC has been through a disable/enable cycle since the
++		 * plane was first armed (which is what EGLFS's first commit does
++		 * at the boot-animation handoff), the foreground enable bit is
++		 * clear and the plane is composited nowhere - attached in DRM
++		 * state, with a framebuffer, and invisible. Ask for it
++		 * explicitly; the call is idempotent.
++		 */
++		ipu_plane_rearm_dp(ofb->overlay);
++
++	/* A successful fade step must never be dropped. Anywhere this path can
++	 * return -EDEADLK, retry the whole commit after backing off the mode
++	 * config locks, for the same reason as above. */
++	if (!ret)
++		ofb->attached = true;
++
++out_state:
++	drm_atomic_state_put(state);
++out:
++	drm_modeset_drop_locks(&ctx);
++	drm_modeset_acquire_fini(&ctx);
++
++	if (ret)
++		DRM_DEV_ERROR(drm->dev,
++			      "overlay atomic commit failed: %d\n", ret);
++	return ret;
++
++backoff:
++	drm_atomic_state_clear(state);
++	drm_atomic_state_put(state);
++	drm_modeset_backoff(&ctx);
++	goto retry;
++}
++
++static int imx_overlay_atomic_disable(struct imx_overlay_fbdev *ofb)
++{
++	struct drm_device *drm = ofb->drm;
++	struct drm_atomic_state *state;
++	struct drm_plane_state *plane_state;
++	struct drm_modeset_acquire_ctx ctx;
++	int ret;
++
++	drm_modeset_acquire_init(&ctx, 0);
++retry:
++	state = drm_atomic_state_alloc(drm);
++	if (!state) {
++		ret = -ENOMEM;
++		goto out;
++	}
++	state->acquire_ctx = &ctx;
++
++	plane_state = drm_atomic_get_plane_state(state, ofb->overlay);
++	if (IS_ERR(plane_state)) {
++		ret = PTR_ERR(plane_state);
++		/* Taking the mode config locks can fail with -EDEADLK while
++		 * another client (EGLFS) is mid-commit. That is a "retry"
++		 * signal, not an error: letting it escape makes the alpha
++		 * write fail and the caller drop that fade step, which shows
++		 * up as a visible jump in the crossfade. */
++		if (ret == -EDEADLK)
++			goto backoff;
++		goto out_state;
++	}
++
++	drm_atomic_set_fb_for_plane(plane_state, NULL);
++	ret = drm_atomic_set_crtc_for_plane(plane_state, NULL);
++	if (ret) {
++		if (ret == -EDEADLK)
++			goto backoff;
++		goto out_state;
++	}
++
++	ret = drm_atomic_commit(state);
++	if (ret == -EDEADLK)
++		goto backoff;
++
++	if (!ret)
++		ofb->attached = false;
++
++out_state:
++	drm_atomic_state_put(state);
++out:
++	drm_modeset_drop_locks(&ctx);
++	drm_modeset_acquire_fini(&ctx);
++
++	if (ret)
++		DRM_DEV_ERROR(drm->dev,
++			      "overlay atomic disable failed: %d\n", ret);
++	return ret;
++
++backoff:
++	drm_atomic_state_clear(state);
++	drm_atomic_state_put(state);
++	drm_modeset_backoff(&ctx);
++	goto retry;
++}
++
++static void imx_overlay_setup_work_fn(struct work_struct *work)
++{
++	struct imx_overlay_fbdev *ofb =
++		container_of(work, struct imx_overlay_fbdev, setup_work.work);
++	struct drm_device *drm = ofb->drm;
++	struct drm_plane *plane;
++	struct drm_crtc *crtc;
++	struct drm_client_buffer *buffer;
++	struct drm_gem_dma_object *dma_obj;
++	struct iosys_map map;
++	struct fb_info *info;
++	u32 width, height, format;
++	int ret;
++
++	ofb->crtc = NULL;
++	drm_for_each_crtc(crtc, drm) {
++		if (crtc->state && crtc->state->active) {
++			ofb->crtc = crtc;
++			break;
++		}
++	}
++
++	if (!ofb->crtc) {
++		schedule_delayed_work(&ofb->setup_work, msecs_to_jiffies(100));
++		return;
++	}
++
++	ofb->overlay = NULL;
++	drm_for_each_plane(plane, drm) {
++		if (plane->type == DRM_PLANE_TYPE_OVERLAY &&
++		    (plane->possible_crtcs & drm_crtc_mask(ofb->crtc))) {
++			ofb->overlay = plane;
++			break;
++		}
++	}
++
++	if (!ofb->overlay) {
++		DRM_DEV_INFO(drm->dev,
++			     "no overlay plane found, skipping overlay fbdev\n");
++		return;
++	}
++
++	width = ofb->crtc->state->adjusted_mode.hdisplay;
++	height = ofb->crtc->state->adjusted_mode.vdisplay;
++	format = DRM_FORMAT_XRGB8888;
++
++	if (!width || !height) {
++		schedule_delayed_work(&ofb->setup_work, msecs_to_jiffies(100));
++		return;
++	}
++
++	DRM_DEV_INFO(drm->dev,
++		     "setting up overlay fbdev: %ux%u on plane %u\n",
++		     width, height, ofb->overlay->base.id);
++
++	buffer = drm_client_framebuffer_create(&ofb->client, width, height,
++					       format);
++	if (IS_ERR(buffer)) {
++		DRM_DEV_ERROR(drm->dev,
++			      "failed to create overlay buffer: %ld\n",
++			      PTR_ERR(buffer));
++		return;
++	}
++	ofb->buffer = buffer;
++	ofb->fb = buffer->fb;
++
++	dma_obj = to_drm_gem_dma_obj(buffer->gem);
++	ofb->dma_obj = dma_obj;
++
++	ret = drm_client_buffer_vmap(buffer, &map);
++	if (ret) {
++		DRM_DEV_ERROR(drm->dev,
++			      "failed to vmap overlay buffer: %d\n", ret);
++		goto err_buffer;
++	}
++
++	memset(map.vaddr, 0, buffer->gem->size);
++
++	info = framebuffer_alloc(0, drm->dev);
++	if (!info) {
++		ret = -ENOMEM;
++		goto err_vmap;
++	}
++
++	info->par = ofb;
++	info->fbops = &imx_overlay_fb_ops;
++
++	info->fix.type = FB_TYPE_PACKED_PIXELS;
++	info->fix.visual = FB_VISUAL_TRUECOLOR;
++	info->fix.accel = FB_ACCEL_NONE;
++	info->fix.smem_start = dma_obj->dma_addr;
++	info->fix.smem_len = buffer->gem->size;
++	info->fix.line_length = ofb->fb->pitches[0];
++	strscpy(info->fix.id, "imx-overlay", sizeof(info->fix.id));
++
++	info->var.xres = width;
++	info->var.yres = height;
++	info->var.xres_virtual = width;
++	info->var.yres_virtual = height;
++	/*
++	 * XRGB8888, matching the primary plane's fbdev (the kernel
++	 * command line sets imxdrm.legacyfb_depth=32). The IPU DP does not
++	 * composite an RGB565 overlay in this arrangement, and matching the
++	 * primary also lets userspace treat both planes identically.
++	 * transp stays zero-length, i.e. no alpha channel: the fade is the
++	 * DP global alpha, not per-pixel alpha.
++	 */
++	info->var.bits_per_pixel = 32;
++	info->var.red.offset = 16;
++	info->var.red.length = 8;
++	info->var.green.offset = 8;
++	info->var.green.length = 8;
++	info->var.blue.offset = 0;
++	info->var.blue.length = 8;
++	info->var.activate = FB_ACTIVATE_NOW;
++
++	info->screen_buffer = map.vaddr;
++	info->screen_size = buffer->gem->size;
++	info->flags = FBINFO_VIRTFB;
++	if (!IS_ENABLED(CONFIG_DRM_FBDEV_LEAK_PHYS_SMEM))
++		info->flags |= FBINFO_HIDE_SMEM_START;
++
++	ret = register_framebuffer(info);
++	if (ret) {
++		DRM_DEV_ERROR(drm->dev,
++			      "failed to register overlay fb: %d\n", ret);
++		goto err_fbinfo;
++	}
++	ofb->info = info;
++
++	ret = device_create_file(info->dev, &dev_attr_overlay_alpha);
++	if (ret)
++		DRM_DEV_ERROR(drm->dev, "failed to expose overlay alpha: %d\n", ret);
++
++	DRM_DEV_INFO(drm->dev,
++		     "overlay fbdev registered as fb%d (%ux%u XRGB8888)\n",
++		     info->node, width, height);
++	return;
++
++err_fbinfo:
++	framebuffer_release(info);
++err_vmap:
++	drm_client_buffer_vunmap(buffer);
++err_buffer:
++	drm_client_framebuffer_delete(buffer);
++	ofb->buffer = NULL;
++	ofb->fb = NULL;
++}
++
++static void imx_overlay_fb_destroy(struct fb_info *info)
++{
++	struct imx_overlay_fbdev *ofb = info->par;
++
++	/* Open framebuffer mappings keep the buffer and DRM client alive. */
++	drm_client_buffer_vunmap(ofb->buffer);
++	drm_client_framebuffer_delete(ofb->buffer);
++	drm_client_release(&ofb->client);
++	framebuffer_release(info);
++	kfree(ofb);
++}
++
++static void imx_overlay_client_unregister(struct drm_client_dev *client)
++{
++	struct imx_overlay_fbdev *ofb =
++		container_of(client, struct imx_overlay_fbdev, client);
++
++	cancel_delayed_work_sync(&ofb->setup_work);
++	if (ofb->info) {
++		device_remove_file(ofb->info->dev, &dev_attr_overlay_alpha);
++		if (ofb->attached)
++			imx_overlay_atomic_disable(ofb);
++		unregister_framebuffer(ofb->info);
++	} else {
++		drm_client_release(client);
++		kfree(ofb);
++	}
++}
++
++static int imx_overlay_client_hotplug(struct drm_client_dev *client)
++{
++	return 0;
++}
++
++static const struct drm_client_funcs imx_overlay_client_funcs = {
++	.owner = THIS_MODULE,
++	.unregister = imx_overlay_client_unregister,
++	.hotplug = imx_overlay_client_hotplug,
++};
++
++static void imx_overlay_fbdev_init(struct drm_device *drm)
++{
++	struct imx_overlay_fbdev *ofb;
++	int ret;
++
++	ofb = kzalloc(sizeof(*ofb), GFP_KERNEL);
++	if (!ofb)
++		return;
++
++	ofb->drm = drm;
++	mutex_init(&ofb->lock);
++	INIT_DELAYED_WORK(&ofb->setup_work, imx_overlay_setup_work_fn);
++
++	ret = drm_client_init(drm, &ofb->client, "overlay-fbdev",
++			      &imx_overlay_client_funcs);
++	if (ret) {
++		DRM_DEV_ERROR(drm->dev,
++			      "failed to init overlay client: %d\n", ret);
++		kfree(ofb);
++		return;
++	}
++
++	drm_client_register(&ofb->client);
++	schedule_delayed_work(&ofb->setup_work, msecs_to_jiffies(500));
++}
++
++/* --- End overlay fbdev --- */
++
+ DEFINE_DRM_GEM_DMA_FOPS(imx_drm_driver_fops);
+ 
+ void imx_drm_connector_destroy(struct drm_connector *connector)
+@@ -251,6 +726,8 @@ static int imx_drm_bind(struct device *dev)
+ 
+ 	drm_fbdev_dma_setup(drm, legacyfb_depth);
+ 
++	imx_overlay_fbdev_init(drm);
++
+ 	return 0;
+ 
+ err_poll_fini:
+diff --git a/drivers/gpu/drm/imx/ipuv3/ipuv3-plane.c b/drivers/gpu/drm/imx/ipuv3/ipuv3-plane.c
+index 704c54975..04b8bd7d1 100644
+--- a/drivers/gpu/drm/imx/ipuv3/ipuv3-plane.c
++++ b/drivers/gpu/drm/imx/ipuv3/ipuv3-plane.c
+@@ -36,11 +36,6 @@ static unsigned int ipu_src_rect_width(const struct drm_plane_state *state)
+ 	return ALIGN(drm_rect_width(&state->src) >> 16, 8);
+ }
+ 
+-static inline struct ipu_plane *to_ipu_plane(struct drm_plane *p)
+-{
+-	return container_of(p, struct ipu_plane, base);
+-}
+-
+ static const uint32_t ipu_plane_all_formats[] = {
+ 	DRM_FORMAT_ARGB1555,
+ 	DRM_FORMAT_XRGB1555,
+@@ -262,6 +257,47 @@ static void ipu_plane_enable(struct ipu_plane *ipu_plane)
+ 		ipu_dp_enable_channel(ipu_plane->dp);
+ }
+ 
++/*
++ * Re-enable a plane's DP channel.
++ *
++ * ipu_plane_enable() is the only caller of ipu_dp_enable_channel(), and it is
++ * reached only from ipu_plane_atomic_update()'s full path - the path taken when
++ * the plane has no framebuffer yet or a modeset is pending. Two things then
++ * conspire against a plane that is already attached:
++ *
++ *  - ipu_crtc_atomic_disable() calls ipu_plane_disable(plane, true), which
++ *    clears DP_COM_CONF_FG_EN via ipu_dp_disable_channel(), but the plane's own
++ *    atomic state keeps its framebuffer;
++ *  - a later atomic_update for that plane sees old_state->fb != NULL and no
++ *    pending modeset, so it takes the short path and only swaps the IDMAC
++ *    buffer. ipu_dp_enable_channel() is never called again.
++ *
++ * The result is a plane that is attached as far as DRM state is concerned, with
++ * a framebuffer, and yet is never composited by the DP: the foreground is
++ * simply not shown. A CRTC disable/enable cycle that does not include the
++ * overlay plane (EGLFS's first commit, for instance) leaves exactly that state.
++ *
++ * Re-arming is cheap and idempotent, so callers that know they need the plane
++ * displayed can just ask for it.
++ */
++bool ipu_plane_rearm_dp(struct drm_plane *plane)
++{
++	struct ipu_plane *ipu_plane = to_ipu_plane(plane);
++	static bool logged;
++
++	if (!ipu_plane->dp)
++		return false;
++
++	if (!logged) {
++		logged = true;
++		dev_info(plane->dev->dev,
++			 "re-arming DP channel for plane %u\n", plane->base.id);
++	}
++
++	ipu_dp_enable_channel(ipu_plane->dp);
++	return true;
++}
++
+ void ipu_plane_disable(struct ipu_plane *ipu_plane, bool disable_dp_channel)
+ {
+ 	int ret;
+@@ -597,20 +633,44 @@ static void ipu_plane_atomic_update(struct drm_plane *plane,
+ 
+ 	switch (ipu_plane->dp_flow) {
+ 	case IPU_DP_FLOW_SYNC_BG:
++		/*
++		 * GWSEL/GWAM live in DP_COM_CONF, which the background and the
++		 * foreground flow share. A plain page flip on the primary plane
++		 * used to rewrite them on every commit, which steals the global
++		 * window back from the overlay's raw alpha writes: the two
++		 * writers then alternate at the commit rate and the splash
++		 * flickers. Only touch the registers when this plane's own state
++		 * actually changed.
++		 */
++		if (old_state->alpha == new_state->alpha &&
++		    old_state->normalized_zpos == new_state->normalized_zpos &&
++		    old_state->fb && new_state->fb)
++			break;
++
+ 		if (new_state->normalized_zpos == 1) {
+ 			ipu_dp_set_global_alpha(ipu_plane->dp,
+-						!fb->format->has_alpha, 0xff,
++						!fb->format->has_alpha,
++						new_state->alpha >> 8,
+ 						true);
+ 		} else {
+ 			ipu_dp_set_global_alpha(ipu_plane->dp, true, 0, true);
+ 		}
+ 		break;
+ 	case IPU_DP_FLOW_SYNC_FG:
+-		if (new_state->normalized_zpos == 1) {
++		/*
++		 * Raw-alpha variant: the overlay fbdev owns the DP global alpha
++		 * and writes the register directly during a fade. Only re-apply
++		 * the value from the plane state when that state actually
++		 * changed (attach, modeset, property change), so ordinary
++		 * commits - EGLFS page flips, which pull this plane in as an
++		 * affected plane - cannot clobber an in-flight fade step.
++		 */
++		if (old_state->alpha != new_state->alpha ||
++		    old_state->fb == NULL || new_state->fb == NULL)
+ 			ipu_dp_set_global_alpha(ipu_plane->dp,
+-						!fb->format->has_alpha, 0xff,
++						!fb->format->has_alpha,
++						new_state->alpha >> 8,
+ 						false);
+-		}
+ 		break;
+ 	}
+ 
+@@ -937,6 +997,12 @@ struct ipu_plane *ipu_plane_init(struct drm_device *dev, struct ipu_soc *ipu,
+ 	if (ret)
+ 		return ERR_PTR(ret);
+ 
++	if (type == DRM_PLANE_TYPE_OVERLAY && dp >= 0) {
++		ret = drm_plane_create_alpha_property(&ipu_plane->base);
++		if (ret)
++			return ERR_PTR(ret);
++	}
++
+ 	ret = drm_plane_create_color_properties(&ipu_plane->base,
+ 			BIT(DRM_COLOR_YCBCR_BT601) |
+ 			BIT(DRM_COLOR_YCBCR_BT709),
+diff --git a/drivers/gpu/drm/imx/ipuv3/ipuv3-plane.h b/drivers/gpu/drm/imx/ipuv3/ipuv3-plane.h
+index 6d544e6ce..94055fa55 100644
+--- a/drivers/gpu/drm/imx/ipuv3/ipuv3-plane.h
++++ b/drivers/gpu/drm/imx/ipuv3/ipuv3-plane.h
+@@ -29,6 +29,11 @@ struct ipu_plane {
+ 	bool			disabling;
+ };
+ 
++static inline struct ipu_plane *to_ipu_plane(struct drm_plane *p)
++{
++	return container_of(p, struct ipu_plane, base);
++}
++
+ struct ipu_plane *ipu_plane_init(struct drm_device *dev, struct ipu_soc *ipu,
+ 				 int dma, int dp, unsigned int possible_crtcs,
+ 				 enum drm_plane_type type);
+@@ -44,6 +49,7 @@ int ipu_plane_mode_set(struct ipu_plane *plane, struct drm_crtc *crtc,
+ int ipu_plane_irq(struct ipu_plane *plane);
+ 
+ void ipu_plane_disable(struct ipu_plane *ipu_plane, bool disable_dp_channel);
++bool ipu_plane_rearm_dp(struct drm_plane *plane);
+ void ipu_plane_disable_deferred(struct drm_plane *plane);
+ bool ipu_plane_atomic_update_pending(struct drm_plane *plane);
+ 

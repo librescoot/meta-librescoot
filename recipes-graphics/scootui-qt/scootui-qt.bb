@@ -18,6 +18,7 @@ SRC_URI = "git://github.com/librescoot/scootui-qt.git;protocol=https${SCOOTUI_QT
 SRC_URI += "file://scootui-qt.service"
 SRC_URI += "file://scootui-qt-rpi4.service"
 SRC_URI += "file://scootui-qt-kms.json"
+SRC_URI:append:unu-dbc = " file://scootui-qt-launch.sh"
 
 PV = "1.0.0+git${SRCPV}"
 PE = "1"
@@ -58,6 +59,8 @@ RDEPENDS:${PN} = " \
     qmaplibre \
 "
 
+RDEPENDS:${PN}:append:unu-dbc = " qt-eglfs-fbdev imx-overlay-alpha"
+
 EXTRA_OECMAKE = "-DCMAKE_BUILD_TYPE=Release"
 
 do_install() {
@@ -80,6 +83,8 @@ do_install:append:unu-dbc() {
     install -m 0644 ${UNPACKDIR}/scootui-qt.service ${D}${systemd_system_unitdir}/
     install -d ${D}${sysconfdir}
     install -m 0644 ${UNPACKDIR}/scootui-qt-kms.json ${D}${sysconfdir}/
+    install -d ${D}${libexecdir}/librescoot
+    install -m 0755 ${UNPACKDIR}/scootui-qt-launch.sh ${D}${libexecdir}/librescoot/
 }
 
 do_install:append:librescoot-dbc-rpi4() {
@@ -89,6 +94,7 @@ do_install:append:librescoot-dbc-rpi4() {
 
 FILES:${PN} = " \
     ${bindir}/scootui-qt \
+    ${libexecdir}/librescoot \
     ${datadir}/scootui/glyphs \
     ${sysconfdir}/scootui-qt-kms.json \
     ${systemd_system_unitdir}/scootui-qt.service \

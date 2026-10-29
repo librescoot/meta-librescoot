@@ -65,6 +65,7 @@ SRC_URI:append:unu-dbc = " \
     file://0001-fbcon-show-boot-logo-regardless-of-loglevel.patch \
     file://0002-drm-panel-add-AUO-A045FTN01-SPI-RGB-panel-driver.patch \
     file://0003-logo-select-alternative-bootup-logo-from-cmdline.patch \
+    file://0004-drm-imx-add-live-boot-overlay-framebuffer.patch \
     file://config-panel-a045.cfg \
     file://config-logo.cfg \
     file://config-logos.cfg \

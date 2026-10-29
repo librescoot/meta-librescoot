@@ -18,8 +18,7 @@ Environment=XDG_CACHE_HOME=/var/volatile/cache
 Environment=XDG_RUNTIME_DIR="/run/user/0"
 Environment=MESA_SHADER_CACHE_DIR=/var/volatile/mesa_shader_cache
 Environment=QT_QPA_PLATFORM=eglfs
-# The deployed DBC kernel exposes the display through DRM/KMS.
-Environment=QT_QPA_EGLFS_INTEGRATION=eglfs_kms
+# The launcher selects the live fbdev overlay or the DRM/KMS fallback.
 Environment=QT_QPA_EGLFS_KMS_CONFIG=/etc/scootui-qt-kms.json
 Environment=QT_QPA_EGLFS_KMS_ATOMIC=1
 Environment=QT_QPA_EGLFS_SWAPINTERVAL=1
@@ -39,7 +38,7 @@ Nice=-10
 # an in-flight OTA cannot steal render time. Threads inherit the mask.
 CPUAffinity=1
 RuntimeDirectory=user/0
-ExecStart=/usr/bin/scootui-qt
+ExecStart=/usr/libexec/librescoot/scootui-qt-launch.sh
 
 User=root
 Group=root
