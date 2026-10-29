@@ -29,7 +29,8 @@ class DbcBootCrossfadeTest(unittest.TestCase):
         unit = (GRAPHICS / "scootui-qt/files/scootui-qt.service").read_text()
         self.assertIn("ExecStart=/usr/libexec/librescoot/scootui-qt-launch.sh", unit)
         plugin = (ROOT / "recipes-qt/qt6/qt-eglfs-fbdev.bb").read_text()
-        self.assertIn('SRCREV = "da339e2324996dc525d7c7f9464521854533aa29"', plugin)
+        self.assertIn('SRCREV = "8553f62498c5ead9330ac1e41bb5f6fd3b283010"', plugin)
+        self.assertIn('PV = "0.1.1+git${SRCPV}"', plugin)
         self.assertIn("qt6-cmake", plugin)
         self.assertIn("LICENSE.CC-BY-NC-SA-4.0", plugin)
 

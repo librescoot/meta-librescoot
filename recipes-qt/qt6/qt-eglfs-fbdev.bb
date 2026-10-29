@@ -5,8 +5,8 @@ LICENSE = "CC-BY-NC-SA-4.0"
 LIC_FILES_CHKSUM = "file://LICENSE.CC-BY-NC-SA-4.0;md5=fb5d051e53001fdff7fec0f368f47190"
 
 SRC_URI = "git://github.com/librescoot/qt-eglfs-fbdev.git;branch=main;protocol=https"
-SRCREV = "da339e2324996dc525d7c7f9464521854533aa29"
-PV = "0.1.0+git${SRCPV}"
+SRCREV = "8553f62498c5ead9330ac1e41bb5f6fd3b283010"
+PV = "0.1.1+git${SRCPV}"
 
 inherit cmake qt6-cmake pkgconfig
 
