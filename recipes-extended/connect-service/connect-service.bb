@@ -14,7 +14,7 @@ GO_LINKSHARED = ""
 GOBUILDFLAGS:remove = "-buildmode=pie"
 export CGO_ENABLED = "0"
 
-RDEPENDS:${PN} += "radio-gaga ca-certificates"
+RDEPENDS:${PN} += "radio-gaga ca-certificates systemd-extra-utils"
 
 # Only the explicit CLI belongs on the scooter, not the hosted servers or demos.
 do_install() {

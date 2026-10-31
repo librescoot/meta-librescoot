@@ -16,7 +16,7 @@ class ConnectPackagingTest(unittest.TestCase):
         recipe = RECIPE.read_text()
         self.assertIn('GO_INSTALL = "${GO_IMPORT}/cmd/connect"', recipe)
         self.assertIn('export CGO_ENABLED = "0"', recipe)
-        self.assertIn('RDEPENDS:${PN} += "radio-gaga ca-certificates"', recipe)
+        self.assertIn('RDEPENDS:${PN} += "radio-gaga ca-certificates systemd-extra-utils"', recipe)
         self.assertEqual(re.findall(r"^inherit (.+)$", recipe, re.M), ["librescoot-go"])
         self.assertNotIn("SYSTEMD", recipe)
         self.assertNotIn("pkg_postinst", recipe)
