@@ -1,12 +1,14 @@
 [Unit]
 Description=Librescoot Bluetooth Service
 Requires=valkey.service
-After=valkey.service
+After=valkey.service clock-coordinator.service
+Wants=clock-coordinator.service
 
 [Service]
 Type=simple
 User=root
 Group=root
+ExecStartPre=-/usr/bin/clock-coordinator --wait=3s
 ExecStart=/usr/bin/bluetooth-service
 Restart=always
 KillMode=mixed

@@ -1,7 +1,7 @@
 [Unit]
 Description=Restore system clock from saved timestamp
 DefaultDependencies=no
-Before=sysinit.target time-sync.target chrony.service
+Before=sysinit.target time-sync.target chronyd.service chrony.service
 After=local-fs.target
 
 [Service]

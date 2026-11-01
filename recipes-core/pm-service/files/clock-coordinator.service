@@ -1,0 +1,15 @@
+[Unit]
+Description=Librescoot clock recovery coordinator
+After=fake-hwclock-load.service
+Wants=chronyd.service
+
+[Service]
+Type=simple
+User=root
+Group=root
+ExecStart=/usr/bin/clock-coordinator
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target

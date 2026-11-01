@@ -4,11 +4,12 @@ Documentation=https://github.com/librescoot/dbc-dispatcher
 DefaultDependencies=no
 
 After=systemd-journald.socket
-Wants=systemd-networkd.service
+Wants=systemd-networkd.service clock-coordinator.service
 Conflicts=shutdown.target
 Before=shutdown.target
 
 [Service]
+ExecStartPre=-/usr/bin/clock-coordinator --wait=10s
 ExecStart=/usr/bin/dbc-dispatcher
 
 User=root

@@ -58,6 +58,7 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     screen \
     chrony \
     chronyc \
+    clock-coordinator \
     sqlite3 \
     htop \
     iotop \
