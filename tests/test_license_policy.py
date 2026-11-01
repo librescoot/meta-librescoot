@@ -64,6 +64,15 @@ class LicensePolicyTests(unittest.TestCase):
         self.assertEqual(license_of(animation), CC_LICENSE)
         self.assertIn(CC_CHECKSUM, animation.read_text())
 
+    def test_dashboard_qr_license_is_declared_and_installed(self):
+        recipe = ROOT / 'recipes-graphics/scootui-qt/scootui-qt.bb'
+        self.assertEqual(license_of(recipe), f'{CC_LICENSE} & MIT')
+        text = recipe.read_text()
+        self.assertIn('file://third_party/qrcodegen/LICENSE;md5=28ccd15bed5ee5f934d0ca360d477c98', text)
+        self.assertIn('install -m 0644 ${S}/third_party/qrcodegen/LICENSE ${D}${datadir}/licenses/${PN}/qrcodegen-MIT', text)
+        files = text.split('FILES:${PN} = "', 1)[1]
+        self.assertIn('${datadir}/licenses/${PN}', files)
+
     def test_upstream_licenses_are_preserved(self):
         self.assertEqual(license_of(ROOT / 'recipes-graphics/carplay-service/carplay-service.bb'), 'MIT')
         self.assertEqual(license_of(ROOT / 'recipes-extended/fake-hwclock/fake-hwclock.bb'), 'GPL-2.0-only')

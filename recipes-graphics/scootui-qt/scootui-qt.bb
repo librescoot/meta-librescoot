@@ -4,8 +4,10 @@ AUTHOR = "Librescoot Contributors"
 HOMEPAGE = "https://github.com/librescoot/scootui-qt"
 SECTION = "graphics"
 
-LICENSE = "CC-BY-NC-SA-4.0"
-LIC_FILES_CHKSUM = "file://LICENSE;md5=fb5d051e53001fdff7fec0f368f47190"
+LICENSE = "CC-BY-NC-SA-4.0 & MIT"
+LIC_FILES_CHKSUM = "file://LICENSE;md5=fb5d051e53001fdff7fec0f368f47190 \
+    file://third_party/qrcodegen/LICENSE;md5=28ccd15bed5ee5f934d0ca360d477c98 \
+"
 
 # Unpinned builds leave SRCREV at AUTOREV, which the fetcher can only resolve
 # when the branch is named. Release pins are fetched by SHA and may not be
@@ -66,6 +68,8 @@ EXTRA_OECMAKE = "-DCMAKE_BUILD_TYPE=Release"
 do_install() {
     install -d ${D}${bindir}
     install -m 0755 ${B}/bin/scootui ${D}${bindir}/scootui-qt
+    install -d ${D}${datadir}/licenses/${PN}
+    install -m 0644 ${S}/third_party/qrcodegen/LICENSE ${D}${datadir}/licenses/${PN}/qrcodegen-MIT
 
     # SDF glyphs for the map's street name labels. The styles reference these
     # as file:// so MapLibre reads them straight off disk; without them the
@@ -96,6 +100,7 @@ FILES:${PN} = " \
     ${bindir}/scootui-qt \
     ${libexecdir}/librescoot \
     ${datadir}/scootui/glyphs \
+    ${datadir}/licenses/${PN} \
     ${sysconfdir}/scootui-qt-kms.json \
     ${systemd_system_unitdir}/scootui-qt.service \
 "
