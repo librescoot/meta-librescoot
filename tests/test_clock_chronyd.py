@@ -29,7 +29,7 @@ class ChronydBootOrderTest(unittest.TestCase):
                 processes = []
                 def start(board):
                     directory = root / board
-                    directory.mkdir()
+                    directory.mkdir(mode=0o700)
                     base = f'cmdport 0\nbindcmdaddress {directory}/cmd.sock\npidfile {directory}/pid\n'
                     if board == 'mdb':
                         base += f'port {port}\nbindaddress 127.0.0.1\nallow 127.0.0.1\nlocal stratum 10\n'
