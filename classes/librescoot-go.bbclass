@@ -25,7 +25,6 @@ PV = "0.0+git${SRCPV}"
 # PKGV will be set dynamically during do_package
 PKGV = "${LIBRESCOOT_GO_VERSION}"
 LIBRESCOOT_GO_VERSION ?= "${PV}"
-LIBRESCOOT_GO_RELEASE_VERSION ?= ""
 
 # Go needs network access to download modules during compile
 do_compile[network] = "1"
@@ -60,19 +59,6 @@ do_compile() {
             VERSION="0.0.0-g$REVISION"
             bbnote "librescoot-go: Using SRCREV fallback version=$VERSION"
         fi
-    fi
-
-    # An explicit release version must identify the clean, pinned checkout.
-    if [ -n "${LIBRESCOOT_GO_RELEASE_VERSION}" ]; then
-        RELEASE_VERSION="${LIBRESCOOT_GO_RELEASE_VERSION}"
-        printf '%s\n' "$RELEASE_VERSION" | grep -Eq '^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$' || bbfatal "Invalid Go release version"
-        printf '%s\n' "${SRCREV}" | grep -Eq '^[0-9a-f]{40}$' || bbfatal "Go release requires a full pinned SRCREV"
-        [ -n "$GITDIR" ] || bbfatal "Go release requires a git checkout"
-        [ "$(git -C "$GITDIR" rev-parse HEAD)" = "${SRCREV}" ] || bbfatal "Go release checkout does not match SRCREV"
-        [ "$(git -C "$GITDIR" cat-file -t "refs/tags/$RELEASE_VERSION" 2>/dev/null)" = "tag" ] || bbfatal "Go release requires an annotated tag"
-        [ "$(git -C "$GITDIR" rev-parse "refs/tags/$RELEASE_VERSION^{commit}" 2>/dev/null)" = "${SRCREV}" ] || bbfatal "Go release tag does not match SRCREV"
-        [ -z "$(git -C "$GITDIR" status --porcelain --untracked-files=normal)" ] || bbfatal "Go release checkout is dirty"
-        VERSION="$RELEASE_VERSION"
     fi
 
     # Save version for packaging
