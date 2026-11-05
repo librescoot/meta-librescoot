@@ -19,6 +19,7 @@ GOBUILDFLAGS:remove = "-buildmode=pie"
 
 FILES:${PN} += "/usr/lib/systemd/system/librescoot-update.service"
 FILES:${PN} += "/usr/bin/mender-apply-delta.py"
+FILES:${PN} += "${datadir}/librescoot-update/OTA_PROTOCOL"
 
 # MDB gets mdb service, DBC gets dbc service
 SYSTEMD_SERVICE:${PN} = "librescoot-update.service"
@@ -35,6 +36,11 @@ do_install() {
     # Install binary
     install -m 0755 ${B}/bin/linux_arm/update-service ${D}${bindir}/
     install -m 0755 ${UNPACKDIR}/mender-apply-delta.py ${D}/usr/bin/
+    # Only capable service sources advertise durable v2 feed support.
+    if [ -f ${B}/src/github.com/librescoot/update-service/OTA_PROTOCOL ]; then
+        install -d ${D}${datadir}/librescoot-update
+        install -m 0644 ${B}/src/github.com/librescoot/update-service/OTA_PROTOCOL ${D}${datadir}/librescoot-update/
+    fi
     
     # Install appropriate systemd service based on device type
     if [ "${MACHINE}" = "unu-mdb" ]; then

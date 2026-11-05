@@ -15,6 +15,10 @@
 LIBRESCOOT_OTA_COMPONENT ?= ""
 LIBRESCOOT_VERSION ??= "0.0.1"
 
+# Mender signs this capability with the target metadata. Do not advertise it
+# merely because the layer is new: older pinned updaters have no marker.
+MENDER_ARTIFACT_EXTRA_ARGS:append = " $(if grep -qx 2 ${IMAGE_ROOTFS}${datadir}/librescoot-update/OTA_PROTOCOL 2>/dev/null; then printf '%s' '--provides rootfs-image.librescoot-updater-protocol:2'; fi)"
+
 # Build the .mender artifact before the data partition image that embeds it.
 IMAGE_TYPEDEP:dataimg:append = " mender"
 
