@@ -13,10 +13,11 @@ class HDiffPatchRecipeTest(unittest.TestCase):
         self.assertIn('oe_runmake -B hpatchz CC="${CC} ${LDFLAGS}"', recipe)
         self.assertIn('${D}${bindir}/hpatchz', recipe)
 
-    def test_updater_uses_feature_branch_and_decoder(self):
+    def test_updater_adds_decoder_for_nightlies_only(self):
         recipe = (ROOT / 'recipes-core/update-service/update-service.bb').read_text()
-        self.assertIn('branch=feat/hdiffpatch', recipe)
-        self.assertIn('RDEPENDS:${PN} += "hdiffpatch"', recipe)
+        self.assertIn('branch=main', recipe)
+        self.assertIn("(d.getVar('LIBRESCOOT_VERSION') or '').startswith('nightly-')", recipe)
+        self.assertIn("' hdiffpatch'", recipe)
 
 
 if __name__ == '__main__':

@@ -4,15 +4,15 @@ LICENSE = "(AGPL-3.0-only | CC-BY-NC-SA-4.0)"
 LIC_FILES_CHKSUM = "file://src/github.com/librescoot/update-service/LICENSE;md5=eb1e647870add0502f8f010b19de32af \
                     file://${COMMON_LICENSE_DIR}/CC-BY-NC-SA-4.0;md5=277261f4a7c6c099822f8f5cb0180da0"
 
-SRC_URI = "git://github.com/librescoot/update-service.git;protocol=https;branch=feat/hdiffpatch;destsuffix=${GO_SRCURI_DESTSUFFIX}"
+SRC_URI = "git://github.com/librescoot/update-service.git;protocol=https;branch=main;destsuffix=${GO_SRCURI_DESTSUFFIX}"
 SRC_URI += "file://mender-apply-delta.py"
 
-SRCREV = "72c63356a35e31267bb5888e9b7cc332369964bd"
+SRCREV = "${AUTOREV}"
 
 
 inherit librescoot-go systemd
 
-RDEPENDS:${PN} += "hdiffpatch"
+RDEPENDS:${PN}:append = "${@' hdiffpatch' if (d.getVar('LIBRESCOOT_VERSION') or '').startswith('nightly-') else ''}"
 
 GO_IMPORT = "github.com/librescoot/update-service"
 
