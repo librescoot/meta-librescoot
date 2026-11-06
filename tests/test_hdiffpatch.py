@@ -13,10 +13,13 @@ class HDiffPatchRecipeTest(unittest.TestCase):
         self.assertIn('oe_runmake -B hpatchz CC="${CC} ${LDFLAGS}"', recipe)
         self.assertIn('${D}${bindir}/hpatchz', recipe)
 
-    def test_updater_adds_decoder_for_nightlies_only(self):
+    def test_updater_adds_decoder_for_nightly_and_testing(self):
         recipe = (ROOT / 'recipes-core/update-service/update-service.bb').read_text()
         self.assertIn('branch=main', recipe)
-        self.assertIn("(d.getVar('LIBRESCOOT_VERSION') or '').startswith('nightly-')", recipe)
+        self.assertIn("(d.getVar('LIBRESCOOT_VERSION') or '').startswith(('nightly-', 'testing-'))", recipe)
+        for version, expected in [('nightly-20261106T123456', True), ('testing-20261106T123456', True),
+                                  ('v1.4.2', False), ('custom-nightly-20261106T123456-feature', False), ('', False)]:
+            self.assertEqual(version.startswith(('nightly-', 'testing-')), expected, version)
         self.assertIn("' hdiffpatch'", recipe)
 
 
