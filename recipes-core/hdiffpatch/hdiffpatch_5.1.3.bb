@@ -10,7 +10,7 @@ DEPENDS = "zstd"
 EXTRA_OEMAKE = "DIR_DIFF=0 MT=0 LDEF=0 ZLIB=0 LZMA=0 ZSTD=2 XXH=0 MD5=0 BSD=0 VCD=0 BZIP2=0"
 
 do_compile() {
-    oe_runmake hpatchz CC="${CC} ${LDFLAGS}"
+    oe_runmake -B hpatchz CC="${CC} ${LDFLAGS}"
 }
 
 do_install() {
