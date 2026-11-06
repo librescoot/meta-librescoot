@@ -3,7 +3,8 @@ HOMEPAGE = "https://github.com/librescoot/lsc"
 LICENSE = "CC-BY-NC-SA-4.0"
 LIC_FILES_CHKSUM = "file://src/lsc/LICENSE;md5=fb5d051e53001fdff7fec0f368f47190"
 
-SRC_URI = "git://github.com/librescoot/lsc.git;protocol=https;branch=main;destsuffix=${GO_SRCURI_DESTSUFFIX} \
+LIBRESCOOT_GIT_BRANCH ??= "main"
+SRC_URI = "git://github.com/librescoot/lsc.git;protocol=https;branch=${LIBRESCOOT_GIT_BRANCH};destsuffix=${GO_SRCURI_DESTSUFFIX} \
            file://lsc-completion.sh \
 "
 
