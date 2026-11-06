@@ -10,7 +10,7 @@ class HDiffPatchRecipeTest(unittest.TestCase):
         recipe = (ROOT / 'recipes-core/hdiffpatch/hdiffpatch_5.1.3.bb').read_text()
         self.assertIn('3b9dca715ca492873bf2c49e22e5d5b7d2a78620', recipe)
         self.assertIn('DEPENDS = "zstd"', recipe)
-        self.assertIn('oe_runmake hpatchz', recipe)
+        self.assertIn('oe_runmake hpatchz CC="${CC} ${LDFLAGS}"', recipe)
         self.assertIn('${D}${bindir}/hpatchz', recipe)
 
     def test_updater_uses_feature_branch_and_decoder(self):
