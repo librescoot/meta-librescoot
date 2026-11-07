@@ -61,7 +61,7 @@ RDEPENDS:${PN} = " \
     qmaplibre \
 "
 
-RDEPENDS:${PN}:append:unu-dbc = " qt-eglfs-fbdev imx-overlay-alpha"
+RDEPENDS:${PN}:append:unu-dbc = " qt-eglfs-fbdev imx-overlay-alpha hdiffpatch"
 
 EXTRA_OECMAKE = "-DCMAKE_BUILD_TYPE=Release"
 

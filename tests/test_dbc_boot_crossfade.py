@@ -24,7 +24,7 @@ class DbcBootCrossfadeTest(unittest.TestCase):
 
     def test_recipe_installs_complete_display_path(self):
         recipe = (GRAPHICS / "scootui-qt/scootui-qt.bb").read_text()
-        self.assertIn('RDEPENDS:${PN}:append:unu-dbc = " qt-eglfs-fbdev imx-overlay-alpha"', recipe)
+        self.assertIn('RDEPENDS:${PN}:append:unu-dbc = " qt-eglfs-fbdev imx-overlay-alpha hdiffpatch"', recipe)
         self.assertIn("install -m 0755 ${UNPACKDIR}/scootui-qt-launch.sh", recipe)
         unit = (GRAPHICS / "scootui-qt/files/scootui-qt.service").read_text()
         self.assertIn("ExecStart=/usr/libexec/librescoot/scootui-qt-launch.sh", unit)
