@@ -1,11 +1,29 @@
 #!/bin/sh
+#
+# Keep the route to the peer's service address on the USB link while the peer
+# answers there, so the kernel hands it to the PPP backup when it does not.
+#
+# Metric preference cannot do this by itself. A route whose device has lost
+# carrier stays in the table and still wins against a higher-metric
+# alternative, and the connected route on usb0 behaves the same way, so the
+# kernel never falls back on its own. Withdrawing the route is what moves the
+# peer over, which is why this runs a probe at all.
+#
+# The probe must not run without carrier: it would leave through the default
+# route, which on the MDB is the mobile uplink.
 
 PEER_CONFIG="${PEER_CONFIG:-/etc/ppp/peers/uart-link}"
+USB_IF="${USB_IF:-usb0}"
+CARRIER_PATH="${CARRIER_PATH:-/sys/class/net/$USB_IF/carrier}"
+PROBE_INTERVAL="${PROBE_INTERVAL:-5}"
+IDLE_INTERVAL="${IDLE_INTERVAL:-2}"
 
 if grep -q '^192\.168\.8\.1:192\.168\.8\.2$' "$PEER_CONFIG"; then
+    # MDB: its peer is the DBC.
     SERVICE_PEER=192.168.7.2
     USB_PEER=192.168.9.2
 elif grep -q '^192\.168\.8\.2:192\.168\.8\.1$' "$PEER_CONFIG"; then
+    # DBC: its peer is the MDB.
     SERVICE_PEER=192.168.7.1
     USB_PEER=192.168.9.1
 else
@@ -13,17 +31,16 @@ else
     exit 1
 fi
 
-USB_PATH="${USB_PATH:-/sys/class/net/usb0}"
-
 while :; do
-    if [ -e "$USB_PATH" ] && ping -c 1 -W 1 "$USB_PEER" >/dev/null 2>&1; then
-        if ! ip route show "$SERVICE_PEER/32" | grep -q "via $USB_PEER dev usb0.*metric 50"; then
-            ip route replace "$SERVICE_PEER/32" via "$USB_PEER" dev usb0 metric 50
-        fi
+    if [ "$(cat "$CARRIER_PATH" 2>/dev/null)" = 1 ] &&
+       ping -c 1 -W 1 "$USB_PEER" >/dev/null 2>&1; then
+        ip route replace "$SERVICE_PEER/32" via "$USB_PEER" dev "$USB_IF" metric 50
+        interval="$PROBE_INTERVAL"
     else
-        ip route del "$SERVICE_PEER/32" via "$USB_PEER" dev usb0 metric 50 2>/dev/null || true
+        ip route del "$SERVICE_PEER/32" via "$USB_PEER" dev "$USB_IF" metric 50 2>/dev/null || true
+        interval="$IDLE_INTERVAL"
     fi
 
     [ "${LINK_ROUTE_ONCE:-0}" = 1 ] && exit 0
-    sleep 2
+    sleep "$interval"
 done
