@@ -51,3 +51,27 @@ if grep -Eq '^[[:space:]]*[dD][+!]?[[:space:]]+/run/lock([[:space:]]|$)' \
     echo 'duplicate Librescoot /run/lock tmpfiles rule found' >&2
     exit 1
 fi
+
+# The DBC link unit owns usb0's admin state. It is never enabled at boot:
+# vehicle-service starts and stops it, and the route monitor rides along so it
+# only runs while the link is supposed to be up.
+LINK_UNIT="$ROOT/files/librescoot-dbc-link.service"
+MONITOR_UNIT="$ROOT/files/librescoot-link-route-monitor.service"
+grep -Fq 'file://librescoot-dbc-link.service' "$RECIPE"
+assert_line 'SYSTEMD_SERVICE:${PN}-dbc-link = "librescoot-dbc-link.service"' "$RECIPE"
+assert_line 'SYSTEMD_AUTO_ENABLE:${PN}-dbc-link = "disable"' "$RECIPE"
+assert_line '    install -m 0644 ${UNPACKDIR}/librescoot-dbc-link.service ${D}${systemd_system_unitdir}' "$RECIPE"
+assert_line 'SYSTEMD_AUTO_ENABLE:${PN}-route-monitor:unu-mdb = "disable"' "$RECIPE"
+assert_line 'Wants=librescoot-link-route-monitor.service' "$LINK_UNIT"
+assert_line 'Type=oneshot' "$LINK_UNIT"
+assert_line 'RemainAfterExit=yes' "$LINK_UNIT"
+assert_line 'ExecStart=/usr/sbin/ip link set usb0 up' "$LINK_UNIT"
+assert_line 'ExecStop=/usr/sbin/ip link set usb0 down' "$LINK_UNIT"
+# The monitor follows the link unit, not ppp-link: an open gate keeps usb0 up
+# while the DBC is off, and there the monitor still has a route to withdraw.
+assert_line 'PartOf=librescoot-dbc-link.service' "$MONITOR_UNIT"
+assert_line 'After=librescoot-netconfig.service librescoot-dbc-link.service' "$MONITOR_UNIT"
+if grep -Fq 'PartOf=ppp-link.service' "$MONITOR_UNIT"; then
+    echo 'the route monitor must not follow ppp-link.service' >&2
+    exit 1
+fi

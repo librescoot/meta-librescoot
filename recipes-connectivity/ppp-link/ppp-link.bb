@@ -13,6 +13,7 @@ SRC_URI = "file://ppp-link.service \
            file://ip-down-backup-routes \
            file://librescoot-link-route-monitor \
            file://librescoot-link-route-monitor.service \
+           file://librescoot-dbc-link.service \
 "
 SRC_URI:append:unu-mdb = " file://uart-link-mdb"
 SRC_URI:append:unu-dbc = " file://uart-link-dbc"
@@ -23,11 +24,19 @@ PACKAGES += "${PN}-route-monitor"
 FILES:${PN}-route-monitor = "${libexecdir}/librescoot-link-route-monitor ${systemd_system_unitdir}/librescoot-link-route-monitor.service"
 RDEPENDS:${PN} += "${PN}-route-monitor"
 
-SYSTEMD_PACKAGES = "${PN} ${PN}-route-monitor"
+# The link unit is never enabled: vehicle-service owns the DBC link and
+# starts it whenever usb0 should be up (an open gate, or dashboard power).
+PACKAGES += "${PN}-dbc-link"
+FILES:${PN}-dbc-link = "${systemd_system_unitdir}/librescoot-dbc-link.service"
+RDEPENDS:${PN}-dbc-link += "iproute2"
+
+SYSTEMD_PACKAGES = "${PN} ${PN}-route-monitor ${PN}-dbc-link"
 SYSTEMD_SERVICE:${PN} = "ppp-link.service"
 SYSTEMD_AUTO_ENABLE:${PN} = "enable"
 SYSTEMD_SERVICE:${PN}-route-monitor = "librescoot-link-route-monitor.service"
 SYSTEMD_AUTO_ENABLE:${PN}-route-monitor = "enable"
+SYSTEMD_SERVICE:${PN}-dbc-link = "librescoot-dbc-link.service"
+SYSTEMD_AUTO_ENABLE:${PN}-dbc-link = "disable"
 
 # On the MDB the link is slaved to DBC power: vehicle-service starts/stops
 # this unit alongside the dashboard_power GPIO. Auto-starting it at boot
@@ -35,6 +44,12 @@ SYSTEMD_AUTO_ENABLE:${PN}-route-monitor = "enable"
 # dead TX line reads as a permanent break and triggers periodic imx-uart
 # "RX flood" soft resets.
 SYSTEMD_AUTO_ENABLE:${PN}:unu-mdb = "disable"
+
+# On the MDB the link unit owns usb0, so it also owns the route monitor:
+# the monitor must not run while the link is deliberately down, and it is
+# pulled in when the link comes up. The DBC has no vehicle-service to switch
+# the link, so there the monitor stays enabled at boot.
+SYSTEMD_AUTO_ENABLE:${PN}-route-monitor:unu-mdb = "disable"
 
 do_install() {
     install -d ${D}${sysconfdir}/ppp/peers
@@ -45,6 +60,7 @@ do_install() {
 
     install -m 0644 ${UNPACKDIR}/ppp-link.service ${D}${systemd_system_unitdir}
     install -m 0644 ${UNPACKDIR}/librescoot-link-route-monitor.service ${D}${systemd_system_unitdir}
+    install -m 0644 ${UNPACKDIR}/librescoot-dbc-link.service ${D}${systemd_system_unitdir}
     install -m 0755 ${UNPACKDIR}/librescoot-link-route-monitor ${D}${libexecdir}
     install -m 0755 ${UNPACKDIR}/ip-up-backup-routes ${D}${sysconfdir}/ppp/ip-up.d/50-backup-routes
     install -m 0755 ${UNPACKDIR}/ip-down-backup-routes ${D}${sysconfdir}/ppp/ip-down.d/50-backup-routes

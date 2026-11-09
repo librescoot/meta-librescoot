@@ -1,0 +1,16 @@
+[Unit]
+Description=USB link to the DBC
+# The link's admin state is the DBC link decision. vehicle-service starts and
+# stops this unit, so it is never enabled at boot; see the ppp-link recipe.
+# Both internal transports hang off a live link: the route monitor is pulled in
+# here, and the PPP backup routes come from ppp-link.service.
+Wants=librescoot-link-route-monitor.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/sbin/ip link set usb0 up
+ExecStop=/usr/sbin/ip link set usb0 down
+
+[Install]
+WantedBy=multi-user.target

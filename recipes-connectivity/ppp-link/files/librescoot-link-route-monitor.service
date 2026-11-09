@@ -1,6 +1,10 @@
 [Unit]
 Description=Select the MDB-DBC service route
-After=librescoot-netconfig.service
+After=librescoot-netconfig.service librescoot-dbc-link.service
+# The link unit is what says the DBC link should be up. Starting it pulls this
+# unit in; stopping it takes this unit down with it, after which usb0 going
+# down removes the route this unit holds.
+PartOf=librescoot-dbc-link.service
 
 [Service]
 Type=simple

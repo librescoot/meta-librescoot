@@ -23,4 +23,6 @@ if [ -n "$gate" ]; then
 fi
 
 echo "No usb0 gate decision recorded, raising usb0 for recovery"
-ip link set usb0 up
+# Through the link unit when it is there, so the route monitor comes up with
+# the link. Bootstrap images ship no ppp-link and keep the direct call.
+systemctl start librescoot-dbc-link.service 2>/dev/null || ip link set usb0 up
