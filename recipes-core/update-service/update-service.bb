@@ -12,6 +12,7 @@ SRCREV = "${AUTOREV}"
 
 inherit librescoot-go systemd
 
+RDEPENDS:${PN} += "zstd"
 RDEPENDS:${PN}:append = "${@' hdiffpatch' if (d.getVar('LIBRESCOOT_VERSION') or '').startswith(('nightly-', 'testing-')) else ''}"
 
 GO_IMPORT = "github.com/librescoot/update-service"
