@@ -4,7 +4,7 @@ LICENSE = "CC-BY-NC-SA-4.0"
 inherit core-image
 
 # Mender supplies the fixed 512 MiB floor; keep sizing headroom within it.
-IMAGE_OVERHEAD_FACTOR = "1.15"
+IMAGE_OVERHEAD_FACTOR = "1.13"
 
 # 32768 inodes leave over three times the installed file count without a 32 MiB
 # inode table. The separate data image uses MENDER_DATA_PART_FSOPTS instead.
