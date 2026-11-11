@@ -24,8 +24,6 @@ DEPENDS = " \
     sqlite3 \
     curl \
     zlib \
-    luajit \
-    libspatialite \
     czmq \
     lz4 \
 "
@@ -33,7 +31,7 @@ DEPENDS = " \
 # Optional dependencies
 PACKAGECONFIG ??= "tools data-tools http services"
 PACKAGECONFIG[tools] = "-DENABLE_TOOLS=ON,-DENABLE_TOOLS=OFF"
-PACKAGECONFIG[data-tools] = "-DENABLE_DATA_TOOLS=ON,-DENABLE_DATA_TOOLS=OFF"
+PACKAGECONFIG[data-tools] = "-DENABLE_DATA_TOOLS=ON,-DENABLE_DATA_TOOLS=OFF,luajit libspatialite"
 PACKAGECONFIG[http] = "-DENABLE_HTTP=ON,-DENABLE_HTTP=OFF"
 PACKAGECONFIG[python] = "-DENABLE_PYTHON_BINDINGS=ON,-DENABLE_PYTHON_BINDINGS=OFF,python3"
 PACKAGECONFIG[services] = "-DENABLE_SERVICES=ON,-DENABLE_SERVICES=OFF,prime-server"
@@ -65,6 +63,13 @@ do_install:append() {
 
     install -m 0644 ${UNPACKDIR}/valhalla_config.json ${D}${sysconfdir}/valhalla/
     install -m 0644 ${UNPACKDIR}/valhalla.service ${D}${systemd_system_unitdir}
+
+    if [ "${@bb.utils.contains('PACKAGECONFIG', 'data-tools', '1', '0', d)}" = "0" ]; then
+        rm -f ${D}${bindir}/valhalla_build_config \
+              ${D}${bindir}/valhalla_build_elevation \
+              ${D}${bindir}/valhalla_build_extract \
+              ${D}${bindir}/valhalla_build_timezones
+    fi
 }
 
 # Package files
@@ -94,7 +99,7 @@ FILES:${PN}-python = " \
 PACKAGES += "${PN}-python"
 
 RDEPENDS:${PN} = " \
-    libspatialite \
+    ${@bb.utils.contains('PACKAGECONFIG', 'data-tools', 'libspatialite', '', d)} \
     sqlite3 \
 "
 

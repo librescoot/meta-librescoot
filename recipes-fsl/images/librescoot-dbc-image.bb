@@ -67,11 +67,9 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     zstd \
     valhalla \
     prime-server \
-    libspatialite \
     ffmpeg \
     scootui-qt \
     scootui-tui \
-    glmark2 \
     nano \
     hiredis \
 "

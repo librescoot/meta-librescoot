@@ -89,8 +89,8 @@ not a supported deployment configuration.
 The DBC receives GPS data from the MDB and does not install GeoClue by default.
 To include GeoClue's modem sources for a custom DBC build, set
 `LIBRESCOOT_DBC_GEOCLUE_MODEM = "1"` in `local.conf`. The standard DBC image
-also omits Shapely; the Valhalla tile-building scripts `valhalla_build_extract`
-and `valhalla_build_elevation` require it and are intended for off-device use.
+also omits Shapely and the Valhalla tile-building tools. Build map tiles
+separately and install the resulting extracts on the DBC.
 
 ## Build and test
 

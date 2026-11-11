@@ -32,6 +32,21 @@ class ImageFootprintTests(unittest.TestCase):
         shapely = (ROOT / "recipes-devtools/python/python3-shapely_2.0.2.bb").read_text()
         self.assertIn("${D}${PYTHON_SITEPACKAGES_DIR}/shapely/tests", shapely)
 
+    def test_dbc_omits_benchmarks_and_valhalla_data_builders(self):
+        image = (ROOT / "recipes-fsl/images/librescoot-dbc-image.bb").read_text()
+        packages = re.search(r'CORE_IMAGE_EXTRA_INSTALL \+= "(.*?)"', image, re.S)[1].split()
+        self.assertNotIn("glmark2", packages)
+        self.assertNotIn("libspatialite", packages)
+        self.assertIn("python3-redis", packages)
+        self.assertIn("python3-aioredis", packages)
+        distro = (ROOT / "conf/distro/librescoot-dbc.conf").read_text()
+        self.assertIn('PACKAGECONFIG:remove:pn-valhalla = "data-tools"', distro)
+        recipe = (ROOT / "recipes-navigation/valhalla/valhalla_3.6.3.bb").read_text()
+        self.assertIn('-DENABLE_DATA_TOOLS=OFF,luajit libspatialite', recipe)
+        self.assertIn("'data-tools', 'libspatialite', '', d", recipe)
+        for script in ("config", "elevation", "extract", "timezones"):
+            self.assertIn("${D}${bindir}/valhalla_build_" + script, recipe)
+
     def test_geoclue_plugin_is_removed_only_from_default_dbc(self):
         append = (ROOT / "recipes-qt/qt6/qtpositioning_git.bbappend").read_text()
         body = re.search(r"librescoot_prune_geoclue_plugin\(\) \{\n(.*?)\n\}", append, re.S)[1]
