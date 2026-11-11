@@ -54,7 +54,7 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     networkmanager-nmcli \
     packagegroup-core-base-utils \
     firmwared \
-    python3 \
+    python3-core \
     canutils \
     i2c-tools \
     python3-pyserial \

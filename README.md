@@ -86,6 +86,10 @@ image recipes select the installed packages. Keep `MACHINE`, `DISTRO`, and the
 image recipe aligned; cross-combining board configuration and image intent is
 not a supported deployment configuration.
 
+The DBC receives GPS data from the MDB and does not enable GeoClue's modem
+sources by default. To include them for a custom DBC build, set
+`LIBRESCOOT_DBC_GEOCLUE_MODEM = "1"` in `local.conf`.
+
 ## Build and test
 
 There is no standalone unit-test harness in this layer. Validate recipe parsing

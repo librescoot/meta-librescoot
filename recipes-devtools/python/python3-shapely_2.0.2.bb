@@ -24,4 +24,8 @@ setup(
 EOF
 }
 
+do_install:append:class-target() {
+    rm -rf ${D}${PYTHON_SITEPACKAGES_DIR}/shapely/tests
+}
+
 BBCLASSEXTEND = "native nativesdk"
