@@ -19,6 +19,7 @@ grep -Fq 'file://ppp-link.service' "$RECIPE"
 assert_line 'inherit systemd' "$RECIPE"
 assert_line 'SYSTEMD_SERVICE:${PN} = "ppp-link.service"' "$RECIPE"
 assert_line 'SYSTEMD_AUTO_ENABLE:${PN} = "enable"' "$RECIPE"
+assert_line 'RDEPENDS:${PN} += "${PN}-route-monitor ${PN}-dbc-link"' "$RECIPE"
 assert_line 'SYSTEMD_AUTO_ENABLE:${PN}:unu-mdb = "disable"' "$RECIPE"
 assert_line '    install -m 0644 ${UNPACKDIR}/ppp-link.service ${D}${systemd_system_unitdir}' "$RECIPE"
 

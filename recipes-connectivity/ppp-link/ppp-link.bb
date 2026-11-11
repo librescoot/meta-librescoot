@@ -22,7 +22,7 @@ inherit systemd
 
 PACKAGES += "${PN}-route-monitor"
 FILES:${PN}-route-monitor = "${libexecdir}/librescoot-link-route-monitor ${systemd_system_unitdir}/librescoot-link-route-monitor.service"
-RDEPENDS:${PN} += "${PN}-route-monitor"
+RDEPENDS:${PN} += "${PN}-route-monitor ${PN}-dbc-link"
 
 # The link unit is never enabled: vehicle-service owns the DBC link and
 # starts it whenever usb0 should be up (an open gate, or dashboard power).
