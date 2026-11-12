@@ -47,6 +47,29 @@ class ImageFootprintTests(unittest.TestCase):
         for script in ("config", "elevation", "extract", "timezones"):
             self.assertIn("${D}${bindir}/valhalla_build_" + script, recipe)
 
+    def test_dbc_omits_epdc_firmware(self):
+        machine = (ROOT / "conf/machine/unu-dbc.conf").read_text()
+        self.assertNotIn("firmware-imx-epdc", machine)
+
+    def test_unused_styles_are_removed_only_on_dbc(self):
+        append = (ROOT / "recipes-qt/qt6/qtdeclarative_git.bbappend").read_text()
+        self.assertIn("PACKAGE_PREPROCESS_FUNCS:append:class-target", append)
+        body = re.search(r"librescoot_prune_qt_styles\(\) \{\n(.*?)\n\}", append, re.S)[1]
+        unused = ("FluentWinUI3", "Imagine", "Material", "Universal")
+        for machine in ("unu-dbc", "librescoot-dbc-rpi4", "unu-mdb"):
+            with self.subTest(machine=machine), tempfile.TemporaryDirectory() as tmp:
+                lib = Path(tmp) / "usr/lib"
+                controls = lib / "qml/QtQuick/Controls"
+                for style in (*unused, "Basic", "Fusion"):
+                    (controls / style).mkdir(parents=True)
+                    (lib / f"libQt6QuickControls2{style}.so.6").touch()
+                env = dict(os.environ, PKGD=tmp, libdir="/usr/lib", MACHINE=machine)
+                subprocess.run(["sh", "-eu", "-c", body], env=env, check=True)
+                for style in (*unused, "Basic", "Fusion"):
+                    present = machine != "unu-dbc" or style not in unused
+                    self.assertEqual((controls / style).exists(), present)
+                    self.assertEqual((lib / f"libQt6QuickControls2{style}.so.6").exists(), present)
+
     def test_geoclue_plugin_is_removed_only_from_default_dbc(self):
         append = (ROOT / "recipes-qt/qt6/qtpositioning_git.bbappend").read_text()
         body = re.search(r"librescoot_prune_geoclue_plugin\(\) \{\n(.*?)\n\}", append, re.S)[1]
