@@ -22,6 +22,7 @@ GOBUILDFLAGS:remove = "-buildmode=pie"
 
 FILES:${PN} += "/usr/lib/systemd/system/librescoot-update.service"
 FILES:${PN} += "/usr/bin/mender-apply-delta.py"
+FILES:${PN} += "${datadir}/librescoot/ota-feed-v2"
 
 # MDB gets mdb service, DBC gets dbc service
 SYSTEMD_SERVICE:${PN} = "librescoot-update.service"

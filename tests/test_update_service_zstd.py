@@ -10,6 +10,10 @@ class UpdateServiceZstdRecipeTest(unittest.TestCase):
         recipe = (ROOT / 'recipes-core/update-service/update-service.bb').read_text()
         self.assertRegex(recipe, r'(?m)^RDEPENDS:\$\{PN\} \+= "zstd"$')
 
+    def test_v2_marker_is_in_runtime_package(self):
+        recipe = (ROOT / 'recipes-core/update-service/update-service.bb').read_text()
+        self.assertIn('FILES:${PN} += "${datadir}/librescoot/ota-feed-v2"', recipe)
+
     def test_v2_marker_is_only_copied_from_aware_updater_source(self):
         recipe = (ROOT / 'recipes-core/update-service/update-service.bb').read_text()
         source = '${B}/src/github.com/librescoot/update-service/packaging/ota-feed-v2'
