@@ -38,6 +38,13 @@ do_install() {
     # Install binary
     install -m 0755 ${B}/bin/linux_arm/update-service ${D}${bindir}/
     install -m 0755 ${UNPACKDIR}/mender-apply-delta.py ${D}/usr/bin/
+
+    # Only images built from a feed-aware updater source get the bridge marker.
+    if [ -f ${B}/src/github.com/librescoot/update-service/packaging/ota-feed-v2 ]; then
+        install -d ${D}${datadir}/librescoot
+        printf 'v2\nrelease-%s\n' '${LIBRESCOOT_VERSION}' > ${D}${datadir}/librescoot/ota-feed-v2
+        chmod 0644 ${D}${datadir}/librescoot/ota-feed-v2
+    fi
     
     # Install appropriate systemd service based on device type
     if [ "${MACHINE}" = "unu-mdb" ]; then
