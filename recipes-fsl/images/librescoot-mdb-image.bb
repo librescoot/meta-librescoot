@@ -140,3 +140,10 @@ strip_journal_upload_enable() {
     rm -f ${IMAGE_ROOTFS}${sysconfdir}/systemd/system/multi-user.target.wants/systemd-journal-upload.service
 }
 do_rootfs[postfuncs] += "strip_journal_upload_enable"
+
+# The existing enable link can survive preset processing on the MDB.
+# NetworkManager remains the provider of network-online.target on the MDB.
+strip_mdb_networkd_wait_online_enable() {
+    rm -f ${IMAGE_ROOTFS}${sysconfdir}/systemd/system/network-online.target.wants/systemd-networkd-wait-online.service
+}
+do_rootfs[postfuncs] += "strip_mdb_networkd_wait_online_enable"
