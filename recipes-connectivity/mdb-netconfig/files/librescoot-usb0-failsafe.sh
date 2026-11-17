@@ -15,6 +15,26 @@
 # A valkey that will not answer lands here too, with the same conclusion: a
 # scooter whose Redis is down is not one to lock the recovery port on.
 
+# An installer run holds the recovery path open on its own.
+#
+# The installer registers the scooter's keycards over usb0, and the keycard
+# threshold closes the gate the moment the second card is learned. That takes
+# usb0 down underneath the installer that still has to verify and finish, so the
+# run record is the window: finish: pending while the run is open, finish:
+# complete once it is over. A record without the field has only just been
+# written, which counts as open.
+#
+# This also covers the boot where vehicle-service read the keycard counts before
+# /data was mounted, recorded "closed" from them, and never looked again.
+run_state_path=${LIBRESCOOT_INSTALLER_RUN_STATE:-/data/installer/run-state}
+finish=$(sed -n 's/^finish:[[:space:]]*//p' "$run_state_path" 2>/dev/null | head -1 | tr -d '\r')
+
+if [ -e "$run_state_path" ] && [ "$finish" != "complete" ]; then
+    echo "Installer run in progress (finish: ${finish:-absent}), raising usb0 for the installer"
+    systemctl start librescoot-dbc-link.service 2>/dev/null || ip link set usb0 up
+    exit 0
+fi
+
 gate=$(redis-cli --raw hget system usb0-gate 2>/dev/null)
 
 if [ -n "$gate" ]; then
